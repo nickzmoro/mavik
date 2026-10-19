@@ -1,0 +1,42 @@
+# Mavik — Sua equipe de marketing em um só estúdio
+
+> Mavik é uma plataforma SaaS de marketing com Inteligência Artificial que une criação de artes em camadas reais, blindagem de brandbook e agendamento automático de conteúdo em um único estúdio visual.
+
+## Visão Geral
+Diferente de geradores de imagem genéricos que achatam e redesenham logotipos e alucinam elementos visuais, a Mavik trabalha com estúdio de camadas reais editáveis (background, tipografia, selos e vetor original da marca). A plataforma garante fidelidade visual absoluta ao brandbook da empresa, com textos coerentes e contraste acessível pré-validado.
+
+## Proposta de Valor
+- **Brandbook 100% Blindado**: O arquivo original do logotipo (SVG/PNG em alta resolução) é aplicado intacto. A IA nunca redesenha, distorce ou altera as cores da sua marca.
+- **Estúdio de Camadas Reais**: Cada criativo nasce em camadas separadas e editáveis. O usuário pode trocar fotos, reposicionar títulos, ajustar cores ou solicitar revisões por comandos de texto em linguagem natural.
+- **Geração Estratégica Completa**: Calendários e pautas estruturados em 4 pilares de conteúdo (autoridade, conversão direta, engajamento e relacionamento).
+- **Validação Automática Prévia**: Checagem algorítmica de contraste visual (AAA 7:1), aplicação estrita de tipografia oficial e prevenção de espaços vazios.
+- **Publicação Assistida**: Agendamento com 1 clique para horários de pico no Instagram, sem publicação autônoma não autorizada.
+
+## As 4 Regras Não Negociáveis da IA
+1. **Regra #01 - Logo Intocável**: Aplicada a partir do arquivo original. A IA nunca redesenha, nunca mexe.
+2. **Regra #02 - Sempre Diferente, Sempre a Sua Cara**: Layouts novos a cada criação, respeitando o modelo da marca à risca.
+3. **Regra #03 - Zero Espaço Vazio**: Cada arte sai com composição balanceada, sem buracos ou áreas mortas no design.
+4. **Regra #04 - Texto com Sentido**: Título, copy e chamada para ação (CTA) escritos harmonicamente a partir do objetivo do negócio.
+
+## Fluxo de Trabalho (Jornada em 5 Etapas)
+1. **Contexto do Negócio (1 minuto)**: Definição de segmento, público-alvo e tom de voz.
+2. **Montagem do Brand Kit (2 minutos)**: Upload da logo oficial, definição da paleta primária/secundária e fontes da marca.
+3. **Planejamento de 30 Dias (Instantâneo)**: Grade mensal de posts sugerida e dividida estrategicamente.
+4. **Geração e Edição no Estúdio**: Visualização das artes em camadas reais com edição visual ou por prompt.
+5. **Aprovação e Agendamento**: Publicação nos horários de maior engajamento com monitoramento de métricas limpas.
+
+## Planos
+- **Essencial**: 1 Brand Kit completo, estúdio em camadas reais, até 30 artes com IA por mês e exportação em alta definição.
+- **Profissional (Mais Escolhido)**: Brand Kit avançado, paletas ilimitadas, comandos por texto, campanhas de 30 dias em 1 clique e métricas integradas.
+- **Agência (Em Breve)**: Múltiplos Brand Kits para clientes simultâneos, links públicos de aprovação e gestão de times.
+
+## Perguntas Frequentes (FAQ)
+- **A IA muda a minha logo?** Não. Ela é aplicada a partir do seu arquivo original preservado.
+- **Preciso saber design?** Não. O sistema cuida da hierarquia e estética, mas profissionais têm controle total para editar cada camada.
+- **Posso editar depois de gerar?** Sim, no editor visual ou solicitando ajustes por texto.
+- **A ferramenta publica sozinha no Instagram?** Nunca sem a sua expressa aprovação.
+- **Em quanto tempo tenho a primeira arte?** Em poucos minutos após cadastrar a identidade visual.
+
+## Contato e Demonstração
+- **Website Oficial**: https://mavik-ai.vercel.app
+- **Demonstração Gratuita**: https://mavik-ai.vercel.app/#experimentar
