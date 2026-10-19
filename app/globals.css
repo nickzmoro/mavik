@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+:root {
+  --violet-50: #f8f6fe;
+  --violet-100: #efe8fd;
+  --violet-200: #dccefb;
+  --violet-300: #b390fa;
+  --violet-400: #9a6bf4;
+  --violet-500: #7440e0;
+  --violet-600: #5926c8;
+  --violet-700: #3b1a8c;
+  --violet-800: #2a1366;
+  --violet-900: #1a0f3c;
+
+  --bg: #12092b;
+  --surface: #1a0f3c;
+  --surface-2: #2a1366;
+  --text: #f4f0ff;
+  --muted: #b9b0d6;
+  --border: #3a2a72;
+  --primary: #b390fa;
+  --primary-brand: #5926c8;
+  --primary-hover: #cbb3fc;
+  --on-primary: #1a0f3c;
+  --accent: #b390fa;
+  --focus: #cbb3fc;
+  --success: #4fd1ae;
+  --success-bg: #103b33;
+  --warning: #f5b94d;
+  --warning-bg: #3d2b0b;
+  --danger: #ff8a8f;
+  --danger-bg: #431b22;
+
+  --r-sm: 6px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-full: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --shadow-sm: 0 1px 2px rgba(26, 15, 60, 0.15);
+  --shadow-md: 0 8px 24px rgba(26, 15, 60, 0.25);
+}
+
+@theme inline {
+  --font-display: var(--font-poppins), system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+body {
+  background-color: #12092b;
+  color: #f4f0ff;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--font-poppins), system-ui, sans-serif;
+  letter-spacing: normal;
+}
+
+/* Background grid & stars pattern */
+.hero-grid {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(179, 144, 250, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(179, 144, 250, 0.05) 1px, transparent 1px);
+}
+
+.hero-stars {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 120px 80px, #b390fa, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 240px 180px, #ffffff, rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 380px 120px, #dccefb, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 520px 90px, #ffffff, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 700px 140px, #b390fa, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 850px 220px, #ffffff, rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 980px 60px, #b390fa, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 1120px 190px, #ffffff, rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 1260px 110px, #dccefb, rgba(0, 0, 0, 0));
+  background-repeat: repeat;
+  background-size: 1300px 300px;
+}
+
+/* Interactive transitions (150ms per design system) */
+.transition-ds {
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Card Fan Base Styles - Sharp & Anti-aliased */
+.cards-fan-container {
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.crisp-card {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+@keyframes floatSlow1 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0) rotate(1deg);
+  }
+}
+
+@keyframes floatSlow2 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(2deg);
+  }
+  50% {
+    transform: translate3d(0, -7px, 0) rotate(-1deg);
+  }
+}
+
+@keyframes floatWidget {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-float-cursor-1 {
+    animation: floatSlow1 4s ease-in-out infinite;
+  }
+  .animate-float-cursor-2 {
+    animation: floatSlow2 4.5s ease-in-out infinite;
+  }
+  .animate-float-widget-1 {
+    animation: floatWidget 5s ease-in-out infinite;
+  }
+  .animate-float-widget-2 {
+    animation: floatWidget 5.5s ease-in-out 1s infinite;
+  }
+  .animate-glow-pulse {
+    animation: pulseGlow 6s ease-in-out infinite;
+  }
+}
