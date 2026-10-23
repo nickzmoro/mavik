@@ -3,8 +3,10 @@ export const routes = {
   login: "/login",
   signUp: "/criar-conta",
   recoverPassword: "/esqueci-minha-senha",
+  resetPassword: "/redefinir-senha",
   authConfirm: "/auth/confirm",
-  authenticatedHome: "/inicio",
+  appRoot: "/app",
+  authenticatedHome: "/app/inicio",
 } as const;
 
 export const authRoutes = [
@@ -13,4 +15,4 @@ export const authRoutes = [
   routes.recoverPassword,
 ];
 
-export const protectedRoutes = [routes.authenticatedHome];
+export const protectedRoutes = [routes.appRoot, routes.resetPassword];

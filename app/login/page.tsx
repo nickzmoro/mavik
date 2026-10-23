@@ -5,9 +5,10 @@ import { AuthDivider } from "@/components/auth/auth-divider";
 import { AuthHeader } from "@/components/auth/auth-header";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { GoogleButton } from "@/components/auth/google-button";
+import { LinkErrorAlert } from "@/components/auth/link-error-alert";
 import { TextLink } from "@/components/auth/text-link";
+import { loginLinkErrorMessages } from "@/lib/auth-link-errors";
 
-import { ConfirmationErrorAlert } from "./components/confirmation-error-alert";
 import { LoginBrandPanel } from "./components/login-brand-panel";
 import { LoginForm } from "./components/login-form";
 
@@ -25,7 +26,7 @@ export default function LoginPage() {
       />
 
       <Suspense fallback={null}>
-        <ConfirmationErrorAlert />
+        <LinkErrorAlert messages={loginLinkErrorMessages} />
       </Suspense>
 
       <LoginForm />

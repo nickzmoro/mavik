@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/form";
 import { useSignIn } from "@/hooks/mutations/use-sign-in";
 import { useCaptcha } from "@/hooks/use-captcha";
-import { authErrorMessages, authFailure } from "@/lib/auth-action-result";
+import { authErrorMessages, connectionFailure } from "@/lib/auth-action-result";
 import { routes } from "@/lib/routes";
 
 export function LoginForm() {
@@ -59,7 +59,7 @@ export function LoginForm() {
         redirectTo:
           new URLSearchParams(window.location.search).get("next") ?? undefined,
       })
-      .catch(() => authFailure(authErrorMessages.unexpected));
+      .catch(connectionFailure);
 
     if (!result.isSuccess) {
       form.setError("root", { message: result.errorMessage });

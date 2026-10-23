@@ -3,8 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
+import {
+  requestPasswordResetFormSchema,
+  type RequestPasswordResetFormValues,
+} from "@/actions/request-password-reset/schema";
+import { CaptchaWidget } from "@/components/auth/captcha-widget";
+import { FormAlert } from "@/components/auth/form-alert";
 import { IconInput } from "@/components/auth/icon-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,33 +20,58 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { emailSchema } from "@/lib/validations/auth";
-
-const recoverPasswordFormSchema = z.object({
-  email: emailSchema,
-});
-
-type RecoverPasswordFormValues = z.infer<typeof recoverPasswordFormSchema>;
+import { useRequestPasswordReset } from "@/hooks/mutations/use-request-password-reset";
+import { useCaptcha } from "@/hooks/use-captcha";
+import { authErrorMessages, connectionFailure } from "@/lib/auth-action-result";
 
 type RecoverPasswordFormProps = {
   onLinkSent: () => void;
 };
 
 export function RecoverPasswordForm({ onLinkSent }: RecoverPasswordFormProps) {
-  const form = useForm<RecoverPasswordFormValues>({
-    resolver: zodResolver(recoverPasswordFormSchema),
+  const requestPasswordResetMutation = useRequestPasswordReset();
+  const { captchaRef, getCaptchaToken, resetCaptcha } = useCaptcha();
+
+  const form = useForm<RequestPasswordResetFormValues>({
+    resolver: zodResolver(requestPasswordResetFormSchema),
     defaultValues: {
       email: "",
     },
   });
 
+  const handleRequestPasswordReset = async (
+    values: RequestPasswordResetFormValues,
+  ) => {
+    const captchaToken = await getCaptchaToken();
+
+    if (!captchaToken) {
+      form.setError("root", { message: authErrorMessages.captchaFailed });
+      resetCaptcha();
+      return;
+    }
+
+    const result = await requestPasswordResetMutation
+      .mutateAsync({ ...values, captchaToken })
+      .catch(connectionFailure);
+
+    if (!result.isSuccess) {
+      form.setError("root", { message: result.errorMessage });
+      resetCaptcha();
+      return;
+    }
+
+    onLinkSent();
+  };
+
   return (
     <Form {...form}>
       <form
         noValidate
-        onSubmit={form.handleSubmit(onLinkSent)}
+        onSubmit={form.handleSubmit(handleRequestPasswordReset)}
         className="m-0 flex flex-col gap-5"
       >
+        <FormAlert message={form.formState.errors.root?.message} />
+
         <FormField
           control={form.control}
           name="email"
@@ -61,6 +91,8 @@ export function RecoverPasswordForm({ onLinkSent }: RecoverPasswordFormProps) {
             </FormItem>
           )}
         />
+
+        <CaptchaWidget ref={captchaRef} />
 
         <Button
           type="submit"

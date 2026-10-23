@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/form";
 import { useSignUp } from "@/hooks/mutations/use-sign-up";
 import { useCaptcha } from "@/hooks/use-captcha";
-import { authErrorMessages, authFailure } from "@/lib/auth-action-result";
+import { authErrorMessages, connectionFailure } from "@/lib/auth-action-result";
 
 type SignUpFormProps = {
   onSignUpSuccess: () => void;
@@ -57,10 +57,13 @@ export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
 
     const result = await signUpMutation
       .mutateAsync({ ...values, captchaToken })
-      .catch(() => authFailure(authErrorMessages.unexpected));
+      .catch(connectionFailure);
 
     if (!result.isSuccess) {
       form.setError("root", { message: result.errorMessage });
+      if (result.errorField === "email") {
+        form.setError("email", { message: "Esse e-mail já está cadastrado." });
+      }
       resetCaptcha();
       return;
     }

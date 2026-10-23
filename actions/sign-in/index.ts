@@ -8,6 +8,10 @@ import {
   type AuthActionResult,
 } from "@/lib/auth-action-result";
 import {
+  authErrorFailure,
+  validationFailure,
+} from "@/lib/auth-error-messages";
+import {
   formatRetryAfter,
   getBlockedRemainingMs,
   rateLimitRules,
@@ -35,7 +39,7 @@ export async function signIn(input: SignInInput): Promise<SignInResult> {
   const parsedInput = signInSchema.safeParse(input);
 
   if (!parsedInput.success) {
-    return authFailure(authErrorMessages.invalidInput);
+    return validationFailure(parsedInput.error);
   }
 
   const { email, password, remember, captchaToken, redirectTo } =
@@ -74,14 +78,6 @@ export async function signIn(input: SignInInput): Promise<SignInResult> {
     return authSuccess({ redirectTo: getSafeRedirectPath(redirectTo) });
   }
 
-  if (error.code === "email_not_confirmed") {
-    return authFailure(authErrorMessages.emailNotConfirmed);
-  }
-
-  if (error.code === "captcha_failed") {
-    return authFailure(authErrorMessages.captchaFailed);
-  }
-
   if (error.code === "invalid_credentials") {
     const [ipAndEmailBlockMs, emailBlockMs] = await Promise.all([
       registerAttempt(ipAndEmailKey, rateLimitRules.signInByIpAndEmail),
@@ -98,19 +94,7 @@ export async function signIn(input: SignInInput): Promise<SignInResult> {
     if (newBlockMs > 0) {
       return tooManyAttempts(newBlockMs);
     }
-
-    return authFailure(authErrorMessages.invalidCredentials);
   }
 
-  if (error.code === "over_request_rate_limit") {
-    return authFailure(authErrorMessages.tooManyAttempts("alguns minutos"));
-  }
-
-  console.error("[auth] erro inesperado no login", {
-    code: error.code,
-    status: error.status,
-    message: error.message,
-  });
-
-  return authFailure(authErrorMessages.unexpected);
+  return authErrorFailure(error, "login");
 }

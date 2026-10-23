@@ -39,6 +39,24 @@ export const rateLimitRules = {
     blockMs: HOUR_MS,
     maxBlockMs: 24 * HOUR_MS,
   },
+  passwordResetByIp: {
+    limit: 5,
+    windowMs: HOUR_MS,
+    blockMs: HOUR_MS,
+    maxBlockMs: 24 * HOUR_MS,
+  },
+  passwordResetByEmail: {
+    limit: 3,
+    windowMs: HOUR_MS,
+    blockMs: HOUR_MS,
+    maxBlockMs: 24 * HOUR_MS,
+  },
+  updatePasswordByUser: {
+    limit: 5,
+    windowMs: 15 * MINUTE_MS,
+    blockMs: 15 * MINUTE_MS,
+    maxBlockMs: 24 * HOUR_MS,
+  },
 } satisfies Record<string, RateLimitRule>;
 
 const globalForRateLimit = globalThis as typeof globalThis & {

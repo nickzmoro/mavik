@@ -1,23 +1,11 @@
-import { redirect } from "next/navigation";
-
-import { routes } from "@/lib/routes";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUserClaims } from "@/lib/supabase/get-current-user-claims";
 
 import { SignOutButton } from "./sign-out-button";
 
 export async function UserGreeting() {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-
-  if (!claims) {
-    redirect(routes.login);
-  }
-
-  const userName =
-    typeof claims.user_metadata?.full_name === "string"
-      ? claims.user_metadata.full_name
-      : "";
+  const claims = await getCurrentUserClaims();
+  const fullName = claims?.user_metadata?.full_name;
+  const userName = typeof fullName === "string" ? fullName : "";
 
   return (
     <div className="flex flex-col items-center gap-6 text-center">
