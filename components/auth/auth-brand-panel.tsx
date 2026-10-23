@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 type AuthBrandPanelProps = {
   ariaLabel: string;
@@ -28,13 +29,15 @@ export function AuthBrandPanel({
       />
 
       <div className="relative flex items-center">
-        <Image
-          src="/mavik-logo-dark.webp"
-          alt="Mavik"
-          width={2843}
-          height={735}
-          className="block h-8 w-auto"
-        />
+        <Link href="/">
+          <Image
+            src="/mavik-logo-dark.webp"
+            alt="Mavik"
+            width={2843}
+            height={735}
+            className="block h-8 w-auto"
+          />
+        </Link>
       </div>
 
       <div className="relative flex flex-col gap-8">

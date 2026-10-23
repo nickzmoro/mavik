@@ -156,8 +156,7 @@ export function Header() {
         {/* Direita: Entrar + Botão CTA com HoverBorderGradient do Aceternity */}
         <div className="hidden sm:flex items-center gap-1">
           <Link
-            href="#experimentar"
-            onClick={(e) => handleNavClick(e, "#experimentar", "Entrar")}
+            href="/login"
             className={`text-xs font-semibold px-2.5 py-1.5 transition-colors rounded-full ${
               isLightSection
                 ? "text-[#5E5877] hover:text-[#1B1530]"
