@@ -8,7 +8,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-on-primary not-disabled:hover:bg-primary-hover",
+        default:
+          "bg-primary text-on-primary not-disabled:hover:bg-primary-hover",
         brand:
           "bg-primary-brand text-white not-disabled:hover:bg-(--violet-700)",
         secondary:
@@ -17,8 +18,7 @@ const buttonVariants = cva(
           "border-muted bg-transparent text-text not-disabled:hover:bg-surface-2",
         ghost: "bg-transparent text-text not-disabled:hover:bg-surface-2",
         link: "min-h-0 bg-transparent p-0 text-primary underline underline-offset-4",
-        destructive:
-          "bg-danger text-bg not-disabled:hover:brightness-[.92]",
+        destructive: "bg-danger text-bg not-disabled:hover:brightness-[.92]",
       },
       size: {
         default: "",
@@ -50,23 +50,31 @@ function Button({
   children,
   ...props
 }: ButtonProps) {
-  const Comp = asChild ? Slot.Root : "button";
+  const buttonClassName = cn(buttonVariants({ variant, size, className }));
+
+  if (asChild) {
+    return (
+      <Slot.Root data-slot="button" className={buttonClassName} {...props}>
+        {children}
+      </Slot.Root>
+    );
+  }
 
   return (
-    <Comp
+    <button
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={buttonClassName}
       disabled={disabled || loading}
       {...props}
     >
-      {loading && !asChild && (
+      {loading && (
         <span
           aria-hidden="true"
           className="size-3.5 animate-spin rounded-full border-2 border-current border-r-transparent [animation-duration:700ms] motion-reduce:animate-none"
         />
       )}
       {children}
-    </Comp>
+    </button>
   );
 }
 

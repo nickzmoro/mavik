@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { AuthHeader } from "@/components/auth/auth-header";
@@ -6,6 +7,7 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 import { GoogleButton } from "@/components/auth/google-button";
 import { TextLink } from "@/components/auth/text-link";
 
+import { ConfirmationErrorAlert } from "./components/confirmation-error-alert";
 import { LoginBrandPanel } from "./components/login-brand-panel";
 import { LoginForm } from "./components/login-form";
 
@@ -21,6 +23,10 @@ export default function LoginPage() {
         title="Bem-vindo de volta"
         description="Entre para continuar criando seus posts."
       />
+
+      <Suspense fallback={null}>
+        <ConfirmationErrorAlert />
+      </Suspense>
 
       <LoginForm />
 

@@ -2,9 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
+import {
+  signInFormSchema,
+  type SignInFormValues,
+} from "@/actions/sign-in/schema";
+import { CaptchaWidget } from "@/components/auth/captcha-widget";
+import { FormAlert } from "@/components/auth/form-alert";
 import { IconInput } from "@/components/auth/icon-input";
 import { PasswordInput } from "@/components/auth/password-input";
 import { TextLink } from "@/components/auth/text-link";
@@ -18,19 +24,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { emailSchema } from "@/lib/validations/auth";
-
-const loginFormSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, { error: "Digite sua senha." }),
-  remember: z.boolean(),
-});
-
-type LoginFormValues = z.infer<typeof loginFormSchema>;
+import { useSignIn } from "@/hooks/mutations/use-sign-in";
+import { useCaptcha } from "@/hooks/use-captcha";
+import { authErrorMessages, authFailure } from "@/lib/auth-action-result";
+import { routes } from "@/lib/routes";
 
 export function LoginForm() {
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
+  const router = useRouter();
+  const signInMutation = useSignIn();
+  const { captchaRef, getCaptchaToken, resetCaptcha } = useCaptcha();
+
+  const form = useForm<SignInFormValues>({
+    resolver: zodResolver(signInFormSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -38,7 +43,34 @@ export function LoginForm() {
     },
   });
 
-  const handleLogin = () => {};
+  const handleLogin = async (values: SignInFormValues) => {
+    const captchaToken = await getCaptchaToken();
+
+    if (!captchaToken) {
+      form.setError("root", { message: authErrorMessages.captchaFailed });
+      resetCaptcha();
+      return;
+    }
+
+    const result = await signInMutation
+      .mutateAsync({
+        ...values,
+        captchaToken,
+        redirectTo:
+          new URLSearchParams(window.location.search).get("next") ?? undefined,
+      })
+      .catch(() => authFailure(authErrorMessages.unexpected));
+
+    if (!result.isSuccess) {
+      form.setError("root", { message: result.errorMessage });
+      form.resetField("password");
+      resetCaptcha();
+      return;
+    }
+
+    router.replace(result.data.redirectTo);
+    router.refresh();
+  };
 
   return (
     <Form {...form}>
@@ -47,6 +79,8 @@ export function LoginForm() {
         onSubmit={form.handleSubmit(handleLogin)}
         className="m-0 flex flex-col gap-5"
       >
+        <FormAlert message={form.formState.errors.root?.message} />
+
         <FormField
           control={form.control}
           name="email"
@@ -106,12 +140,14 @@ export function LoginForm() {
             )}
           />
           <TextLink
-            href="/esqueci-minha-senha"
+            href={routes.recoverPassword}
             className="text-sm leading-normal font-medium underline"
           >
             Esqueceu a senha?
           </TextLink>
         </div>
+
+        <CaptchaWidget ref={captchaRef} />
 
         <Button
           type="submit"

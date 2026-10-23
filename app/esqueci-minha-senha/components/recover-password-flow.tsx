@@ -5,16 +5,23 @@ import Image from "next/image";
 import { useState } from "react";
 
 import { AuthHeader } from "@/components/auth/auth-header";
+import { CheckEmailNotice } from "@/components/auth/check-email-notice";
 import { TextLink } from "@/components/auth/text-link";
 
 import { RecoverPasswordForm } from "./recover-password-form";
-import { RecoverPasswordSent } from "./recover-password-sent";
 
 export function RecoverPasswordFlow() {
   const [isLinkSent, setIsLinkSent] = useState(false);
 
   if (isLinkSent) {
-    return <RecoverPasswordSent onResend={() => setIsLinkSent(false)} />;
+    return (
+      <CheckEmailNotice
+        description="Se houver uma conta com esse e-mail, você vai receber um link para criar uma nova senha."
+        retryPrompt="Não recebeu?"
+        retryLabel="Enviar de novo"
+        onRetry={() => setIsLinkSent(false)}
+      />
+    );
   }
 
   return (

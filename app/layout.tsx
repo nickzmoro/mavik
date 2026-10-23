@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
+import { ReactQueryProvider } from "@/providers/react-query-provider";
+
 import "./globals.css";
 
 const poppins = Poppins({
@@ -212,7 +214,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[#12092B] text-[#F4F0FF] antialiased selection:bg-[#B390FA] selection:text-[#1A0F3C]">
-        {children}
+        <ReactQueryProvider>{children}</ReactQueryProvider>
       </body>
     </html>
   );

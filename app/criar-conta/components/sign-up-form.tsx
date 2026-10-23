@@ -3,8 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, User } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
+import {
+  signUpFormSchema,
+  type SignUpFormValues,
+} from "@/actions/sign-up/schema";
+import { CaptchaWidget } from "@/components/auth/captcha-widget";
+import { FormAlert } from "@/components/auth/form-alert";
 import { IconInput } from "@/components/auth/icon-input";
 import { PasswordInput } from "@/components/auth/password-input";
 import { TextLink } from "@/components/auth/text-link";
@@ -19,22 +24,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { emailSchema } from "@/lib/validations/auth";
+import { useSignUp } from "@/hooks/mutations/use-sign-up";
+import { useCaptcha } from "@/hooks/use-captcha";
+import { authErrorMessages, authFailure } from "@/lib/auth-action-result";
 
-const signUpFormSchema = z.object({
-  name: z.string().trim().min(1, { error: "Digite seu nome." }),
-  email: emailSchema,
-  password: z
-    .string()
-    .min(8, { error: "Sua senha precisa ter pelo menos 8 caracteres." }),
-  acceptedTerms: z.boolean().refine((isAccepted) => isAccepted, {
-    error: "Aceite os Termos de uso e a Política de privacidade para continuar.",
-  }),
-});
+type SignUpFormProps = {
+  onSignUpSuccess: () => void;
+};
 
-type SignUpFormValues = z.infer<typeof signUpFormSchema>;
+export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
+  const signUpMutation = useSignUp();
+  const { captchaRef, getCaptchaToken, resetCaptcha } = useCaptcha();
 
-export function SignUpForm() {
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
@@ -45,7 +46,27 @@ export function SignUpForm() {
     },
   });
 
-  const handleSignUp = () => {};
+  const handleSignUp = async (values: SignUpFormValues) => {
+    const captchaToken = await getCaptchaToken();
+
+    if (!captchaToken) {
+      form.setError("root", { message: authErrorMessages.captchaFailed });
+      resetCaptcha();
+      return;
+    }
+
+    const result = await signUpMutation
+      .mutateAsync({ ...values, captchaToken })
+      .catch(() => authFailure(authErrorMessages.unexpected));
+
+    if (!result.isSuccess) {
+      form.setError("root", { message: result.errorMessage });
+      resetCaptcha();
+      return;
+    }
+
+    onSignUpSuccess();
+  };
 
   return (
     <Form {...form}>
@@ -54,6 +75,8 @@ export function SignUpForm() {
         onSubmit={form.handleSubmit(handleSignUp)}
         className="m-0 flex flex-col gap-5"
       >
+        <FormAlert message={form.formState.errors.root?.message} />
+
         <FormField
           control={form.control}
           name="name"
@@ -147,6 +170,8 @@ export function SignUpForm() {
             </FormItem>
           )}
         />
+
+        <CaptchaWidget ref={captchaRef} />
 
         <Button
           type="submit"

@@ -3,17 +3,26 @@ import Link from "next/link";
 
 import { AuthHeader } from "@/components/auth/auth-header";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 
-type RecoverPasswordSentProps = {
-  onResend: () => void;
+type CheckEmailNoticeProps = {
+  description: string;
+  retryPrompt: string;
+  retryLabel: string;
+  onRetry: () => void;
 };
 
-export function RecoverPasswordSent({ onResend }: RecoverPasswordSentProps) {
+export function CheckEmailNotice({
+  description,
+  retryPrompt,
+  retryLabel,
+  onRetry,
+}: CheckEmailNoticeProps) {
   return (
     <div role="status" className="flex flex-col gap-8">
       <AuthHeader
         title="Confira seu e-mail"
-        description="Se houver uma conta com esse e-mail, você vai receber um link para criar uma nova senha."
+        description={description}
         icon={
           <span
             aria-hidden="true"
@@ -35,16 +44,16 @@ export function RecoverPasswordSent({ onResend }: RecoverPasswordSentProps) {
 
       <div className="flex flex-col gap-4">
         <Button asChild variant="outline" className="w-full">
-          <Link href="/login">Voltar para o login</Link>
+          <Link href={routes.login}>Voltar para o login</Link>
         </Button>
         <p className="m-0 text-center text-sm leading-normal text-muted">
-          Não recebeu?{" "}
+          {retryPrompt}{" "}
           <button
             type="button"
-            onClick={onResend}
+            onClick={onRetry}
             className="cursor-pointer rounded-(--r-sm) border-0 bg-transparent p-0 font-semibold text-primary underline underline-offset-4 hover:text-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
-            Enviar de novo
+            {retryLabel}
           </button>
         </p>
       </div>
