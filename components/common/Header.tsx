@@ -241,20 +241,14 @@ export function Header() {
             }`}
           >
             <Link
-              href="#experimentar"
-              onClick={(e) => handleNavClick(e, "#experimentar", "Entrar")}
+              href="/login"
               className={`text-xs font-semibold px-2 py-2 ${
                 isLightSection ? "text-[#5E5877]" : "text-[#B9B0D6]"
               }`}
             >
               Entrar
             </Link>
-            <Link
-              href="#experimentar"
-              onClick={(e) =>
-                handleNavClick(e, "#experimentar", "Testar grátis")
-              }
-            >
+            <Link href="/criar-conta">
               <HoverBorderGradient
                 variant="brand"
                 className="bg-[#5926C8] text-white py-2 px-4 text-xs font-bold"
