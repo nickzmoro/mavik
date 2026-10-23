@@ -37,8 +37,12 @@ export const authErrorMessages = {
     "Sua sessão expirou. Peça um novo link de redefinição de senha.",
   recoveryLinkRequired:
     "Para criar uma nova senha, abra o link que enviamos para o seu e-mail.",
+  recoveryLinkInvalid:
+    "Esse link para criar uma nova senha expirou ou já foi usado. Peça um novo link em “Esqueceu a senha?”.",
+  emailDeliveryFailed:
+    "Não conseguimos enviar o e-mail agora. Tente de novo em alguns minutos. Se continuar, fale com o suporte.",
   serverUnavailable:
-    "Não conseguimos falar com o servidor de login. Confira sua internet e tente de novo.",
+    "O servidor de login não respondeu. Tente de novo em alguns minutos.",
   connectionFailed:
     "Não conseguimos conectar. Confira sua internet e tente de novo.",
   rateLimited: "Muitas tentativas. Por segurança, tente de novo em alguns minutos.",

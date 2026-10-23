@@ -33,9 +33,11 @@ export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (matchesRoute(pathname, [routes.resetPassword])) {
-    const hasRecoveryCookie = request.cookies.has(PASSWORD_RECOVERY_COOKIE);
+    const hasRecoveryToken = request.nextUrl.searchParams.has("token_hash");
+    const hasRecoverySession =
+      isAuthenticated && request.cookies.has(PASSWORD_RECOVERY_COOKIE);
 
-    if (!isAuthenticated || !hasRecoveryCookie) {
+    if (!hasRecoveryToken && !hasRecoverySession) {
       return redirectWithCookies(request, response, routes.recoverPassword, {
         erro: "link-expirado",
       });

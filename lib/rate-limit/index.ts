@@ -51,8 +51,8 @@ export const rateLimitRules = {
     blockMs: HOUR_MS,
     maxBlockMs: 24 * HOUR_MS,
   },
-  updatePasswordByUser: {
-    limit: 5,
+  updatePasswordByIp: {
+    limit: 10,
     windowMs: 15 * MINUTE_MS,
     blockMs: 15 * MINUTE_MS,
     maxBlockMs: 24 * HOUR_MS,

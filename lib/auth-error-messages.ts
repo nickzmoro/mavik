@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isAuthRetryableFetchError, type AuthError } from "@supabase/supabase-js";
+import type { AuthError } from "@supabase/supabase-js";
 import type { z } from "zod";
 
 import { authErrorMessages, authFailure } from "./auth-action-result";
@@ -23,8 +23,20 @@ const authErrorMessagesByCode: Record<string, string> = {
   session_not_found: authErrorMessages.sessionExpired,
   session_expired: authErrorMessages.sessionExpired,
   reauthentication_needed: authErrorMessages.sessionExpired,
+  otp_expired: authErrorMessages.recoveryLinkInvalid,
   request_timeout: authErrorMessages.serverUnavailable,
 };
+
+const emailDeliveryErrorPattern = /error sending .*email/i;
+
+function logAuthError(error: AuthError, context: string) {
+  console.error(`[auth] erro do Supabase: ${context}`, {
+    name: error.name,
+    code: error.code,
+    status: error.status,
+    message: error.message,
+  });
+}
 
 export function getAuthErrorMessage(error: AuthError, context: string) {
   const knownMessage = error.code && authErrorMessagesByCode[error.code];
@@ -33,17 +45,19 @@ export function getAuthErrorMessage(error: AuthError, context: string) {
     return knownMessage;
   }
 
-  if (isAuthRetryableFetchError(error)) {
+  logAuthError(error, context);
+
+  if (emailDeliveryErrorPattern.test(error.message)) {
+    return authErrorMessages.emailDeliveryFailed;
+  }
+
+  if (error.status === 0) {
     return authErrorMessages.serverUnavailable;
   }
 
-  console.error(`[auth] erro inesperado: ${context}`, {
-    code: error.code,
-    status: error.status,
-    message: error.message,
-  });
-
-  return authErrorMessages.unexpected(error.code ?? String(error.status ?? ""));
+  return authErrorMessages.unexpected(
+    error.code ?? `HTTP ${error.status ?? "?"}`,
+  );
 }
 
 export function authErrorFailure(error: AuthError, context: string) {

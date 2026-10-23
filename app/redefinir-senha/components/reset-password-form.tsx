@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import {
-  updatePasswordSchema,
-  type UpdatePasswordInput,
+  updatePasswordFormSchema,
+  type UpdatePasswordFormValues,
 } from "@/actions/update-password/schema";
 import { FormAlert } from "@/components/auth/form-alert";
 import { PasswordInput } from "@/components/auth/password-input";
@@ -27,17 +27,22 @@ export function ResetPasswordForm() {
   const router = useRouter();
   const updatePasswordMutation = useUpdatePassword();
 
-  const form = useForm<UpdatePasswordInput>({
-    resolver: zodResolver(updatePasswordSchema),
+  const form = useForm<UpdatePasswordFormValues>({
+    resolver: zodResolver(updatePasswordFormSchema),
     defaultValues: {
       password: "",
       confirmPassword: "",
     },
   });
 
-  const handleUpdatePassword = async (values: UpdatePasswordInput) => {
+  const handleUpdatePassword = async (values: UpdatePasswordFormValues) => {
     const result = await updatePasswordMutation
-      .mutateAsync(values)
+      .mutateAsync({
+        ...values,
+        tokenHash:
+          new URLSearchParams(window.location.search).get("token_hash") ??
+          undefined,
+      })
       .catch(connectionFailure);
 
     if (!result.isSuccess) {

@@ -18,11 +18,50 @@ import {
   rateLimitRules,
   registerAttempt,
 } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request-ip";
 import { routes } from "@/lib/routes";
-import { PASSWORD_RECOVERY_COOKIE } from "@/lib/supabase/password-recovery-cookie";
+import {
+  PASSWORD_RECOVERY_COOKIE,
+  passwordRecoveryCookieOptions,
+} from "@/lib/supabase/password-recovery-cookie";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { updatePasswordSchema, type UpdatePasswordInput } from "./schema";
+
+type SupabaseServerClient = Awaited<
+  ReturnType<typeof createSupabaseServerClient>
+>;
+
+async function hasRecoverySession(supabase: SupabaseServerClient) {
+  const cookieStore = await cookies();
+
+  if (!cookieStore.has(PASSWORD_RECOVERY_COOKIE)) {
+    return false;
+  }
+
+  const { data } = await supabase.auth.getClaims();
+
+  return Boolean(data?.claims);
+}
+
+async function startRecoverySession(
+  supabase: SupabaseServerClient,
+  tokenHash: string,
+) {
+  const { error } = await supabase.auth.verifyOtp({
+    type: "recovery",
+    token_hash: tokenHash,
+  });
+
+  if (error) {
+    return false;
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set(PASSWORD_RECOVERY_COOKIE, "1", passwordRecoveryCookieOptions);
+
+  return true;
+}
 
 export async function updatePassword(
   input: UpdatePasswordInput,
@@ -33,17 +72,10 @@ export async function updatePassword(
     return validationFailure(parsedInput.error);
   }
 
-  const cookieStore = await cookies();
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims.sub;
-
-  if (!userId || !cookieStore.has(PASSWORD_RECOVERY_COOKIE)) {
-    return authFailure(authErrorMessages.recoveryLinkRequired);
-  }
-
-  const userKey = `update-password:user:${userId}`;
-  const blockedRemainingMs = await getBlockedRemainingMs([userKey]);
+  const { password, tokenHash } = parsedInput.data;
+  const clientIp = await getClientIp();
+  const ipKey = `update-password:ip:${clientIp}`;
+  const blockedRemainingMs = await getBlockedRemainingMs([ipKey]);
 
   if (blockedRemainingMs > 0) {
     return authFailure(
@@ -51,17 +83,29 @@ export async function updatePassword(
     );
   }
 
-  await registerAttempt(userKey, rateLimitRules.updatePasswordByUser);
+  await registerAttempt(ipKey, rateLimitRules.updatePasswordByIp);
 
-  const { error } = await supabase.auth.updateUser({
-    password: parsedInput.data.password,
-  });
+  const supabase = await createSupabaseServerClient();
+  const isRecoveryAllowed =
+    (await hasRecoverySession(supabase)) ||
+    (tokenHash ? await startRecoverySession(supabase, tokenHash) : false);
+
+  if (!isRecoveryAllowed) {
+    return authFailure(
+      tokenHash
+        ? authErrorMessages.recoveryLinkInvalid
+        : authErrorMessages.recoveryLinkRequired,
+    );
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
     return authErrorFailure(error, "nova senha");
   }
 
   await supabase.auth.signOut({ scope: "others" });
+  const cookieStore = await cookies();
   cookieStore.delete(PASSWORD_RECOVERY_COOKIE);
 
   return authSuccess({ redirectTo: routes.authenticatedHome });
