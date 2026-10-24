@@ -57,6 +57,12 @@ export const rateLimitRules = {
     blockMs: MINUTE_MS,
     maxBlockMs: 24 * HOUR_MS,
   },
+  googleSignInByIp: {
+    limit: 20,
+    windowMs: 10 * MINUTE_MS,
+    blockMs: MINUTE_MS,
+    maxBlockMs: 24 * HOUR_MS,
+  },
 } satisfies Record<string, RateLimitRule>;
 
 const globalForRateLimit = globalThis as typeof globalThis & {

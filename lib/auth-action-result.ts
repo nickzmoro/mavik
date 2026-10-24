@@ -33,6 +33,8 @@ export const authErrorMessages = {
     "Não conseguimos enviar e-mails para esse endereço agora. Use outro e-mail ou fale com o suporte.",
   signUpDisabled: "O cadastro por e-mail está desativado no momento.",
   userBanned: "Essa conta está bloqueada. Fale com o suporte.",
+  googleUnavailable:
+    "O login com Google está indisponível no momento. Entre com e-mail e senha ou tente mais tarde.",
   sessionExpired:
     "Sua sessão expirou. Peça um novo link de redefinição de senha.",
   recoveryLinkRequired:
