@@ -1,8 +1,10 @@
+import { routes } from "@/lib/routes";
+
 import { TextLink } from "./text-link";
 
 const legalLinks = [
-  { label: "Termos", href: "#" },
-  { label: "Privacidade", href: "#" },
+  { label: "Termos", href: routes.terms },
+  { label: "Privacidade", href: routes.privacy },
   { label: "Suporte", href: "#" },
 ];
 

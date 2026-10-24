@@ -9,6 +9,7 @@ import { BackgroundBeams } from "@/components/ui/background-beams";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+import { routes } from "@/lib/routes";
 
 // Ícones SVG Nativos de Redes Sociais
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -343,13 +344,13 @@ export function CtaFooter() {
             <p>© 2026 Mavik Inc. Todos os direitos reservados.</p>
             <div className="flex items-center gap-6">
               <Link
-                href="#termos"
+                href={routes.terms}
                 className="hover:text-white transition-colors"
               >
                 Termos de Serviço
               </Link>
               <Link
-                href="#privacidade"
+                href={routes.privacy}
                 className="hover:text-white transition-colors"
               >
                 Política de Privacidade

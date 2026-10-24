@@ -27,6 +27,7 @@ import {
 import { useSignUp } from "@/hooks/mutations/use-sign-up";
 import { useCaptcha } from "@/hooks/use-captcha";
 import { authErrorMessages, connectionFailure } from "@/lib/auth-action-result";
+import { routes } from "@/lib/routes";
 
 type SignUpFormProps = {
   onSignUpSuccess: () => void;
@@ -159,11 +160,21 @@ export function SignUpForm({ onSignUpSuccess }: SignUpFormProps) {
                 </div>
                 <FormLabel className="cursor-pointer font-normal">
                   Li e aceito os{" "}
-                  <TextLink href="#" className="font-medium underline">
+                  <TextLink
+                    href={routes.terms}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium underline"
+                  >
                     Termos de uso
                   </TextLink>{" "}
                   e a{" "}
-                  <TextLink href="#" className="font-medium underline">
+                  <TextLink
+                    href={routes.privacy}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium underline"
+                  >
                     Política de privacidade
                   </TextLink>
                   .

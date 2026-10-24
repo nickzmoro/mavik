@@ -5,6 +5,9 @@ export const routes = {
   recoverPassword: "/esqueci-minha-senha",
   resetPassword: "/redefinir-senha",
   authConfirm: "/auth/confirm",
+  authCallback: "/auth/callback",
+  terms: "/termos",
+  privacy: "/privacidade",
   appRoot: "/app",
   authenticatedHome: "/app/inicio",
 } as const;
