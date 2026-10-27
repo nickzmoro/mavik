@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { OnboardingGate } from "./components/onboarding-gate";
 import { UserGreeting } from "./components/user-greeting";
 
 export const metadata: Metadata = {
@@ -12,6 +13,7 @@ export default function HomePage() {
   return (
     <main className="theme-light flex min-h-screen items-center justify-center bg-bg px-6 font-sans text-text">
       <Suspense fallback={null}>
+        <OnboardingGate />
         <UserGreeting />
       </Suspense>
     </main>

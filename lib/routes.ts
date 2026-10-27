@@ -10,7 +10,20 @@ export const routes = {
   privacy: "/privacidade",
   appRoot: "/app",
   authenticatedHome: "/app/inicio",
+  studio: "/app/estudio",
+  brand: "/app/marca",
+  onboarding: "/onboarding",
+  onboardingCompany: "/onboarding/empresa",
+  onboardingBrand: "/onboarding/marca",
+  onboardingVoice: "/onboarding/voz",
+  onboardingPlan: "/onboarding/plano",
 } as const;
+
+export const STUDIO_PAUTA_PARAM = "pauta";
+
+export function getStudioUrlForPauta(pauta: string) {
+  return `${routes.studio}?${new URLSearchParams({ [STUDIO_PAUTA_PARAM]: pauta })}`;
+}
 
 export const authRoutes = [
   routes.login,
@@ -18,4 +31,8 @@ export const authRoutes = [
   routes.recoverPassword,
 ];
 
-export const protectedRoutes = [routes.appRoot, routes.resetPassword];
+export const protectedRoutes = [
+  routes.appRoot,
+  routes.onboarding,
+  routes.resetPassword,
+];
