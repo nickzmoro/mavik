@@ -1,10 +1,4 @@
-function getRequiredEnv(name: string, value: string | undefined) {
-  if (!value) {
-    throw new Error(`Variável de ambiente ausente: ${name}`);
-  }
-
-  return value;
-}
+import { getRequiredEnv } from "@/lib/get-required-env";
 
 export const supabaseUrl = new URL(
   getRequiredEnv(
