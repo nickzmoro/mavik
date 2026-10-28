@@ -21,8 +21,13 @@ export function StudioWorkspace() {
     }
   };
 
-  const handleDownload = (variationIndex: number) =>
+  const handleDownload = (variationIndex: number) => {
+    const link = document.createElement("a");
+    link.href = studio.imageUrls[variationIndex];
+    link.download = `arte-variacao-${variationIndex + 1}.png`;
+    link.click();
     showToast(`Variação ${variationIndex + 1} baixada em PNG`);
+  };
 
   const handleCopyCaption = async () => {
     try {

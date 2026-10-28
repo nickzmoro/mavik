@@ -49,12 +49,14 @@ export function StudioPreviewPanel({
         >
           {getPreviewTitle(
             studio.phase,
-            studio.variationCount,
+            studio.phase === "done"
+              ? studio.imageUrls.length
+              : studio.variationCount,
             studio.format.name,
           )}
         </h2>
         {studio.phase === "done" ? (
-          <Button variant="ghost" onClick={studio.generate}>
+          <Button variant="ghost" onClick={studio.regenerate}>
             <RefreshCw aria-hidden="true" className="size-4.5" />
             Gerar de novo
           </Button>

@@ -35,4 +35,29 @@ function RadioGroupItem({
   );
 }
 
-export { RadioGroup, RadioGroupItem };
+function RadioGroupCardItem({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
+  return (
+    <RadioGroupPrimitive.Item
+      data-slot="radio-group-card-item"
+      className={cn(
+        "group flex min-h-11 w-full cursor-pointer items-start gap-3 rounded-(--r-md) border border-border bg-bg px-4 py-3 text-left font-sans text-sm leading-normal text-text shadow-(--shadow-sm) transition-[background-color,border-color] duration-150 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-surface-2 motion-reduce:transition-none",
+        className,
+      )}
+      {...props}
+    >
+      <span
+        aria-hidden="true"
+        className="mt-0.5 flex size-4 flex-none items-center justify-center rounded-full border-2 border-muted group-data-[state=checked]:border-primary"
+      >
+        <RadioGroupPrimitive.Indicator className="size-2 rounded-full bg-primary" />
+      </span>
+      <span className="flex flex-col">{children}</span>
+    </RadioGroupPrimitive.Item>
+  );
+}
+
+export { RadioGroup, RadioGroupCardItem, RadioGroupItem };

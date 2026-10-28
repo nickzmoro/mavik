@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
 
+import { useGenerateImage } from "@/hooks/mutations/use-generate-image";
 import { useAttachments } from "@/hooks/use-attachments";
 import {
   artFormats,
@@ -13,13 +15,18 @@ import {
   type ArtFormatId,
 } from "@/lib/mocks/studio";
 import { mockTrialUsage } from "@/lib/mocks/sidebar";
+import { readFileAsDataUrl } from "@/lib/read-file-as-data-url";
+import { STUDIO_PAUTA_PARAM } from "@/lib/routes";
+import {
+  REFERENCE_IMAGE_MAX_BYTES,
+  REFERENCE_IMAGE_TYPES,
+} from "@/lib/validations/image-generation";
+import type { StudioPromptFormValues } from "@/lib/validations/studio";
 import { useToast } from "@/providers/toast-provider";
 
 export type StudioMode = "guided" | "free";
 export type StudioPhase = "idle" | "generating" | "done";
 export type StudioDialog = "none" | "editor" | "schedule" | "limit";
-
-const generationDurationInMs = 1800;
 
 export const formatArtCount = (count: number) =>
   count === 1 ? "1 arte" : `${count} artes`;
@@ -29,7 +36,10 @@ export const formatVariationCount = (count: number) =>
 
 export function useStudio() {
   const { showToast } = useToast();
-  const [mode, setMode] = useState<StudioMode | null>(null);
+  const pauta = useSearchParams().get(STUDIO_PAUTA_PARAM) ?? "";
+  const generateImageMutation = useGenerateImage();
+  const generationIdRef = useRef(0);
+  const [mode, setMode] = useState<StudioMode | null>(pauta ? "free" : null);
   const [guidedStep, setGuidedStep] = useState(0);
   const [guidedAnswers, setGuidedAnswers] = useState<string[]>([]);
   const attachments = useAttachments();
@@ -49,26 +59,14 @@ export function useStudio() {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [dialog, setDialog] = useState<StudioDialog>("none");
   const [caption, setCaption] = useState(mockSuggestedCaption);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [lastPrompt, setLastPrompt] = useState(pauta);
 
   const artLimit = mockTrialUsage.total;
   const remainingArts = Math.max(0, artLimit - usedArts);
   const format =
     artFormats.find((artFormat) => artFormat.id === formatId) ?? artFormats[1];
   const isGuidedComplete = guidedStep >= studioQuestions.length;
-
-  useEffect(() => {
-    if (phase !== "generating") {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setPhase("done");
-      setSelectedVariation(0);
-      setUsedArts((currentUsed) => currentUsed + variationCount);
-    }, generationDurationInMs);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [phase, variationCount]);
 
   const pickMode = (nextMode: StudioMode) => {
     setMode(nextMode);
@@ -97,7 +95,12 @@ export function useStudio() {
   const goToPreviousQuestion = () =>
     setGuidedStep((currentStep) => Math.max(0, currentStep - 1));
 
-  const generate = () => {
+  const getReferencePhoto = () =>
+    attachments.attachments.find(
+      (attachment) => attachment.kind === "photo" && attachment.file,
+    )?.file;
+
+  const generate = async ({ prompt }: StudioPromptFormValues) => {
     if (remainingArts <= 0) {
       setDialog("limit");
       return;
@@ -111,12 +114,71 @@ export function useStudio() {
       return;
     }
 
+    const referencePhoto = getReferencePhoto();
+
+    if (
+      referencePhoto &&
+      (!REFERENCE_IMAGE_TYPES.includes(referencePhoto.type) ||
+        referencePhoto.size > REFERENCE_IMAGE_MAX_BYTES)
+    ) {
+      showToast("Use uma foto de referência em PNG, JPG ou WEBP com até 4 MB.");
+      return;
+    }
+
+    const generationId = ++generationIdRef.current;
+    setLastPrompt(prompt);
     setIsOptionsOpen(false);
     setDialog("none");
     setPhase("generating");
+
+    const referenceImage = referencePhoto
+      ? await readFileAsDataUrl(referencePhoto).catch(() => undefined)
+      : undefined;
+    const results = await Promise.allSettled(
+      Array.from({ length: variationCount }, () =>
+        generateImageMutation.mutateAsync({ prompt, referenceImage }),
+      ),
+    );
+
+    if (generationId !== generationIdRef.current) {
+      return;
+    }
+
+    const generatedUrls = results.flatMap((result) =>
+      result.status === "fulfilled" ? [result.value.imageUrl] : [],
+    );
+    const failedResult = results.find(
+      (result): result is PromiseRejectedResult => result.status === "rejected",
+    );
+
+    if (generatedUrls.length === 0) {
+      setPhase("idle");
+      showToast(
+        failedResult?.reason instanceof Error
+          ? failedResult.reason.message
+          : "Não conseguimos gerar a arte desta vez. Tente de novo.",
+      );
+      return;
+    }
+
+    if (failedResult) {
+      showToast(
+        `Geramos ${formatArtCount(generatedUrls.length)} de ${variationCount}. Tente de novo para as outras.`,
+      );
+    }
+
+    setImageUrls(generatedUrls);
+    setSelectedVariation(0);
+    setUsedArts((currentUsed) => currentUsed + generatedUrls.length);
+    setPhase("done");
   };
 
-  const cancelGeneration = () => setPhase("idle");
+  const regenerate = () => generate({ prompt: lastPrompt });
+
+  const cancelGeneration = () => {
+    generationIdRef.current += 1;
+    setPhase("idle");
+  };
 
   const openEditor = (variationIndex = selectedVariation) => {
     setSelectedVariation(variationIndex);
@@ -143,7 +205,12 @@ export function useStudio() {
     remainingArts,
     variationCount,
     phase,
-    selectedVariation: Math.min(selectedVariation, variationCount - 1),
+    imageUrls,
+    defaultPrompt: pauta,
+    selectedVariation: Math.min(
+      selectedVariation,
+      Math.max(imageUrls.length, 1) - 1,
+    ),
     isOptionsOpen,
     dialog,
     caption,
@@ -157,6 +224,7 @@ export function useStudio() {
     changeVariationCount,
     setIsOptionsOpen,
     generate,
+    regenerate,
     cancelGeneration,
     selectVariation: setSelectedVariation,
     openEditor,

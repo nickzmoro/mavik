@@ -7,14 +7,14 @@ import {
   Sparkles,
   WandSparkles,
 } from "lucide-react";
+import Image from "next/image";
 
 import { IconButton } from "@/components/common/icon-button";
 import { Button } from "@/components/ui/button";
-import { brandRuleHighlights, mockGeneratedArt } from "@/lib/mocks/studio";
+import { brandRuleHighlights } from "@/lib/mocks/studio";
 import { cn } from "@/lib/utils";
 
 import type { StudioState } from "../hooks/use-studio";
-import { StudioArt } from "./studio-art";
 import { VariationGrid } from "./variation-grid";
 
 type PreviewVariationsResultProps = {
@@ -31,11 +31,11 @@ export function PreviewVariationsResult({
   return (
     <div className="flex flex-col gap-3.5">
       <p className="m-0 text-sm leading-normal text-muted">
-        Pronto! Veja suas {studio.variationCount} opções de arte. Toque numa
+        Pronto! Veja suas {studio.imageUrls.length} opções de arte. Toque numa
         para escolher.
       </p>
       <VariationGrid role="radiogroup" aria-label="Variações geradas">
-        {Array.from({ length: studio.variationCount }, (_, index) => {
+        {studio.imageUrls.map((imageUrl, index) => {
           const variationLabel = `Variação ${index + 1}`;
           const isSelected = studio.selectedVariation === index;
 
@@ -52,12 +52,14 @@ export function PreviewVariationsResult({
                   isSelected && "shadow-[0_0_0_3px_var(--primary)]",
                 )}
               >
-                <StudioArt
-                  styleIndex={index}
-                  title={mockGeneratedArt.title}
-                  subtitle={mockGeneratedArt.subtitle}
-                  aspectRatio={studio.format.aspectRatio}
-                  label={`${variationLabel}: ${mockGeneratedArt.title}`}
+                <Image
+                  src={imageUrl}
+                  alt={variationLabel}
+                  width={1024}
+                  height={1280}
+                  unoptimized
+                  className="block w-full rounded-2xl object-cover"
+                  style={{ aspectRatio: studio.format.aspectRatio }}
                 />
               </button>
               <div className="flex items-center justify-between gap-1">
@@ -124,7 +126,7 @@ export function PreviewVariationsResult({
           <WandSparkles aria-hidden="true" className="size-4.5" />
           Pedir ajuste à IA
         </Button>
-        <Button variant="ghost" onClick={studio.generate}>
+        <Button variant="ghost" onClick={studio.regenerate}>
           <Sparkles aria-hidden="true" className="size-4.5" />
           Gerar parecidas
         </Button>

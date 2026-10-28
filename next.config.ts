@@ -66,6 +66,11 @@ const nextConfig: NextConfig = {
     return [
       { source: "/inicio", destination: "/app/inicio", permanent: false },
       { source: "/app", destination: "/app/inicio", permanent: false },
+      {
+        source: "/onboarding",
+        destination: "/onboarding/empresa",
+        permanent: false,
+      },
     ];
   },
 };

@@ -17,10 +17,21 @@ export const routes = {
   results: "/app/resultados",
   brand: "/app/marca",
   plans: "/app/planos",
+  onboarding: "/onboarding",
+  onboardingCompany: "/onboarding/empresa",
+  onboardingBrand: "/onboarding/marca",
+  onboardingVoice: "/onboarding/voz",
+  onboardingPlan: "/onboarding/plano",
 } as const;
 
 export const getAgentConversationRoute = (conversationId: string) =>
   `${routes.agent}/${encodeURIComponent(conversationId)}`;
+
+export const STUDIO_PAUTA_PARAM = "pauta";
+
+export function getStudioUrlForPauta(pauta: string) {
+  return `${routes.studio}?${new URLSearchParams({ [STUDIO_PAUTA_PARAM]: pauta })}`;
+}
 
 export const authRoutes = [
   routes.login,
@@ -28,4 +39,8 @@ export const authRoutes = [
   routes.recoverPassword,
 ];
 
-export const protectedRoutes = [routes.appRoot, routes.resetPassword];
+export const protectedRoutes = [
+  routes.appRoot,
+  routes.onboarding,
+  routes.resetPassword,
+];

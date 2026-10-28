@@ -56,7 +56,7 @@ export function StudioRequestPanel({ studio }: StudioRequestPanelProps) {
             <StudioPromptForm
               key={`${studio.mode}-${studio.guidedStep}`}
               studio={studio}
-              defaultPrompt={isGuided ? studio.guidedPrompt : ""}
+              defaultPrompt={isGuided ? studio.guidedPrompt : studio.defaultPrompt}
             />
           )}
         </>

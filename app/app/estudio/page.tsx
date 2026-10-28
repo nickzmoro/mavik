@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { brandDisplayFont } from "@/lib/brand-display-font";
 
@@ -12,7 +13,9 @@ export const metadata: Metadata = {
 export default function StudioPage() {
   return (
     <div className={`${brandDisplayFont.variable} flex flex-col gap-5`}>
-      <StudioWorkspace />
+      <Suspense fallback={null}>
+        <StudioWorkspace />
+      </Suspense>
     </div>
   );
 }

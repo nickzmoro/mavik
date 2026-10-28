@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { AgentSuggestionCard } from "./components/agent-suggestion-card";
 import { BrandSummaryCard } from "./components/brand-summary-card";
 import { CreatePostCard } from "./components/create-post-card";
 import { HomeHeader } from "./components/home-header";
+import { OnboardingGate } from "./components/onboarding-gate";
 import { ShortcutsCard } from "./components/shortcuts-card";
 import { UpcomingPostsSection } from "./components/upcoming-posts-section";
 import { WeeklySummaryCard } from "./components/weekly-summary-card";
@@ -16,6 +18,9 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+      <Suspense fallback={null}>
+        <OnboardingGate />
+      </Suspense>
       <HomeHeader />
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex min-w-0 flex-[2_1_520px] flex-col gap-6">

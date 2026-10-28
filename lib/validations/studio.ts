@@ -6,7 +6,7 @@ export const studioPromptFormSchema = z.object({
   prompt: z
     .string()
     .trim()
-    .min(1, "Descreva a arte que você quer.")
+    .min(10, "Conte um pouco mais sobre a arte que você quer.")
     .max(
       studioPromptMaxLength,
       `Use até ${studioPromptMaxLength} caracteres para descrever a arte.`,

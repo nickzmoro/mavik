@@ -12,6 +12,7 @@ export type Attachment = {
   kind: AttachmentKind;
   kindLabel: string;
   materialId?: string;
+  file?: File;
 };
 
 export const maxAttachments = 10;
@@ -85,6 +86,7 @@ export function useAttachments() {
         id: createAttachmentId(),
         name: file.name,
         kind,
+        file,
         kindLabel:
           kind === "photo"
             ? "Foto"
