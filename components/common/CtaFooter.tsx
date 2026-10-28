@@ -11,7 +11,6 @@ import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { routes } from "@/lib/routes";
 
-// Ícones SVG Nativos de Redes Sociais
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg
