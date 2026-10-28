@@ -10,7 +10,17 @@ export const routes = {
   privacy: "/privacidade",
   appRoot: "/app",
   authenticatedHome: "/app/inicio",
+  agent: "/app/agente",
+  ideas: "/app/ideias",
+  studio: "/app/estudio",
+  schedule: "/app/agenda",
+  results: "/app/resultados",
+  brand: "/app/marca",
+  plans: "/app/planos",
 } as const;
+
+export const getAgentConversationRoute = (conversationId: string) =>
+  `${routes.agent}/${encodeURIComponent(conversationId)}`;
 
 export const authRoutes = [
   routes.login,
