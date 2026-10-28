@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import { UserGreeting } from "./components/user-greeting";
+import { AgentSuggestionCard } from "./components/agent-suggestion-card";
+import { BrandSummaryCard } from "./components/brand-summary-card";
+import { CreatePostCard } from "./components/create-post-card";
+import { HomeHeader } from "./components/home-header";
+import { ShortcutsCard } from "./components/shortcuts-card";
+import { UpcomingPostsSection } from "./components/upcoming-posts-section";
+import { WeeklySummaryCard } from "./components/weekly-summary-card";
 
 export const metadata: Metadata = {
   title: "Início",
@@ -10,10 +15,20 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <main className="theme-light flex min-h-screen items-center justify-center bg-bg px-6 font-sans text-text">
-      <Suspense fallback={null}>
-        <UserGreeting />
-      </Suspense>
-    </main>
+    <>
+      <HomeHeader />
+      <div className="flex flex-wrap items-start gap-6">
+        <div className="flex min-w-0 flex-[2_1_520px] flex-col gap-6">
+          <CreatePostCard />
+          <AgentSuggestionCard />
+          <UpcomingPostsSection />
+        </div>
+        <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-6">
+          <WeeklySummaryCard />
+          <BrandSummaryCard />
+          <ShortcutsCard />
+        </div>
+      </div>
+    </>
   );
 }
