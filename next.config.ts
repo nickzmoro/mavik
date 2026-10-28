@@ -32,7 +32,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+    value: "camera=(), microphone=(self), geolocation=(), browsing-topics=()",
   },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
@@ -47,6 +47,9 @@ const nextConfig: NextConfig = {
     },
   },
   cacheComponents: true,
+  images: {
+    domains: ["lh3.googleusercontent.com"],
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

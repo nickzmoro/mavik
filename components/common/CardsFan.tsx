@@ -228,9 +228,7 @@ export function CardsFan() {
         <h3 className="font-display font-bold text-xl sm:text-2xl text-white tracking-tight leading-tight drop-shadow-sm">
           Calendário & Publicação
         </h3>
-        <p className="text-xs text-[#BAD0FC] font-semibold mt-1">
-          Semana 42
-        </p>
+        <p className="text-xs text-[#BAD0FC] font-semibold mt-1">Semana 42</p>
       </div>
 
       <div className="mb-4">
