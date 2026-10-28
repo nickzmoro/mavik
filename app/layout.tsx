@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 import "./globals.css";
 
@@ -206,7 +207,11 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="pt-BR" className={`${poppins.variable} ${inter.variable} dark`}>
+    <html
+      lang="pt-BR"
+      className={`${poppins.variable} ${inter.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           type="application/ld+json"
@@ -214,7 +219,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[#12092B] text-[#F4F0FF] antialiased selection:bg-[#B390FA] selection:text-[#1A0F3C]">
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ThemeProvider>
+          <ReactQueryProvider>{children}</ReactQueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

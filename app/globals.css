@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --violet-50: #f8f6fe;
   --violet-100: #efe8fd;
@@ -45,8 +47,53 @@
   --space-8: 64px;
   --shadow-sm: 0 1px 2px rgba(26, 15, 60, 0.15);
   --shadow-md: 0 8px 24px rgba(26, 15, 60, 0.25);
+
+  --app-canvas: #0f0a1f;
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-saturate: 140%;
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px rgba(0, 0, 0, 0.28);
+  --tile-bg: rgba(255, 255, 255, 0.05);
+  --tile-border: rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.06);
+  --chip-border: rgba(255, 255, 255, 0.12);
+  --composer-bg: rgba(255, 255, 255, 0.06);
+  --composer-border: rgba(255, 255, 255, 0.12);
+  --composer-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --dialog-bg: rgba(30, 18, 70, 0.86);
+  --dialog-border: rgba(255, 255, 255, 0.12);
+  --dialog-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 28px 70px rgba(0, 0, 0, 0.55);
+  --popover-bg: rgba(30, 18, 70, 0.94);
+  --popover-border: rgba(255, 255, 255, 0.12);
+  --popover-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+  --scrim: rgba(10, 6, 24, 0.62);
+  --hover-subtle: rgba(255, 255, 255, 0.07);
+  --icon-hover: rgba(255, 255, 255, 0.1);
+  --plan-bg: rgba(179, 144, 250, 0.1);
+  --plan-border: rgba(179, 144, 250, 0.35);
+  --plan-shadow: 0 12px 32px rgba(89, 38, 200, 0.18);
+  --date-chip-bg: rgba(245, 185, 77, 0.14);
+  --date-chip-fg: #f5c56a;
+  --toast-bg: rgba(244, 240, 255, 0.95);
+  --toast-fg: #1a0f3c;
+  --brand-glass-from: rgba(255, 255, 255, 0.08);
+  --brand-glass-to: rgba(255, 255, 255, 0.03);
+  --brand-glass-border: rgba(255, 255, 255, 0.12);
+  --brand-glass-inset: rgba(255, 255, 255, 0.1);
+  --brand-glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --brand-tile-bg: rgba(255, 255, 255, 0.05);
+  --brand-tile-border: rgba(255, 255, 255, 0.12);
+  --brand-selected: rgba(179, 144, 250, 0.16);
+  --brand-quote-from: rgba(179, 144, 250, 0.2);
+  --brand-quote-to: rgba(179, 144, 250, 0.07);
+  --brand-quote-border: rgba(179, 144, 250, 0.35);
+  --dropzone-bg: rgba(255, 255, 255, 0.03);
+  --dropzone-border: rgba(179, 144, 250, 0.35);
 }
 
+.light,
 .theme-light {
   --bg: #ffffff;
   --surface: #f8f6fe;
@@ -66,9 +113,54 @@
   --danger-bg: #fde8e8;
   --shadow-sm: 0 1px 2px rgba(26, 15, 60, 0.08);
   --shadow-md: 0 8px 24px rgba(26, 15, 60, 0.1);
+  --app-canvas: #f2f1f6;
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-saturate: 160%;
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 30px rgba(26, 15, 60, 0.06);
+  --tile-bg: rgba(255, 255, 255, 0.72);
+  --tile-border: rgba(255, 255, 255, 0.95);
+  --chip-bg: rgba(255, 255, 255, 0.8);
+  --chip-border: #e2ddf0;
+  --composer-bg: #ffffff;
+  --composer-border: #e2ddf0;
+  --composer-shadow:
+    0 1px 2px rgba(26, 15, 60, 0.05), 0 8px 20px rgba(26, 15, 60, 0.06);
+  --dialog-bg: rgba(255, 255, 255, 0.88);
+  --dialog-border: rgba(255, 255, 255, 0.95);
+  --dialog-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 28px 70px rgba(26, 15, 60, 0.28);
+  --popover-bg: rgba(255, 255, 255, 0.92);
+  --popover-border: rgba(255, 255, 255, 0.95);
+  --popover-shadow: 0 16px 44px rgba(26, 15, 60, 0.2);
+  --scrim: rgba(26, 15, 60, 0.38);
+  --hover-subtle: rgba(89, 38, 200, 0.07);
+  --icon-hover: rgba(26, 15, 60, 0.06);
+  --plan-bg: rgba(239, 232, 253, 0.55);
+  --plan-border: rgba(179, 144, 250, 0.38);
+  --plan-shadow: none;
+  --date-chip-bg: #fff1d6;
+  --date-chip-fg: #7a4800;
+  --toast-bg: rgba(26, 15, 60, 0.92);
+  --toast-fg: #ffffff;
+  --brand-glass-from: rgba(255, 255, 255, 0.86);
+  --brand-glass-to: rgba(255, 255, 255, 0.58);
+  --brand-glass-border: rgba(255, 255, 255, 0.95);
+  --brand-glass-inset: rgba(255, 255, 255, 0.95);
+  --brand-glass-shadow: 0 12px 32px rgba(26, 15, 60, 0.08);
+  --brand-tile-bg: rgba(255, 255, 255, 0.78);
+  --brand-tile-border: #e2ddf0;
+  --brand-selected: #efe8fd;
+  --brand-quote-from: rgba(239, 232, 253, 0.92);
+  --brand-quote-to: rgba(220, 206, 251, 0.6);
+  --brand-quote-border: rgba(179, 144, 250, 0.5);
+  --dropzone-bg: rgba(255, 255, 255, 0.5);
+  --dropzone-border: rgba(89, 38, 200, 0.28);
   color-scheme: light;
 }
 
+.dark,
 .theme-dark {
   --bg: #12092b;
   --surface: #1a0f3c;
@@ -87,6 +179,110 @@
   --danger: #ff8a8f;
   --danger-bg: #431b22;
   color-scheme: dark;
+}
+
+@utility glass {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(24px) saturate(var(--glass-saturate));
+  backdrop-filter: blur(24px) saturate(var(--glass-saturate));
+}
+
+@utility tile {
+  background-color: var(--tile-bg);
+  border: 1px solid var(--tile-border);
+}
+
+@utility chip-surface {
+  background-color: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  color: var(--muted);
+}
+
+@utility composer {
+  background-color: var(--composer-bg);
+  border: 1px solid var(--composer-border);
+  box-shadow: var(--composer-shadow);
+}
+
+@utility dialog-surface {
+  background-color: var(--dialog-bg);
+  border: 1px solid var(--dialog-border);
+  box-shadow: var(--dialog-shadow);
+  -webkit-backdrop-filter: blur(32px) saturate(150%);
+  backdrop-filter: blur(32px) saturate(150%);
+}
+
+
+@utility scrim {
+  background-color: var(--scrim);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+@utility plan {
+  background-color: var(--plan-bg);
+  border: 1px solid var(--plan-border);
+  box-shadow: var(--plan-shadow);
+}
+
+@utility date-chip {
+  background-color: var(--date-chip-bg);
+  color: var(--date-chip-fg);
+}
+
+@utility toast-surface {
+  background-color: var(--toast-bg);
+  color: var(--toast-fg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+
+@utility brand-glass {
+  background-image: linear-gradient(
+    150deg,
+    var(--brand-glass-from),
+    var(--brand-glass-to)
+  );
+  border: 1px solid var(--brand-glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--brand-glass-inset),
+    var(--brand-glass-shadow);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+
+@utility brand-tile {
+  background-color: var(--brand-tile-bg);
+  border: 1px solid var(--brand-tile-border);
+}
+
+@utility brand-quote {
+  background-image: linear-gradient(
+    150deg,
+    var(--brand-quote-from),
+    var(--brand-quote-to)
+  );
+  border: 1px solid var(--brand-quote-border);
+}
+
+@utility popover-surface {
+  background-color: var(--popover-bg);
+  border: 1px solid var(--popover-border);
+  box-shadow: var(--popover-shadow);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  backdrop-filter: blur(28px) saturate(150%);
+}
+
+@utility dropzone {
+  background-color: var(--dropzone-bg);
+  border: 1.5px dashed var(--dropzone-border);
+}
+
+@utility scrollbar-subtle {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted) 30%, transparent)
+    transparent;
 }
 
 @theme inline {
@@ -111,6 +307,35 @@
   --color-warning-bg: var(--warning-bg);
   --color-danger: var(--danger);
   --color-danger-bg: var(--danger-bg);
+  --color-app-canvas: var(--app-canvas);
+  --color-hover-subtle: var(--hover-subtle);
+  --color-icon-hover: var(--icon-hover);
+  --color-brand-selected: var(--brand-selected);
+  --color-brand-tile-border: var(--brand-tile-border);
+
+  --animate-soft-pulse: soft-pulse 1.2s ease-in-out infinite;
+  --animate-rec-pulse: soft-pulse 1s ease-in-out infinite;
+  --animate-voice-wave: voice-wave 1s ease-in-out infinite;
+
+  @keyframes voice-wave {
+    0%,
+    100% {
+      transform: scaleY(0.4);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes soft-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
 }
 
 body {
