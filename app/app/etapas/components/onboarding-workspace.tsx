@@ -10,7 +10,10 @@ import {
   routes,
 } from "@/lib/routes";
 
-import { toInitialBrandAssets, useBrandAssets } from "../hooks/use-brand-assets";
+import {
+  toInitialBrandAssets,
+  useBrandAssets,
+} from "../hooks/use-brand-assets";
 import { BrandKitStep } from "./brand-kit-step";
 import { CompanyStep } from "./company-step";
 import { OnboardingHeader } from "./onboarding-header";
@@ -50,7 +53,7 @@ export function OnboardingWorkspace({
       <OnboardingHeader userInitials={userInitials} />
 
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="glass flex flex-col justify-between gap-8 rounded-none border-x-0 border-t-0 px-4 py-4 sm:px-6 lg:sticky lg:top-16 lg:h-[calc(100dvh-4rem)] lg:border-r lg:border-b-0 lg:py-8">
+        <aside className="flex flex-col justify-between gap-8 rounded-none border-x-0 border-t-0 px-4 py-4 sm:px-6 lg:sticky lg:top-5 lg:h-[calc(100dvh-4rem)] lg:border-b-0 lg:py-8">
           <OnboardingStepper currentStep={step} reachedStep={reachedStep} />
           <div className="hidden lg:block">
             <p className="m-0 text-sm font-semibold">Pode sair quando quiser</p>
