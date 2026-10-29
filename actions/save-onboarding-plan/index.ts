@@ -1,9 +1,9 @@
 "use server";
 
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { contentPlans, stores } from "@/db/schema";
+import { contents, contentPlans, stores } from "@/db/schema";
 import {
   authFailure,
   authSuccess,
@@ -12,11 +12,23 @@ import {
 import { validationFailure } from "@/lib/auth-error-messages";
 import { onboardingErrorMessages } from "@/lib/onboarding/action-messages";
 import { getCurrentUserId, getOwnedStore } from "@/lib/onboarding/store-access";
+import type { PlanItem } from "@/lib/onboarding/thirty-day-plan";
 
 import {
   saveOnboardingPlanSchema,
   type SaveOnboardingPlanInput,
 } from "./schema";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const PUBLISH_HOUR_UTC = 13;
+
+function toScheduledAt(startDate: string, day: number) {
+  const start = new Date(`${startDate}T00:00:00Z`).getTime();
+
+  return new Date(
+    start + (day - 1) * DAY_MS + PUBLISH_HOUR_UTC * 60 * 60 * 1000,
+  );
+}
 
 export async function saveOnboardingPlan(
   input: SaveOnboardingPlanInput,
@@ -53,10 +65,14 @@ export async function saveOnboardingPlan(
       return authFailure(onboardingErrorMessages.previousStepMissing);
     }
 
-    const rationale = {
-      ...(plan.rationale as Record<string, unknown>),
-      items: [...items].sort((first, second) => first.day - second.day),
+    const sortedItems = [...items].sort(
+      (first, second) => first.day - second.day,
+    );
+    const currentRationale = plan.rationale as Record<string, unknown> & {
+      startDate?: string;
     };
+    const rationale = { ...currentRationale, items: sortedItems };
+    const startDate = currentRationale.startDate ?? plan.month;
 
     await db.transaction(async (tx) => {
       await tx
@@ -74,6 +90,32 @@ export async function saveOnboardingPlan(
         .where(eq(contentPlans.id, plan.id));
 
       if (shouldApprove) {
+        await tx
+          .delete(contents)
+          .where(
+            and(
+              eq(contents.planId, plan.id),
+              eq(contents.origin, "onboarding"),
+              eq(contents.status, "ideia"),
+            ),
+          );
+
+        if (sortedItems.length > 0) {
+          await tx.insert(contents).values(
+            sortedItems.map((item: PlanItem) => ({
+              storeId: store.id,
+              planId: plan.id,
+              title: item.title,
+              format: item.format,
+              goal: item.goal,
+              scheduledAt: toScheduledAt(startDate, item.day),
+              status: "ideia" as const,
+              origin: "onboarding" as const,
+              createdBy: userId,
+            })),
+          );
+        }
+
         await tx
           .update(stores)
           .set({
