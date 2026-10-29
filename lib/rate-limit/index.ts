@@ -63,6 +63,18 @@ export const rateLimitRules = {
     blockMs: MINUTE_MS,
     maxBlockMs: 24 * HOUR_MS,
   },
+  extractBrandManualByUser: {
+    limit: 8,
+    windowMs: HOUR_MS,
+    blockMs: 5 * MINUTE_MS,
+    maxBlockMs: 24 * HOUR_MS,
+  },
+  generateSampleCaptionByUser: {
+    limit: 40,
+    windowMs: 10 * MINUTE_MS,
+    blockMs: MINUTE_MS,
+    maxBlockMs: HOUR_MS,
+  },
 } satisfies Record<string, RateLimitRule>;
 
 const globalForRateLimit = globalThis as typeof globalThis & {

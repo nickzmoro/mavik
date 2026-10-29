@@ -16,11 +16,15 @@ export const routes = {
   schedule: "/app/agenda",
   results: "/app/resultados",
   brand: "/app/marca",
+  onboarding: "/app/etapas",
   plans: "/app/planos",
 } as const;
 
 export const getAgentConversationRoute = (conversationId: string) =>
   `${routes.agent}/${encodeURIComponent(conversationId)}`;
+
+export const getOnboardingStepRoute = (step: number) =>
+  `${routes.onboarding}?etapa=${step}`;
 
 export const authRoutes = [
   routes.login,
