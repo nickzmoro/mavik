@@ -1,26 +1,28 @@
+import { routes } from "@/lib/routes";
+
 export const onboardingSteps = [
   {
     number: 1,
     label: "Sobre a empresa",
-    href: "/onboarding/empresa",
+    href: `${routes.onboarding}?etapa=1`,
     duration: "cerca de 1 minuto",
   },
   {
     number: 2,
     label: "Brand Kit",
-    href: "/onboarding/marca",
+    href: `${routes.onboarding}?etapa=2`,
     duration: "cerca de 4 minutos",
   },
   {
     number: 3,
     label: "Voz e público",
-    href: "/onboarding/voz",
+    href: `${routes.onboarding}?etapa=3`,
     duration: "cerca de 3 minutos",
   },
   {
     number: 4,
     label: "Diagnóstico e plano",
-    href: "/onboarding/plano",
+    href: `${routes.onboarding}?etapa=4`,
     duration: "cerca de 2 minutos",
   },
 ] as const;
@@ -93,6 +95,14 @@ export const colorRoles = [
 
 export type ColorRole = (typeof colorRoles)[number]["value"];
 
+export const defaultBrandColors: Record<ColorRole, string> = {
+  primaria: "#5926C8",
+  secundaria: "#B390FA",
+  destaque: "#F5A524",
+  fundo: "#F8F6FE",
+  texto: "#1B1530",
+};
+
 export const imageStyles = [
   { value: "fotografico", label: "Fotográfico" },
   { value: "ilustrado", label: "Ilustrado" },
@@ -111,6 +121,14 @@ export const contentKinds = [
 
 export type ContentKind = (typeof contentKinds)[number]["value"];
 
+export const contentFormats = ["post", "story", "reels", "carrossel"] as const;
+
+export type ContentFormat = (typeof contentFormats)[number];
+
+export const contentGoals = ["atrair", "engajar", "vender", "fidelizar"] as const;
+
+export type ContentGoal = (typeof contentGoals)[number];
+
 export const MAX_PRODUCTS = 5;
 export const MAX_PERSONAS = 3;
 export const MAX_COMPETITORS = 3;
@@ -119,25 +137,14 @@ export const LOGO_MAX_BYTES = 5 * 1024 * 1024;
 export const MANUAL_MAX_BYTES = 5 * 1024 * 1024;
 export const LOGO_MIME_TYPES = ["image/svg+xml", "image/png", "image/webp"];
 
-export const titleFontFamilies = [
-  "DM Serif Display",
-  "Playfair Display",
-  "Lora",
-  "Poppins",
-  "Sora",
-  "Montserrat",
-] as const;
+export const DEFAULT_TITLE_FONT = "Poppins";
+export const DEFAULT_BODY_FONT = "Inter";
+export const MAX_FONT_NAME_LENGTH = 60;
+export const MAX_RESTRICTIONS = 15;
 
-export const bodyFontFamilies = [
-  "Inter",
-  "Lato",
-  "Open Sans",
-  "Nunito",
-  "Roboto",
-  "Source Sans 3",
-] as const;
+export const fontSources = ["google", "nome"] as const;
 
-export const fontFamilies = [...titleFontFamilies, ...bodyFontFamilies];
+export type FontSource = (typeof fontSources)[number];
 
 export const MAX_POST_EXAMPLES = 5;
 export const POST_EXAMPLE_MIME_TYPES = [

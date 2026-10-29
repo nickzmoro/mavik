@@ -1,10 +1,16 @@
 import { z } from "zod";
 
-import { contentKinds } from "@/lib/onboarding/constants";
+import {
+  contentFormats,
+  contentGoals,
+  contentKinds,
+} from "@/lib/onboarding/constants";
 
 export const planItemSchema = z.object({
   day: z.number().int().min(1).max(30),
   kind: z.enum(contentKinds.map((kind) => kind.value)),
+  format: z.enum(contentFormats).default("post"),
+  goal: z.enum(contentGoals).default("engajar"),
   title: z
     .string()
     .trim()

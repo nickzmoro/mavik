@@ -19,7 +19,8 @@ import {
   type stores,
 } from "@/db/schema";
 
-import { buildThirtyDayPlan, computeDiagnosis } from "./diagnosis";
+import { computeDiagnosis } from "./diagnosis";
+import { buildThirtyDayPlan } from "./thirty-day-plan";
 
 type Store = typeof stores.$inferSelect;
 type BrandKit = typeof brandKits.$inferSelect;
@@ -113,7 +114,7 @@ export async function generateOnboardingDiagnosis(
   const month = new Date(
     Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1),
   );
-  const planItems = buildThirtyDayPlan(store.name, productNames);
+  const planItems = buildThirtyDayPlan(store.name, productNames, store.mainGoal);
   const rationale = { startDate: toDateString(startDate), items: planItems };
 
   await db.transaction(async (tx) => {

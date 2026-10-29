@@ -1,0 +1,1 @@
+ALTER TYPE "public"."font_source" ADD VALUE 'nome';

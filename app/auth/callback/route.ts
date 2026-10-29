@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getAppUrl } from "@/lib/app-url";
+import { getPostAuthRoute } from "@/lib/onboarding/get-post-auth-route";
 import { routes } from "@/lib/routes";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
 import {
@@ -48,7 +49,11 @@ export async function GET(request: NextRequest) {
 
   await setSessionPersistence(true);
 
-  return NextResponse.redirect(
-    getAppUrl(request, getSafeRedirectPath(searchParams.get("next"))),
-  );
+  const nextPath = searchParams.get("next");
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const destination = nextPath
+    ? getSafeRedirectPath(nextPath)
+    : await getPostAuthRoute(claimsData?.claims.sub);
+
+  return NextResponse.redirect(getAppUrl(request, destination));
 }

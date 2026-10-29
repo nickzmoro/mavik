@@ -16,8 +16,9 @@ export const routes = {
   schedule: "/app/agenda",
   results: "/app/resultados",
   brand: "/app/marca",
+  onboarding: "/app/etapas",
   plans: "/app/planos",
-  onboarding: "/onboarding",
+  legacyOnboarding: "/onboarding",
   onboardingCompany: "/onboarding/empresa",
   onboardingBrand: "/onboarding/marca",
   onboardingVoice: "/onboarding/voz",
@@ -27,20 +28,19 @@ export const routes = {
 export const getAgentConversationRoute = (conversationId: string) =>
   `${routes.agent}/${encodeURIComponent(conversationId)}`;
 
+export const getOnboardingStepRoute = (step: number) =>
+  `${routes.onboarding}?etapa=${step}`;
+
 export const STUDIO_PAUTA_PARAM = "pauta";
 
 export function getStudioUrlForPauta(pauta: string) {
   return `${routes.studio}?${new URLSearchParams({ [STUDIO_PAUTA_PARAM]: pauta })}`;
 }
 
-export const authRoutes = [
-  routes.login,
-  routes.signUp,
-  routes.recoverPassword,
-];
+export const authRoutes = [routes.login, routes.signUp, routes.recoverPassword];
 
 export const protectedRoutes = [
   routes.appRoot,
-  routes.onboarding,
+  routes.legacyOnboarding,
   routes.resetPassword,
 ];

@@ -1,29 +1,46 @@
-type Tone = {
+export type SampleCaptionTone = {
   formalCasual: number;
   seriousFun: number;
   technicalSimple: number;
   educationalSales: number;
 };
 
-export function buildSampleCaption(tone: Tone, product?: string) {
-  const subject = product?.toLowerCase() || "nosso serviço";
-  const isCasual = tone.formalCasual >= 50;
-  const isFun = tone.seriousFun >= 60;
-  const isSimple = tone.technicalSimple >= 50;
-  const isSales = tone.educationalSales >= 60;
+const openings = {
+  formalTechnical:
+    "Cada detalhe do nosso trabalho segue um padrão de qualidade pensado para você.",
+  formalSimple:
+    "Qualidade e cuidado em cada detalhe, para você ter a melhor experiência.",
+  casualSimple: "A gente cuida de cada detalhe para você se sentir em casa.",
+  casualTechnical:
+    "Cada etapa foi pensada com carinho e método, do começo ao fim.",
+};
 
-  const opening = isSimple
-    ? isCasual
-      ? "Pele bonita começa com cuidado de verdade."
-      : "Resultados consistentes começam com cuidado de verdade."
-    : `Cada etapa de ${subject} segue um protocolo pensado para você.`;
+const closings = {
+  formalSales: "Fale com a nossa equipe e conheça as condições.",
+  casualSales: "Chama a gente e vem conhecer!",
+  formalEducational: "Conheça mais sobre o nosso trabalho e tire suas dúvidas.",
+  casualEducational: "Quer saber mais? A gente te explica.",
+};
+
+export function buildSampleCaption(tone: SampleCaptionTone) {
+  const isCasual = tone.formalCasual >= 50;
+  const isSimple = tone.technicalSimple >= 50;
+  const isSales = tone.educationalSales >= 50;
+
+  const opening = isCasual
+    ? isSimple
+      ? openings.casualSimple
+      : openings.casualTechnical
+    : isSimple
+      ? openings.formalSimple
+      : openings.formalTechnical;
   const closing = isSales
     ? isCasual
-      ? `Garanta seu horário de ${subject} hoje.`
-      : `Agende seu horário de ${subject}.`
+      ? closings.casualSales
+      : closings.formalSales
     : isCasual
-      ? "Agende sua avaliação."
-      : "Agende uma avaliação e tire suas dúvidas.";
+      ? closings.casualEducational
+      : closings.formalEducational;
 
-  return [opening, closing, isFun ? "Bora?" : ""].filter(Boolean).join(" ");
+  return `${opening} ${closing}`;
 }

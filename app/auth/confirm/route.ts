@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getAppUrl } from "@/lib/app-url";
+import { getPostAuthRoute } from "@/lib/onboarding/get-post-auth-route";
 import { routes } from "@/lib/routes";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
 import {
@@ -67,7 +68,14 @@ export async function GET(request: NextRequest) {
   }
 
   if (isVerified) {
-    return redirectToPath(request, redirectPath);
+    const { data: claimsData } = await supabase.auth.getClaims();
+
+    return redirectToPath(
+      request,
+      searchParams.get("next")
+        ? redirectPath
+        : await getPostAuthRoute(claimsData?.claims.sub),
+    );
   }
 
   if (isPasswordRecovery) {

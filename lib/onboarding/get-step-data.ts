@@ -32,8 +32,12 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { BRAND_ASSETS_BUCKET } from "./brand-assets";
-import type { ColorRole } from "./constants";
-import type { PlanItem } from "./diagnosis";
+import {
+  DEFAULT_BODY_FONT,
+  DEFAULT_TITLE_FONT,
+  defaultBrandColors,
+} from "./constants";
+import type { PlanItem } from "./thirty-day-plan";
 import { getCurrentBrandKit, getOwnedStore } from "./store-access";
 
 async function getProductNames(storeId: string) {
@@ -91,18 +95,11 @@ export async function getCompanyStepData(userId: string) {
 }
 
 export type UploadedBrandAsset = {
+  id: string;
   url: string;
   fileName: string;
   isGenerated: boolean;
   checks: Record<string, "ok" | "aviso" | "erro">;
-};
-
-const defaultColors: Record<ColorRole, string> = {
-  primaria: "#5926C8",
-  secundaria: "#B390FA",
-  destaque: "#F5A524",
-  fundo: "#F8F6FE",
-  texto: "#1B1530",
 };
 
 export async function getBrandStepData(userId: string) {
@@ -148,6 +145,7 @@ export async function getBrandStepData(userId: string) {
 
     if (signedUrl && kind) {
       uploadedAssets[kind] = {
+        id: asset.id,
         url: signedUrl,
         fileName: asset.label ?? "arquivo",
         isGenerated: asset.isGenerated,
@@ -164,13 +162,24 @@ export async function getBrandStepData(userId: string) {
   const fontByRole = Object.fromEntries(
     fonts.map(({ role, family }) => [role, family]),
   );
+  const fontSourceByRole = Object.fromEntries(
+    fonts.map(({ role, source }) => [
+      role,
+      source === "nome" ? "nome" : "google",
+    ]),
+  );
 
   const defaultValues: SaveOnboardingBrandKitFormValues = {
     source: brandKit?.source ?? "guiado",
-    colors: { ...defaultColors, ...colorByRole },
-    titleFont: fontByRole.titulo ?? "DM Serif Display",
-    bodyFont: fontByRole.paragrafo ?? "Inter",
+    colors: { ...defaultBrandColors, ...colorByRole },
+    titleFont: fontByRole.titulo ?? DEFAULT_TITLE_FONT,
+    bodyFont: fontByRole.paragrafo ?? DEFAULT_BODY_FONT,
     highlightFont: fontByRole.destaque ?? "",
+    fontSources: {
+      titulo: fontSourceByRole.titulo ?? "google",
+      paragrafo: fontSourceByRole.paragrafo ?? "google",
+      destaque: fontSourceByRole.destaque ?? "google",
+    },
     licenseConfirmed: fonts.some(({ licenseConfirmed }) => licenseConfirmed),
     imageStyle: brandKit?.imageStyle ?? undefined,
     restrictions: restrictions.map(({ value }) => value),
@@ -265,6 +274,8 @@ export async function getVoiceStepData(userId: string) {
 
   return {
     isRegulated: store.isRegulated,
+    segment: store.segment,
+    sampleCaption: voice?.sampleCaption ?? "",
     firstProduct: products[0],
     defaultValues,
     postExamples,

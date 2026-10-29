@@ -1,5 +1,3 @@
-import type { ContentKind } from "./constants";
-
 export type DiagnosisInput = {
   products: string[];
   hasWebsite: boolean;
@@ -28,12 +26,6 @@ export type Diagnosis = {
   strengths: string[];
   attentionPoints: string[];
   opportunities: string[];
-};
-
-export type PlanItem = {
-  day: number;
-  kind: ContentKind;
-  title: string;
 };
 
 type Criterion = {
@@ -140,6 +132,9 @@ export function computeDiagnosis(input: DiagnosisInput): Diagnosis {
   const opportunities = [
     offerScore < 70 && "Apresentar melhor seus produtos e serviços",
     !input.hasWebsite && "Ter um site ou página de agendamento",
+    input.logoCount < 2 && "Enviar logos para fundo claro e escuro",
+    !input.hasImageStyle &&
+      "Definir um estilo de imagem para manter a identidade visual",
     input.competitorCount === 0 && "Conhecer o que os concorrentes publicam",
     contentScore < 70 && "Publicar com mais frequência e constância",
   ].filter((opportunity): opportunity is string => Boolean(opportunity));
@@ -151,6 +146,7 @@ export function computeDiagnosis(input: DiagnosisInput): Diagnosis {
     offerScore,
     strengths: allCriteria
       .filter(({ isMet }) => isMet)
+      .sort((first, second) => second.weight - first.weight)
       .map(({ strength }) => strength)
       .slice(0, 4),
     attentionPoints: allCriteria
@@ -160,70 +156,4 @@ export function computeDiagnosis(input: DiagnosisInput): Diagnosis {
       .slice(0, 4),
     opportunities: opportunities.slice(0, 3),
   };
-}
-
-const planPattern: { day: number; kind: ContentKind }[] = [
-  { day: 2, kind: "educativo" },
-  { day: 4, kind: "comercial" },
-  { day: 6, kind: "autoridade" },
-  { day: 9, kind: "comercial" },
-  { day: 10, kind: "educativo" },
-  { day: 12, kind: "autoridade" },
-  { day: 15, kind: "educativo" },
-  { day: 17, kind: "comercial" },
-  { day: 19, kind: "educativo" },
-  { day: 20, kind: "autoridade" },
-  { day: 23, kind: "comercial" },
-  { day: 25, kind: "educativo" },
-  { day: 27, kind: "comercial" },
-  { day: 29, kind: "autoridade" },
-  { day: 30, kind: "educativo" },
-];
-
-const titleTemplates: Record<
-  ContentKind,
-  ((product: string, storeName: string) => string)[]
-> = {
-  educativo: [
-    (product) => `3 dúvidas comuns sobre ${product}`,
-    (product) => `Como se preparar para ${product}`,
-    (product) => `Mitos e verdades sobre ${product}`,
-  ],
-  comercial: [
-    (product) => `${product}: como funciona e como agendar`,
-    (product) => `Por que escolher ${product} com a gente`,
-    (product) => `Agenda aberta para ${product}`,
-  ],
-  autoridade: [
-    (_product, storeName) => `Bastidores do ${storeName}`,
-    (product) => `Nosso cuidado em cada etapa de ${product}`,
-    (_product, storeName) => `Quem está por trás do ${storeName}`,
-  ],
-};
-
-export function buildThirtyDayPlan(
-  storeName: string,
-  products: string[],
-): PlanItem[] {
-  const productNames = products.length > 0 ? products : ["seu serviço"];
-  const kindCounters: Record<ContentKind, number> = {
-    educativo: 0,
-    comercial: 0,
-    autoridade: 0,
-  };
-
-  return planPattern.map(({ day, kind }) => {
-    const occurrence = kindCounters[kind]++;
-    const templates = titleTemplates[kind];
-    const product = productNames[occurrence % productNames.length];
-
-    return {
-      day,
-      kind,
-      title: templates[occurrence % templates.length](
-        product.toLowerCase(),
-        storeName,
-      ),
-    };
-  });
 }

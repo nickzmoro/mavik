@@ -100,22 +100,31 @@ export async function saveOnboardingBrandKit(
       );
 
       await tx.delete(brandFonts).where(eq(brandFonts.brandKitId, brandKit.id));
+      const { fontSources } = brandKitValues;
       await tx.insert(brandFonts).values(
         [
-          { role: "titulo" as const, family: brandKitValues.titleFont },
-          { role: "paragrafo" as const, family: brandKitValues.bodyFont },
+          {
+            role: "titulo" as const,
+            family: brandKitValues.titleFont,
+            source: fontSources.titulo,
+          },
+          {
+            role: "paragrafo" as const,
+            family: brandKitValues.bodyFont,
+            source: fontSources.paragrafo,
+          },
           ...(brandKitValues.highlightFont
             ? [
                 {
                   role: "destaque" as const,
                   family: brandKitValues.highlightFont,
+                  source: fontSources.destaque,
                 },
               ]
             : []),
         ].map((font) => ({
           ...font,
           brandKitId: brandKit.id,
-          source: "google" as const,
           licenseConfirmed: brandKitValues.licenseConfirmed,
         })),
       );

@@ -28,25 +28,43 @@ export function parseColor(value: string) {
     .toUpperCase()}`;
 }
 
-const getRelativeLuminance = (hexColor: string) => {
-  const channels = [1, 3, 5].map((start) => {
-    const channel = parseInt(hexColor.slice(start, start + 2), 16) / 255;
+export function getRgbLuminance(red: number, green: number, blue: number) {
+  const [linearRed, linearGreen, linearBlue] = [red, green, blue].map(
+    (value) => {
+      const channel = value / 255;
 
-    return channel <= 0.03928
-      ? channel / 12.92
-      : ((channel + 0.055) / 1.055) ** 2.4;
-  });
+      return channel <= 0.03928
+        ? channel / 12.92
+        : ((channel + 0.055) / 1.055) ** 2.4;
+    },
+  );
 
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
-};
+  return 0.2126 * linearRed + 0.7152 * linearGreen + 0.0722 * linearBlue;
+}
 
-export function getContrastRatio(foreground: string, background: string) {
-  const [lighter, darker] = [
-    getRelativeLuminance(foreground),
-    getRelativeLuminance(background),
-  ].sort((first, second) => second - first);
+const getRelativeLuminance = (hexColor: string) =>
+  getRgbLuminance(
+    parseInt(hexColor.slice(1, 3), 16),
+    parseInt(hexColor.slice(3, 5), 16),
+    parseInt(hexColor.slice(5, 7), 16),
+  );
+
+export function getLuminanceContrast(
+  firstLuminance: number,
+  secondLuminance: number,
+) {
+  const [lighter, darker] = [firstLuminance, secondLuminance].sort(
+    (first, second) => second - first,
+  );
 
   return (lighter + 0.05) / (darker + 0.05);
+}
+
+export function getContrastRatio(foreground: string, background: string) {
+  return getLuminanceContrast(
+    getRelativeLuminance(foreground),
+    getRelativeLuminance(background),
+  );
 }
 
 export const minimumAaContrast = 4.5;
