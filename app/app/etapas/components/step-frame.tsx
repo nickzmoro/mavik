@@ -62,8 +62,12 @@ export function StepFrame({
         <div className="flex flex-col gap-8">{children}</div>
       </div>
 
-      <footer className="glass sticky bottom-0 z-10 rounded-none border-x-0 border-b-0">
-        <div className="mx-auto flex w-full max-w-240 flex-wrap items-center justify-end gap-3 px-4 py-3 sm:px-6">
+      <footer className="sticky bottom-0 z-10">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-linear-to-t from-app-canvas/90 via-app-canvas/50 to-transparent backdrop-blur-xl mask-[linear-gradient(to_top,black_45%,transparent)]"
+        />
+        <div className="relative mx-auto flex w-full max-w-240 flex-wrap items-center justify-end gap-3 px-4 pt-8 pb-4 sm:px-6">
           {footer}
         </div>
       </footer>
