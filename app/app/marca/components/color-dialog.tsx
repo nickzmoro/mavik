@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { getColorName } from "@/lib/color";
 import { parseColor } from "@/lib/color-contrast";
 import type { BrandColor } from "@/lib/mocks/brand";
 import {
@@ -30,6 +31,7 @@ import {
 } from "@/lib/validations/brand";
 
 const colorFormId = "brand-color-form";
+const defaultColorHex = "#8FA98A";
 
 function ColorForm({
   color,
@@ -41,12 +43,29 @@ function ColorForm({
   const form = useForm<BrandColorFormValues>({
     resolver: zodResolver(brandColorFormSchema),
     defaultValues: {
-      name: color?.name ?? "",
-      value: color?.hex ?? "#8FA98A",
+      name: color?.name ?? getColorName(defaultColorHex),
+      value: color?.hex ?? defaultColorHex,
     },
   });
   const colorValue = useWatch({ control: form.control, name: "value" });
-  const previewHex = parseColor(colorValue) ?? color?.hex ?? "#8FA98A";
+  const previewHex = parseColor(colorValue) ?? color?.hex ?? defaultColorHex;
+
+  const changeColorValue = (value: string) => {
+    form.setValue("value", value, { shouldValidate: true });
+
+    const parsedHex = parseColor(value);
+
+    if (!parsedHex) {
+      return;
+    }
+
+    const currentName = form.getValues("name").trim();
+    const previousAutoName = getColorName(previewHex);
+
+    if (currentName === "" || currentName === previousAutoName) {
+      form.setValue("name", getColorName(parsedHex), { shouldValidate: true });
+    }
+  };
 
   return (
     <>
@@ -93,9 +112,7 @@ function ColorForm({
                     aria-label="Escolher cor no seletor"
                     value={previewHex.toLowerCase()}
                     onChange={(event) =>
-                      form.setValue("value", event.target.value.toUpperCase(), {
-                        shouldValidate: true,
-                      })
+                      changeColorValue(event.target.value.toUpperCase())
                     }
                     className="size-11 shrink-0 cursor-pointer rounded-(--r-md) border border-muted bg-bg p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                   />
@@ -105,6 +122,7 @@ function ColorForm({
                       spellCheck={false}
                       placeholder="#2B2420 ou rgb(43, 36, 32)"
                       {...field}
+                      onChange={(event) => changeColorValue(event.target.value)}
                     />
                   </FormControl>
                 </div>

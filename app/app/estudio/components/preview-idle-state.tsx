@@ -1,11 +1,15 @@
-import { Sparkles } from "lucide-react";
+"use client";
 
-import { mockRecentArts } from "@/lib/mocks/studio";
+import { Sparkles } from "lucide-react";
+import Image from "next/image";
+
+import { useRecentArtworks } from "@/hooks/queries/use-recent-artworks";
 
 import { BrandKitSummaryCard } from "./brand-kit-summary-card";
-import { StudioArt } from "./studio-art";
 
 export function PreviewIdleState() {
+  const { data: recentArtworks = [] } = useRecentArtworks();
+
   return (
     <>
       <div className="dropzone flex flex-col items-center gap-2.5 rounded-[20px] px-6 py-8 text-center">
@@ -24,27 +28,32 @@ export function PreviewIdleState() {
         </p>
       </div>
       <BrandKitSummaryCard />
-      <div className="flex flex-col gap-2.5">
-        <span className="text-xs leading-[1.4] font-semibold text-muted">
-          Criadas recentemente
-        </span>
-        <div className="grid grid-cols-3 gap-2.5">
-          {mockRecentArts.map((recentArt) => (
-            <div key={recentArt.id} className="flex min-w-0 flex-col gap-1.5">
-              <StudioArt
-                styleIndex={recentArt.styleIndex}
-                title={recentArt.title}
-                aspectRatio="4 / 5"
-                label={`Arte recente: ${recentArt.title}`}
-                className="rounded-(--r-md)"
-              />
-              <span className="truncate text-xs leading-[1.4] text-muted">
-                {recentArt.title}
-              </span>
-            </div>
-          ))}
+      {recentArtworks.length > 0 ? (
+        <div className="flex flex-col gap-2.5">
+          <span className="text-xs leading-[1.4] font-semibold text-muted">
+            Criadas recentemente
+          </span>
+          <div className="grid grid-cols-3 gap-2.5">
+            {recentArtworks.map((artwork) => (
+              <div key={artwork.id} className="flex min-w-0 flex-col gap-1.5">
+                <div className="relative aspect-4/5 overflow-hidden rounded-(--r-md)">
+                  <Image
+                    src={artwork.imageUrl}
+                    alt={`Arte recente: ${artwork.title}`}
+                    fill
+                    unoptimized
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                </div>
+                <span className="truncate text-xs leading-[1.4] text-muted">
+                  {artwork.title}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </>
   );
 }

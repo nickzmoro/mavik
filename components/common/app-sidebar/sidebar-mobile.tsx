@@ -16,9 +16,10 @@ import { SidebarPanel } from "./sidebar-panel";
 
 type SidebarMobileProps = {
   account: React.ReactNode;
+  store: React.ReactNode;
 };
 
-export function SidebarMobile({ account }: SidebarMobileProps) {
+export function SidebarMobile({ account, store }: SidebarMobileProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const closeMenu = () => setIsOpen(false);
@@ -43,7 +44,11 @@ export function SidebarMobile({ account }: SidebarMobileProps) {
       >
         <SheetTitle className="sr-only">Menu principal</SheetTitle>
         <SidebarPanel className="h-full">
-          <SidebarContent account={account} onNavigate={closeMenu} />
+          <SidebarContent
+            account={account}
+            store={store}
+            onNavigate={closeMenu}
+          />
         </SidebarPanel>
       </SheetContent>
     </Sheet>

@@ -2,6 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Calendar } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { OptionTileGroup } from "@/components/common/option-tile-group";
@@ -24,43 +26,44 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  mockGeneratedArt,
-  studioScheduleDays,
-  studioScheduleTimes,
-  type ArtFormat,
-} from "@/lib/mocks/studio";
+import { studioScheduleTimes, type ArtFormat } from "@/lib/mocks/studio";
 import {
   scheduleArtFormSchema,
   type ScheduleArtFormValues,
 } from "@/lib/validations/studio";
 
-import { StudioArt } from "./studio-art";
+import { getScheduleDayOptions } from "../utils/schedule-days";
 
 const scheduleArtFormId = "schedule-art-form";
 
-const scheduleFields = [
-  { name: "day", label: "Dia", options: studioScheduleDays },
-  { name: "time", label: "Horário", options: studioScheduleTimes },
-] as const;
-
 type ScheduleArtFormProps = {
   variationIndex: number;
+  imageUrl?: string;
+  title: string;
   format: ArtFormat;
   caption: string;
+  isScheduling: boolean;
   onScheduled: (values: ScheduleArtFormValues) => void;
 };
 
 function ScheduleArtForm({
   variationIndex,
+  imageUrl,
+  title,
   format,
   caption,
+  isScheduling,
   onScheduled,
 }: ScheduleArtFormProps) {
+  const [scheduleDays] = useState(() => getScheduleDayOptions());
+  const scheduleFields = [
+    { name: "day", label: "Dia", options: scheduleDays },
+    { name: "time", label: "Horário", options: studioScheduleTimes },
+  ] as const;
   const form = useForm<ScheduleArtFormValues>({
     resolver: zodResolver(scheduleArtFormSchema),
     defaultValues: {
-      day: studioScheduleDays[0].id,
+      day: scheduleDays[0].id,
       time: studioScheduleTimes[2].id,
       caption,
     },
@@ -70,6 +73,8 @@ function ScheduleArtForm({
     name: ["day", "time"],
   });
   const variationLabel = `Variação ${variationIndex + 1}`;
+  const dayLabel =
+    scheduleDays.find((scheduleDay) => scheduleDay.id === day)?.label ?? day;
 
   return (
     <>
@@ -81,19 +86,24 @@ function ScheduleArtForm({
           className="scrollbar-subtle m-0 flex min-h-0 flex-1 flex-col gap-4.5 overflow-y-auto px-5 pt-4.5 pb-5 sm:px-7"
         >
           <div className="plan flex items-center gap-3.5 rounded-(--r-lg) px-3.5 py-3">
-            <div className="w-18 shrink-0">
-              <StudioArt
-                styleIndex={variationIndex}
-                title={mockGeneratedArt.title}
-                subtitle={mockGeneratedArt.subtitle}
-                aspectRatio={format.aspectRatio}
-                label={`${variationLabel}: ${mockGeneratedArt.title}`}
-                className="rounded-[10px]"
-              />
+            <div
+              className="relative w-18 shrink-0 overflow-hidden rounded-[10px]"
+              style={{ aspectRatio: format.aspectRatio }}
+            >
+              {imageUrl ? (
+                <Image
+                  src={imageUrl}
+                  alt={`${variationLabel} que será agendada`}
+                  fill
+                  unoptimized
+                  sizes="72px"
+                  className="object-cover"
+                />
+              ) : null}
             </div>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-[15px] leading-[1.4] font-semibold">
-                {mockGeneratedArt.title}
+              <span className="line-clamp-2 text-[15px] leading-[1.4] font-semibold">
+                {title}
               </span>
               <span className="text-[13px] leading-[1.4] text-muted">
                 {variationLabel} · {format.name}
@@ -137,14 +147,23 @@ function ScheduleArtForm({
       </Form>
       <DialogFooter>
         <span className="mr-auto text-[13px] leading-[1.4] text-muted">
-          {day} às {time}
+          {dayLabel} às {time}
         </span>
         <DialogClose asChild>
-          <Button variant="ghost">Cancelar</Button>
+          <Button variant="ghost" disabled={isScheduling}>
+            Cancelar
+          </Button>
         </DialogClose>
-        <Button type="submit" form={scheduleArtFormId}>
-          <Calendar aria-hidden="true" className="size-4.5" />
-          Agendar post
+        <Button
+          type="submit"
+          form={scheduleArtFormId}
+          loading={isScheduling}
+          disabled={!imageUrl}
+        >
+          {isScheduling ? null : (
+            <Calendar aria-hidden="true" className="size-4.5" />
+          )}
+          {isScheduling ? "Agendando…" : "Agendar post"}
         </Button>
       </DialogFooter>
     </>

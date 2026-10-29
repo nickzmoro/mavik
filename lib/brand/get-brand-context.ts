@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, ne } from "drizzle-orm";
 import type OpenAI from "openai";
 
 import { db } from "@/db";
@@ -8,6 +8,7 @@ import {
   brandAssets,
   brandColors,
   brandFonts,
+  brandLayouts,
   brandRestrictions,
   brandRules,
   brandTerms,
@@ -20,6 +21,7 @@ import {
   getCurrentBrandKit,
   getOwnedStore,
 } from "@/lib/onboarding/store-access";
+import { layoutElements } from "@/lib/mocks/brand";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { logoRules } from "./logo-rules";
@@ -111,6 +113,8 @@ export async function getBrandContext(
     restrictions,
     storePersonas,
     assets,
+    layouts,
+    activeRules,
   ] = await Promise.all([
     db
       .select({ name: storeProducts.name })
@@ -134,12 +138,39 @@ export async function getBrandContext(
       .select()
       .from(brandAssets)
       .where(eq(brandAssets.brandKitId, brandKit.id)),
+    db
+      .select({ structure: brandLayouts.structure })
+      .from(brandLayouts)
+      .where(eq(brandLayouts.brandKitId, brandKit.id)),
+    db
+      .select({ rule: brandRules.rule })
+      .from(brandRules)
+      .where(
+        and(
+          eq(brandRules.brandKitId, brandKit.id),
+          ne(brandRules.source, "manual"),
+          eq(brandRules.isActive, true),
+        ),
+      ),
   ]);
 
   const manual = assets.find(({ kind }) => kind === "manual");
   const manualRules = await getManualRules(openai, brandKit.id, manual);
   const lovedTerms = terms.filter(({ kind }) => kind === "amada");
   const forbiddenTerms = terms.filter(({ kind }) => kind === "proibida");
+  const fixedLayoutElements = [
+    ...new Set(
+      layouts.flatMap(({ structure }) => {
+        const layoutModes =
+          (structure as { layoutModes?: Record<string, boolean> })
+            .layoutModes ?? {};
+
+        return layoutElements
+          .filter((element) => layoutModes[element.id])
+          .map((element) => element.label);
+      }),
+    ),
+  ];
 
   const sections = [
     `Marca: ${store.name} (segmento: ${store.segment}).`,
@@ -158,6 +189,10 @@ export async function getBrandContext(
       `Palavras que a marca ama: ${lovedTerms.map(({ term }) => term).join(", ")}.`,
     forbiddenTerms.length > 0 &&
       `Termos proibidos (nunca usar): ${forbiddenTerms.map(({ term }) => term).join(", ")}.`,
+    activeRules.length > 0 &&
+      `Regras ativas do Brand Kit:\n- ${activeRules.map(({ rule }) => rule).join("\n- ")}`,
+    fixedLayoutElements.length > 0 &&
+      `Elementos fixos do layout da marca: ${fixedLayoutElements.join(", ")}.`,
     restrictions.length > 0 &&
       `Evitar na arte: ${restrictions.map(({ value }) => value).join(", ")}.`,
     storePersonas.length > 0 &&

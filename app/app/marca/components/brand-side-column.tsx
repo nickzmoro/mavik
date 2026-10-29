@@ -3,11 +3,12 @@ import { Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import type { BrandStep } from "@/lib/brand/brand-kit-data";
 import {
   brandPermissions,
-  mockBrandTone,
   mockBrandVersions,
   type BrandColor,
+  type BrandTab,
 } from "@/lib/mocks/brand";
 import { cn } from "@/lib/utils";
 
@@ -15,30 +16,31 @@ import { BrandCard, BrandSmallText } from "./brand-card";
 import { BrandMark } from "./brand-mark";
 
 const summaryColorRoles = ["primary", "secondary", "background", "accent"];
-const totalBrandSteps = 6;
 
 type BrandSideColumnProps = {
   palette: BrandColor[];
-  hasHighlightFont: boolean;
+  logoUrl?: string;
+  toneLabel: string;
+  steps: BrandStep[];
   currentVersionId: string;
-  onCompleteBrand: () => void;
+  onCompleteBrand: (tab: BrandTab) => void;
   onRestoreVersion: (versionId: string) => void;
 };
 
 export function BrandSideColumn({
   palette,
-  hasHighlightFont,
+  logoUrl,
+  toneLabel,
+  steps,
   currentVersionId,
   onCompleteBrand,
   onRestoreVersion,
 }: BrandSideColumnProps) {
-  const completedSteps = hasHighlightFont
-    ? totalBrandSteps
-    : totalBrandSteps - 1;
+  const completedSteps = steps.filter((step) => step.isDone).length;
+  const nextStep = steps.find((step) => !step.isDone);
   const summaryColors = summaryColorRoles.flatMap((role) =>
     palette.filter((color) => color.role === role),
   );
-  const primaryColor = palette.find((color) => color.role === "primary");
   const backgroundColor = palette.find((color) => color.role === "background");
 
   return (
@@ -48,16 +50,15 @@ export function BrandSideColumn({
         title="Sua marca"
         action={
           <span className="text-[15px] font-semibold text-primary">
-            {completedSteps} de {totalBrandSteps}
+            {completedSteps} de {steps.length}
           </span>
         }
       >
         <div className="flex items-center gap-3.5">
           <BrandMark
             size="md"
-            background={primaryColor?.hex ?? "#2B2420"}
-            color={backgroundColor?.hex ?? "#F3ECE2"}
-            className="text-[26px]"
+            background={backgroundColor?.hex ?? "transparent"}
+            logoUrl={logoUrl}
           />
           <div className="flex flex-col gap-2">
             <div
@@ -73,26 +74,30 @@ export function BrandSideColumn({
                 />
               ))}
             </div>
-            <BrandSmallText>Tom: {mockBrandTone}</BrandSmallText>
+            <BrandSmallText>Tom: {toneLabel.toLowerCase()}</BrandSmallText>
           </div>
         </div>
         <Progress
           value={completedSteps}
-          max={totalBrandSteps}
+          max={steps.length}
           aria-label="Brand Kit completo"
         />
         <BrandSmallText>
-          {hasHighlightFont
-            ? "Brand Kit completo. A IA já usa tudo o que você definiu."
-            : "Falta a fonte de destaque. Com ela, suas artes ficam ainda mais com a sua cara."}
+          {nextStep
+            ? `Próximo passo: ${nextStep.label}.`
+            : "Brand Kit completo. A IA já usa tudo o que você definiu."}
         </BrandSmallText>
-        {hasHighlightFont ? null : (
+        {nextStep ? (
           <div>
-            <Button variant="secondary" size="sm" onClick={onCompleteBrand}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onCompleteBrand(nextStep.tab)}
+            >
               Completar marca
             </Button>
           </div>
-        )}
+        ) : null}
       </BrandCard>
 
       <BrandCard titleId="brand-versions-title" title="Versões do Brand Kit">

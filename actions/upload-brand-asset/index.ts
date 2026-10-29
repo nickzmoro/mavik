@@ -25,7 +25,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { MAX_POST_EXAMPLES } from "@/lib/onboarding/constants";
 
 import {
+  allowsMultipleAssets,
   fromUploadBrandAssetFormData,
+  getFileExtension,
   isPostExampleKind,
   uploadBrandAssetSchema,
 } from "./schema";
@@ -38,6 +40,13 @@ const fileExtensions: Record<string, string> = {
   "application/pdf": "pdf",
   "application/zip": "zip",
   "application/x-zip-compressed": "zip",
+};
+
+const fontContentTypes: Record<string, string> = {
+  ttf: "font/ttf",
+  otf: "font/otf",
+  woff: "font/woff",
+  woff2: "font/woff2",
 };
 
 export async function uploadBrandAsset(
@@ -67,7 +76,12 @@ export async function uploadBrandAsset(
   const supabase = await createSupabaseServerClient();
   const fileBytes = Buffer.from(await file.arrayBuffer());
   const sha256 = createHash("sha256").update(fileBytes).digest("hex");
-  const storagePath = `${store.id}/brand-kit/${kind}-${crypto.randomUUID()}.${fileExtensions[file.type]}`;
+  const isFont = kind === "fonte";
+  const fileExtension = isFont
+    ? getFileExtension(file.name)
+    : fileExtensions[file.type];
+  const contentType = isFont ? fontContentTypes[fileExtension] : file.type;
+  const storagePath = `${store.id}/brand-kit/${kind}-${crypto.randomUUID()}.${fileExtension}`;
 
   try {
     const brandKit = await getOrCreateCurrentBrandKit(store.id, userId);
@@ -98,7 +112,7 @@ export async function uploadBrandAsset(
 
     const { error: uploadError } = await supabase.storage
       .from(BRAND_ASSETS_BUCKET)
-      .upload(storagePath, fileBytes, { contentType: file.type });
+      .upload(storagePath, fileBytes, { contentType });
 
     if (uploadError) {
       console.error("[onboarding] falha no upload", uploadError.message);
@@ -106,7 +120,7 @@ export async function uploadBrandAsset(
     }
 
     const { previousAssets, assetId } = await db.transaction(async (tx) => {
-      const deletedAssets = isPostExample
+      const deletedAssets = allowsMultipleAssets(kind)
         ? []
         : await tx
             .delete(brandAssets)
@@ -124,7 +138,7 @@ export async function uploadBrandAsset(
           brandKitId: brandKit.id,
           kind,
           storagePath,
-          mimeType: file.type,
+          mimeType: contentType,
           width,
           height,
           isGenerated,

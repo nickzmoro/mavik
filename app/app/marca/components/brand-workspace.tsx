@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getBrandSteps, type BrandKitData } from "@/lib/brand/brand-kit-data";
 import {
   brandTabs,
-  mockBrandVersions,
   type BrandColor,
   type BrandTab,
   type FontRole,
@@ -14,7 +14,8 @@ import {
 } from "@/lib/mocks/brand";
 import { useToast } from "@/providers/toast-provider";
 
-import { useBrandKit } from "../hooks/use-brand-kit";
+import { useBrandKit, type SaveStatus } from "../hooks/use-brand-kit";
+import { getVoiceToneLabel } from "@/lib/brand/voice-sample";
 import { BrandHeader } from "./brand-header";
 import { BrandSideColumn } from "./brand-side-column";
 import { ColorDialog } from "./color-dialog";
@@ -47,9 +48,20 @@ const tagDialogConfigs: Record<TagTarget, TagDialogConfig> = {
   },
 };
 
-export function BrandWorkspace() {
+const saveStatusLabels: Record<SaveStatus, string> = {
+  idle: "Salvo na sua conta",
+  saving: "Salvando…",
+  saved: "Salvo na sua conta",
+  error: "Não foi possível salvar",
+};
+
+type BrandWorkspaceProps = {
+  initialData: BrandKitData;
+};
+
+export function BrandWorkspace({ initialData }: BrandWorkspaceProps) {
   const { showToast } = useToast();
-  const brandKit = useBrandKit();
+  const brandKit = useBrandKit(initialData);
   const [activeTab, setActiveTab] = useState<BrandTab>("logos");
   const [colorDialog, setColorDialog] = useState<{
     isOpen: boolean;
@@ -63,13 +75,16 @@ export function BrandWorkspace() {
   }>({ isOpen: false, persona: null });
   const [isRestrictionDialogOpen, setIsRestrictionDialogOpen] = useState(false);
 
-  const currentVersion =
-    mockBrandVersions.find(
-      (version) => version.id === brandKit.currentVersionId,
-    ) ?? mockBrandVersions[0];
-  const hasHighlightFont = brandKit.fonts.some(
-    (font) => font.role === "Destaque",
-  );
+  const mainLogoUrl =
+    brandKit.uploadedLogos.symbol?.url ?? brandKit.uploadedLogos.light?.url;
+  const brandSteps = getBrandSteps({
+    logos: brandKit.uploadedLogos,
+    palette: brandKit.palette,
+    references: brandKit.references,
+    layouts: brandKit.savedLayouts,
+    lovedWords: brandKit.lovedWords,
+    personas: brandKit.personas,
+  });
 
   const showUploadResult = (
     result: { isSuccess: true } | { isSuccess: false; error: string },
@@ -120,7 +135,7 @@ export function BrandWorkspace() {
   return (
     <>
       <BrandHeader
-        versionLabel={`Brand Kit ${currentVersion.label} · atualizado ${currentVersion.date}`}
+        versionLabel={saveStatusLabels[brandKit.saveStatus]}
       />
 
       <Tabs
@@ -142,6 +157,10 @@ export function BrandWorkspace() {
               <LogosTab
                 uploadedLogos={brandKit.uploadedLogos}
                 onUploadLogo={handleUploadLogo}
+                onRemoveLogo={(slotId) => {
+                  brandKit.removeLogo(slotId);
+                  showToast("Logo removida");
+                }}
               />
             </TabsContent>
             <TabsContent value="colors">
@@ -149,12 +168,24 @@ export function BrandWorkspace() {
                 palette={brandKit.palette}
                 onEditColor={(color) => setColorDialog({ isOpen: true, color })}
                 onAddColor={() => setColorDialog({ isOpen: true, color: null })}
+                onRemoveColor={(colorId) => {
+                  brandKit.removeColor(colorId);
+                  showToast("Cor removida");
+                }}
               />
             </TabsContent>
             <TabsContent value="fonts">
               <FontsTab
                 fonts={brandKit.fonts}
                 onUploadFont={setFontDialogRole}
+                onRemoveFont={(role) => {
+                  brandKit.removeFont(role);
+                  showToast(
+                    role === "Destaque"
+                      ? "Fonte de destaque removida"
+                      : `Fonte de ${role.toLowerCase()} voltou ao padrão`,
+                  );
+                }}
               />
             </TabsContent>
             <TabsContent value="style">
@@ -162,33 +193,42 @@ export function BrandWorkspace() {
                 imageStyle={brandKit.imageStyle}
                 references={brandKit.references}
                 onImageStyleChange={brandKit.setImageStyle}
-                onAddReference={(file) =>
+                onAddReference={async (file) =>
                   showUploadResult(
-                    brandKit.addReference(file),
+                    await brandKit.addReference(file),
                     "Referência adicionada",
                   )
                 }
+                onRemoveReference={(referenceId) => {
+                  brandKit.removeReference(referenceId);
+                  showToast("Referência removida");
+                }}
               />
             </TabsContent>
             <TabsContent value="layouts">
               <LayoutsTab
+                palette={brandKit.palette}
+                logoUrl={mainLogoUrl}
                 layoutModes={brandKit.layoutModes}
                 postImage={brandKit.layoutPostImage}
                 savedLayouts={brandKit.savedLayouts}
+                editingLayoutId={brandKit.editingLayoutId}
                 onToggleMode={brandKit.toggleLayoutMode}
-                onUploadPost={(file) =>
+                onUploadPost={async (file) =>
                   showUploadResult(
-                    brandKit.uploadLayoutPost(file),
+                    await brandKit.uploadLayoutPost(file),
                     "Post enviado. Revise o que a IA entendeu.",
                   )
                 }
-                onSave={(summary) => {
-                  brandKit.saveLayout(summary);
+                onSave={() => {
+                  brandKit.saveLayout();
                   showToast("Layout de marca salvo");
                 }}
-                onDiscard={() => {
-                  brandKit.resetLayoutEditor();
-                  showToast("Alterações descartadas");
+                onDiscard={brandKit.resetLayoutEditor}
+                onOpenLayout={brandKit.openLayout}
+                onRemoveLayout={(layoutId) => {
+                  brandKit.removeLayout(layoutId);
+                  showToast("Layout removido");
                 }}
               />
             </TabsContent>
@@ -205,9 +245,15 @@ export function BrandWorkspace() {
                 }
                 onAddLovedWord={() => setTagTarget("loved")}
                 onAddBannedWord={() => setTagTarget("banned")}
+                onRemoveLovedWord={brandKit.removeLovedWord}
+                onRemoveBannedWord={brandKit.removeBannedWord}
                 onEditPersona={(persona) =>
                   setPersonaDialog({ isOpen: true, persona })
                 }
+                onRemovePersona={(personaId) => {
+                  brandKit.removePersona(personaId);
+                  showToast("Persona removida");
+                }}
               />
             </TabsContent>
             <TabsContent value="rules">
@@ -225,12 +271,11 @@ export function BrandWorkspace() {
 
           <BrandSideColumn
             palette={brandKit.palette}
-            hasHighlightFont={hasHighlightFont}
+            logoUrl={mainLogoUrl}
+            toneLabel={getVoiceToneLabel(brandKit.voiceSliders)}
+            steps={brandSteps}
             currentVersionId={brandKit.currentVersionId}
-            onCompleteBrand={() => {
-              setActiveTab("fonts");
-              setFontDialogRole("Destaque");
-            }}
+            onCompleteBrand={setActiveTab}
             onRestoreVersion={(versionId) => {
               brandKit.setCurrentVersionId(versionId);
               showToast(`Brand Kit ${versionId} restaurado`);

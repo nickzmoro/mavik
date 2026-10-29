@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import { FileUploadButton } from "@/components/common/file-upload-button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   imageStyles,
@@ -13,14 +14,15 @@ import {
 } from "@/lib/mocks/brand";
 import { cn } from "@/lib/utils";
 
-import { BrandCard } from "./brand-card";
+import { BrandCard, BrandSmallText } from "./brand-card";
 import { StylePreview } from "./style-preview";
 
 type StyleTabProps = {
-  imageStyle: ImageStyle;
+  imageStyle: ImageStyle | null;
   references: StyleReference[];
   onImageStyleChange: (style: ImageStyle) => void;
   onAddReference: (file: File) => void;
+  onRemoveReference: (referenceId: string) => void;
 };
 
 export function StyleTab({
@@ -28,6 +30,7 @@ export function StyleTab({
   references,
   onImageStyleChange,
   onAddReference,
+  onRemoveReference,
 }: StyleTabProps) {
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -39,7 +42,7 @@ export function StyleTab({
       >
         <RadioGroup
           aria-labelledby="image-style-title"
-          value={imageStyle}
+          value={imageStyle ?? ""}
           onValueChange={(value) => onImageStyleChange(value as ImageStyle)}
           className="grid-cols-[repeat(auto-fill,minmax(min(150px,100%),1fr))] gap-3.5"
         >
@@ -86,13 +89,13 @@ export function StyleTab({
           </FileUploadButton>
         }
       >
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(140px,100%),1fr))] gap-3.5">
-          {references.map((reference) => (
-            <div
-              key={reference.id}
-              className="flex min-w-0 flex-col gap-2 text-[13px] text-muted"
-            >
-              {reference.imageUrl ? (
+        {references.length > 0 ? (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(140px,100%),1fr))] gap-3.5">
+            {references.map((reference) => (
+              <div
+                key={reference.id}
+                className="flex min-w-0 flex-col gap-2 text-[13px] text-muted"
+              >
                 <div className="relative h-37.5 overflow-hidden rounded-(--r-md)">
                   <Image
                     src={reference.imageUrl}
@@ -103,13 +106,25 @@ export function StyleTab({
                     className="object-cover"
                   />
                 </div>
-              ) : (
-                <StylePreview style={reference.style} className="h-37.5" />
-              )}
-              <span className="truncate">{reference.caption}</span>
-            </div>
-          ))}
-        </div>
+                <span className="truncate">{reference.caption}</span>
+                <div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label={`Remover referência ${reference.caption}`}
+                    onClick={() => onRemoveReference(reference.id)}
+                  >
+                    Remover
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <BrandSmallText>
+            Nenhuma referência ainda. Adicione posts que mostram o seu estilo.
+          </BrandSmallText>
+        )}
       </BrandCard>
     </div>
   );

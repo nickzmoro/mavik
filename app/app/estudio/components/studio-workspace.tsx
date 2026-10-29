@@ -38,10 +38,10 @@ export function StudioWorkspace() {
     }
   };
 
-  const handleScheduled = ({ day, time, caption }: ScheduleArtFormValues) => {
-    studio.setCaption(caption);
-    studio.closeDialog();
-    showToast(`Agendado: ${day} às ${time}. Você confirma antes de publicar.`);
+  const handleScheduled = async (values: ScheduleArtFormValues) => {
+    if (await studio.scheduleArt(values)) {
+      showToast("Post agendado. Ele aparece em Próximos posts, na Início.");
+    }
   };
 
   return (
@@ -56,18 +56,26 @@ export function StudioWorkspace() {
         />
       </div>
       <AiEditorDialog
+        key={studio.selectedVariation}
         open={studio.dialog === "editor"}
         onOpenChange={handleDialogOpenChange("editor")}
         variationIndex={studio.selectedVariation}
+        imageUrl={studio.imageUrls[studio.selectedVariation]}
+        isAdjusting={studio.isAdjusting}
         format={studio.format}
+        onAdjust={studio.adjustVariation}
+        onDiscard={studio.discardAdjustments}
         onApprove={studio.openSchedule}
       />
       <ScheduleArtDialog
         open={studio.dialog === "schedule"}
         onOpenChange={handleDialogOpenChange("schedule")}
         variationIndex={studio.selectedVariation}
+        imageUrl={studio.imageUrls[studio.selectedVariation]}
+        title={studio.postTitle}
         format={studio.format}
         caption={studio.caption}
+        isScheduling={studio.isScheduling}
         onScheduled={handleScheduled}
       />
       <TrialLimitDialog

@@ -1,14 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check } from "lucide-react";
+import { Check, LoaderCircle } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -26,11 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAttachments } from "@/hooks/use-attachments";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
-import {
-  aiEditIdeas,
-  mockGeneratedArt,
-  type ArtFormat,
-} from "@/lib/mocks/studio";
+import { aiEditIdeas, type ArtFormat } from "@/lib/mocks/studio";
 import {
   aiEditFormSchema,
   type AiEditFormValues,
@@ -39,7 +35,6 @@ import { useToast } from "@/providers/toast-provider";
 
 import { BrandAssuranceNote } from "./brand-assurance-note";
 import { RoundSendButton } from "./round-send-button";
-import { StudioArt } from "./studio-art";
 import {
   composerTextareaClassName,
   StudioComposerShell,
@@ -48,7 +43,12 @@ import {
 const pluralize = (count: number, singular: string, plural: string) =>
   `${count} ${count === 1 ? singular : plural}`;
 
-function AiEditForm({ onApply }: { onApply: (editText: string) => void }) {
+type AiEditFormProps = {
+  isAdjusting: boolean;
+  onApply: (editText: string) => Promise<boolean>;
+};
+
+function AiEditForm({ isAdjusting, onApply }: AiEditFormProps) {
   const form = useForm<AiEditFormValues>({
     resolver: zodResolver(aiEditFormSchema),
     defaultValues: { instruction: "" },
@@ -62,10 +62,13 @@ function AiEditForm({ onApply }: { onApply: (editText: string) => void }) {
     ),
   );
 
-  const handleApplyEdit = ({ instruction: editText }: AiEditFormValues) => {
-    onApply(editText);
-    form.reset({ instruction: "" });
-    attachments.clearAttachments();
+  const handleApplyEdit = async ({
+    instruction: editText,
+  }: AiEditFormValues) => {
+    if (await onApply(editText)) {
+      form.reset({ instruction: "" });
+      attachments.clearAttachments();
+    }
   };
 
   return (
@@ -92,7 +95,7 @@ function AiEditForm({ onApply }: { onApply: (editText: string) => void }) {
                   actions={
                     <RoundSendButton
                       label="Enviar ajuste"
-                      disabled={instruction.trim().length === 0}
+                      disabled={isAdjusting || instruction.trim().length === 0}
                     />
                   }
                 >
@@ -100,6 +103,7 @@ function AiEditForm({ onApply }: { onApply: (editText: string) => void }) {
                     <Textarea
                       rows={3}
                       placeholder="Ex.: deixe o título maior e use a foto do balcão"
+                      disabled={isAdjusting}
                       className={composerTextareaClassName}
                       {...field}
                     />
@@ -120,6 +124,7 @@ function AiEditForm({ onApply }: { onApply: (editText: string) => void }) {
             <button
               key={idea}
               type="button"
+              disabled={isAdjusting}
               onClick={() => form.setValue("instruction", idea)}
               className="chip-surface min-h-9 cursor-pointer rounded-full px-3 text-[13px] font-medium transition-[border-color,color] duration-150 hover:border-accent hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
             >
@@ -136,7 +141,11 @@ type AiEditorDialogProps = {
   open: boolean;
   onOpenChange: (isOpen: boolean) => void;
   variationIndex: number;
+  imageUrl?: string;
+  isAdjusting: boolean;
   format: ArtFormat;
+  onAdjust: (editText: string) => Promise<boolean>;
+  onDiscard: () => void;
   onApprove: () => void;
 };
 
@@ -144,7 +153,11 @@ export function AiEditorDialog({
   open,
   onOpenChange,
   variationIndex,
+  imageUrl,
+  isAdjusting,
   format,
+  onAdjust,
+  onDiscard,
   onApprove,
 }: AiEditorDialogProps) {
   const { showToast } = useToast();
@@ -164,9 +177,20 @@ export function AiEditorDialog({
     .filter(Boolean)
     .join(" · ");
 
-  const handleApplyEdit = (editText: string) => {
-    setAppliedEdits((currentEdits) => [...currentEdits, editText]);
-    showToast(`Ajuste aplicado: "${editText}"`);
+  const handleApplyEdit = async (editText: string) => {
+    const isApplied = await onAdjust(editText);
+
+    if (isApplied) {
+      setAppliedEdits((currentEdits) => [...currentEdits, editText]);
+      showToast(`Ajuste aplicado: "${editText}"`);
+    }
+
+    return isApplied;
+  };
+
+  const handleDiscard = () => {
+    setAppliedEdits([]);
+    onDiscard();
   };
 
   const handleSaveVersion = () => {
@@ -185,18 +209,35 @@ export function AiEditorDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="scrollbar-subtle flex min-h-0 flex-1 flex-wrap items-start gap-7 overflow-y-auto px-5 pt-4 pb-5 sm:px-7">
-          <div className="mx-auto w-full max-w-100 min-w-0 flex-[1_1_300px]">
-            <StudioArt
-              styleIndex={variationIndex}
-              title={mockGeneratedArt.title}
-              subtitle={mockGeneratedArt.subtitle}
-              aspectRatio={format.aspectRatio}
-              label={`${variationLabel}: ${mockGeneratedArt.title}`}
-              className="rounded-[18px]"
-            />
+          <div
+            className="relative mx-auto w-full max-w-100 min-w-0 flex-[1_1_300px] overflow-hidden rounded-[18px]"
+            style={{ aspectRatio: format.aspectRatio }}
+          >
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt={`${variationLabel}, versão atual`}
+                fill
+                unoptimized
+                sizes="400px"
+                className="object-cover"
+              />
+            ) : null}
+            {isAdjusting ? (
+              <div
+                role="status"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/45 text-sm font-semibold text-white"
+              >
+                <LoaderCircle
+                  aria-hidden="true"
+                  className="size-7 animate-spin motion-reduce:animate-none"
+                />
+                Aplicando ajuste…
+              </div>
+            ) : null}
           </div>
           <div className="flex min-w-[min(260px,100%)] flex-[1_1_340px] flex-col gap-4.5">
-            <AiEditForm onApply={handleApplyEdit} />
+            <AiEditForm isAdjusting={isAdjusting} onApply={handleApplyEdit} />
             {appliedEdits.length > 0 ? (
               <div className="flex flex-col gap-2">
                 <span className="text-xs leading-[1.4] font-semibold text-muted">
@@ -228,13 +269,17 @@ export function AiEditorDialog({
           <span className="mr-auto text-[13px] leading-[1.4] text-muted">
             {versionNote}
           </span>
-          <DialogClose asChild>
-            <Button variant="ghost">Descartar alterações</Button>
-          </DialogClose>
+          <Button
+            variant="ghost"
+            disabled={isAdjusting || appliedEdits.length === 0}
+            onClick={handleDiscard}
+          >
+            Descartar alterações
+          </Button>
           <Button variant="outline" onClick={handleSaveVersion}>
             Salvar versão
           </Button>
-          <Button onClick={onApprove}>
+          <Button disabled={isAdjusting} onClick={onApprove}>
             <Check aria-hidden="true" className="size-4.5" />
             Aprovar arte
           </Button>

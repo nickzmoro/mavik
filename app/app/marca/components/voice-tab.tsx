@@ -1,10 +1,12 @@
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/get-initials";
 import { maxPersonas, type Persona } from "@/lib/mocks/brand";
+
+import { getVoiceSample, getVoiceToneLabel } from "@/lib/brand/voice-sample";
 
 import { BrandCard } from "./brand-card";
 
@@ -26,30 +28,55 @@ type VoiceTabProps = {
   onAdjustTone: () => void;
   onAddLovedWord: () => void;
   onAddBannedWord: () => void;
+  onRemoveLovedWord: (word: string) => void;
+  onRemoveBannedWord: (word: string) => void;
   onEditPersona: (persona: Persona | null) => void;
+  onRemovePersona: (personaId: string) => void;
 };
 
 type WordListProps = {
   title: string;
   words: string[];
   variant: "secondary" | "destructive";
+  emptyMessage: string;
   onAdd: () => void;
+  onRemove: (word: string) => void;
 };
 
-function WordList({ title, words, variant, onAdd }: WordListProps) {
+function WordList({
+  title,
+  words,
+  variant,
+  emptyMessage,
+  onAdd,
+  onRemove,
+}: WordListProps) {
   return (
-    <div className="brand-tile flex flex-col gap-2.5 rounded-[18px] px-4.5 py-4">
+    <div className="brand-tile flex flex-col items-start gap-2.5 rounded-[18px] px-4.5 py-4">
       <b className="text-sm font-semibold">{title}</b>
-      <div className="flex flex-wrap items-center gap-2">
-        {words.map((word) => (
-          <Badge key={word} variant={variant}>
-            {word}
-          </Badge>
-        ))}
-        <Button variant="outline" size="sm" onClick={onAdd}>
-          Adicionar
-        </Button>
-      </div>
+      {words.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {words.map((word) => (
+            <Badge key={word} variant={variant} className="pr-1">
+              {word}
+              <button
+                type="button"
+                aria-label={`Remover ${word}`}
+                onClick={() => onRemove(word)}
+                className="inline-flex size-4.5 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 text-current transition-colors duration-150 hover:bg-icon-hover focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus motion-reduce:transition-none"
+              >
+                <X aria-hidden="true" className="size-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      ) : (
+        <span className="text-[13px] text-muted">{emptyMessage}</span>
+      )}
+      <Button variant="outline" size="sm" onClick={onAdd}>
+        <Plus aria-hidden="true" className="size-4" />
+        Adicionar
+      </Button>
     </div>
   );
 }
@@ -64,9 +91,13 @@ export function VoiceTab({
   onAdjustTone,
   onAddLovedWord,
   onAddBannedWord,
+  onRemoveLovedWord,
+  onRemoveBannedWord,
   onEditPersona,
+  onRemovePersona,
 }: VoiceTabProps) {
   const canAddPersona = personas.length < maxPersonas;
+  const toneLabel = getVoiceToneLabel(sliders);
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -74,7 +105,7 @@ export function VoiceTab({
         titleId="voice-title"
         title="Tom de voz"
         hint="A IA escreve legendas e textos seguindo estas réguas."
-        action={<Badge variant="secondary">Acolhedor e próximo</Badge>}
+        action={<Badge variant="secondary">{toneLabel}</Badge>}
       >
         <div className="brand-tile grid gap-x-9 gap-y-4.5 rounded-[18px] px-4 py-4.5 sm:grid-cols-2 sm:px-5.5">
           {sliders.map((slider) => (
@@ -103,8 +134,7 @@ export function VoiceTab({
               É assim que sua marca fala?
             </small>
             <p className="m-0 font-(family-name:--font-dm-serif) text-[21px] leading-[1.3]">
-              “Café passado na hora e pão de queijo saindo do forno. Passa
-              aqui?”
+              “{getVoiceSample(sliders)}”
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
@@ -124,13 +154,17 @@ export function VoiceTab({
             title="Palavras que amamos"
             words={lovedWords}
             variant="secondary"
+            emptyMessage="Nenhuma palavra ainda."
             onAdd={onAddLovedWord}
+            onRemove={onRemoveLovedWord}
           />
           <WordList
             title="Termos proibidos"
             words={bannedWords}
             variant="destructive"
+            emptyMessage="Nenhum termo proibido ainda."
             onAdd={onAddBannedWord}
+            onRemove={onRemoveBannedWord}
           />
         </div>
       </BrandCard>
@@ -166,13 +200,20 @@ export function VoiceTab({
               <p className="m-0 text-sm leading-[1.45] text-muted">
                 {persona.description}
               </p>
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={() => onEditPersona(persona)}
                 >
                   Editar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onRemovePersona(persona.id)}
+                >
+                  Remover
                 </Button>
               </div>
             </div>

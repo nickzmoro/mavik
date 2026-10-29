@@ -46,7 +46,7 @@ async function getProductNames(storeId: string) {
   return products.map(({ name }) => name);
 }
 
-async function signStoragePaths(storagePaths: string[]) {
+export async function signStoragePaths(storagePaths: string[]) {
   if (storagePaths.length === 0) {
     return [];
   }

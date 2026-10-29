@@ -1,14 +1,5 @@
-import { Bell, CircleHelp, Search, type LucideIcon } from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { AppHeaderActions } from "@/components/common/app-header-actions";
-
-const headerActions: { label: string; icon: LucideIcon }[] = [
-  { label: "Buscar", icon: Search },
-  { label: "Notificações", icon: Bell },
-  { label: "Ajuda", icon: CircleHelp },
-];
+import { Badge } from "@/components/ui/badge";
 
 type BrandHeaderProps = {
   versionLabel: string;

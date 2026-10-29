@@ -5,6 +5,10 @@ import { mockTrialUsage } from "@/lib/mocks/sidebar";
 import { routes } from "@/lib/routes";
 
 export function SidebarTrialCard() {
+  if (!mockTrialUsage.isLimitEnabled) {
+    return null;
+  }
+
   return (
     <div className="flex flex-col gap-2.5 rounded-(--r-lg) border border-white/14 bg-white/8 p-3.5">
       <div className="flex items-center justify-between gap-2">

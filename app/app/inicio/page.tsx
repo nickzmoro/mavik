@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AgentSuggestionCard } from "./components/agent-suggestion-card";
 import { BrandSummaryCard } from "./components/brand-summary-card";
 import { CreatePostCard } from "./components/create-post-card";
+import { DraftsSection } from "./components/drafts-section";
 import { HomeHeader } from "./components/home-header";
 import { OnboardingGate } from "./components/onboarding-gate";
 import { ShortcutsCard } from "./components/shortcuts-card";
@@ -26,11 +27,18 @@ export default function HomePage() {
         <div className="flex min-w-0 flex-[2_1_520px] flex-col gap-6">
           <CreatePostCard />
           <AgentSuggestionCard />
-          <UpcomingPostsSection />
+          <Suspense fallback={null}>
+            <UpcomingPostsSection />
+          </Suspense>
+          <Suspense fallback={null}>
+            <DraftsSection />
+          </Suspense>
         </div>
         <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-6">
           <WeeklySummaryCard />
-          <BrandSummaryCard />
+          <Suspense fallback={null}>
+            <BrandSummaryCard />
+          </Suspense>
           <ShortcutsCard />
         </div>
       </div>

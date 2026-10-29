@@ -25,19 +25,30 @@ export const generateImageFormSchema = z.object({
     .optional(),
 });
 
-export const generateImageSchema = z.object({
-  prompt: promptSchema,
-  referenceImage: z
-    .string()
-    .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/, {
-      error: "Envie uma foto em PNG, JPG ou WEBP.",
-    })
-    .max(Math.ceil((REFERENCE_IMAGE_MAX_BYTES * 4) / 3) + 64, {
-      error: "A foto pode ter até 4 MB. Envie uma versão menor.",
-    })
-    .optional(),
-});
+export const generateImageSchema = z
+  .object({
+    prompt: promptSchema,
+    referenceImage: z
+      .string()
+      .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/, {
+        error: "Envie uma foto em PNG, JPG ou WEBP.",
+      })
+      .max(Math.ceil((REFERENCE_IMAGE_MAX_BYTES * 4) / 3) + 64, {
+        error: "A foto pode ter até 4 MB. Envie uma versão menor.",
+      })
+      .optional(),
+    editInstruction: z
+      .string()
+      .trim()
+      .min(1, { error: "Diga o que você quer mudar." })
+      .max(300, { error: "Use até 300 caracteres no ajuste." })
+      .optional(),
+  })
+  .refine((input) => !input.editInstruction || input.referenceImage, {
+    error: "Não encontramos a arte para ajustar. Gere de novo.",
+    path: ["referenceImage"],
+  });
 
 export type GenerateImageFormValues = z.infer<typeof generateImageFormSchema>;
 export type GenerateImageInput = z.infer<typeof generateImageSchema>;
-export type GenerateImageResult = { imageUrl: string };
+export type GenerateImageResult = { imageUrl: string; artworkId?: string };

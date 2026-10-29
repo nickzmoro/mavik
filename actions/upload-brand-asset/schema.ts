@@ -14,6 +14,8 @@ export const brandAssetKinds = [
   "manual",
   "post_bom",
   "post_ruim",
+  "layout_origem",
+  "fonte",
 ] as const;
 
 export type BrandAssetKind = (typeof brandAssetKinds)[number];
@@ -25,6 +27,21 @@ export type PostExampleKind = (typeof postExampleKinds)[number];
 export function isPostExampleKind(kind: string): kind is PostExampleKind {
   return postExampleKinds.some((postKind) => postKind === kind);
 }
+
+const multipleAssetKinds: BrandAssetKind[] = [
+  ...postExampleKinds,
+  "layout_origem",
+  "fonte",
+];
+
+export function allowsMultipleAssets(kind: BrandAssetKind) {
+  return multipleAssetKinds.includes(kind);
+}
+
+export const fontFileExtensions = ["ttf", "otf", "woff", "woff2"];
+
+export const getFileExtension = (fileName: string) =>
+  fileName.split(".").pop()?.toLowerCase() ?? "";
 
 const manualMimeTypes = [
   "application/pdf",
@@ -42,8 +59,28 @@ export const uploadBrandAssetSchema = z
     checks: z.record(z.string(), z.enum(["ok", "aviso", "erro"])),
   })
   .superRefine(({ kind, file }, context) => {
+    if (kind === "fonte") {
+      if (!fontFileExtensions.includes(getFileExtension(file.name))) {
+        context.addIssue({
+          code: "custom",
+          path: ["file"],
+          message: "Envie uma fonte .ttf, .otf, .woff ou .woff2.",
+        });
+      }
+
+      if (file.size > LOGO_MAX_BYTES) {
+        context.addIssue({
+          code: "custom",
+          path: ["file"],
+          message: "Arquivo grande demais. Envie um arquivo de até 5 MB.",
+        });
+      }
+
+      return;
+    }
+
     const isManual = kind === "manual";
-    const isPostExample = isPostExampleKind(kind);
+    const isPostExample = isPostExampleKind(kind) || kind === "layout_origem";
     const allowedTypes = isManual
       ? manualMimeTypes
       : isPostExample

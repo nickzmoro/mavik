@@ -1,4 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { getRecentArtworksQueryKey } from "@/hooks/queries/use-recent-artworks";
 
 import type {
   GenerateImageInput,
@@ -27,12 +29,20 @@ async function generateImage(
     throw new Error(body?.errorMessage ?? connectionErrorMessage);
   }
 
-  return { imageUrl: body.imageUrl };
+  return {
+    imageUrl: body.imageUrl,
+    artworkId:
+      typeof body.artworkId === "string" ? body.artworkId : undefined,
+  };
 }
 
 export function useGenerateImage() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: getGenerateImageMutationKey(),
     mutationFn: generateImage,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: getRecentArtworksQueryKey() }),
   });
 }

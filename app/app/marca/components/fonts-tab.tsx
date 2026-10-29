@@ -3,6 +3,7 @@ import { Plus, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  fontRoles,
   legibilitySample,
   type BrandFont,
   type FontRole,
@@ -12,17 +13,25 @@ import { BrandCard, BrandSmallText } from "./brand-card";
 
 const legibilitySizes = [12, 14, 16];
 
-type FontCardProps = {
-  font: BrandFont;
+const fontRoleHints: Record<FontRole, string> = {
+  Títulos: "Para títulos e chamadas principais das artes.",
+  Parágrafos: "Para textos de apoio e legendas.",
+  Destaque: "Para selos, preços e chamadas. Limite de uma fonte extra.",
 };
 
-function FontCard({ font }: FontCardProps) {
+type FontCardProps = {
+  font: BrandFont;
+  onReplace: () => void;
+  onRemove: () => void;
+};
+
+function FontCard({ font, onReplace, onRemove }: FontCardProps) {
   return (
     <div className="brand-tile flex min-w-0 flex-col gap-2.5 rounded-[18px] p-5">
       <div className="flex items-start justify-between gap-4">
         <BrandSmallText>{font.role}</BrandSmallText>
-        <Badge variant={font.isRequired ? "secondary" : "outline"}>
-          {font.isRequired ? "Obrigatório" : "Opcional"}
+        <Badge variant={font.isDefault ? "outline" : "secondary"}>
+          {font.isDefault ? "Padrão" : "Sua fonte"}
         </Badge>
       </div>
       <span
@@ -45,9 +54,46 @@ function FontCard({ font }: FontCardProps) {
         {font.displayName}
       </b>
       <div className="flex flex-wrap gap-1.5">
-        <Badge variant="success">Licença confirmada</Badge>
+        <Badge variant="success">
+          {font.isDefault ? "Uso livre" : "Licença confirmada"}
+        </Badge>
         <Badge variant="success">Acentos ok</Badge>
       </div>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" onClick={onReplace}>
+          Substituir
+        </Button>
+        {font.isDefault ? null : (
+          <Button variant="outline" size="sm" onClick={onRemove}>
+            {font.role === "Destaque" ? "Remover" : "Voltar ao padrão"}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmptyFontSlot({
+  role,
+  onAdd,
+}: {
+  role: FontRole;
+  onAdd: () => void;
+}) {
+  return (
+    <div className="brand-tile flex min-w-0 flex-col items-start justify-center gap-2.5 rounded-[18px] border-dashed border-muted p-5">
+      <div className="flex w-full items-start justify-between gap-4">
+        <BrandSmallText>{role}</BrandSmallText>
+        <Badge variant="outline">
+          {role === "Destaque" ? "Opcional" : "Obrigatório"}
+        </Badge>
+      </div>
+      <b className="text-base font-semibold">Nenhuma fonte enviada</b>
+      <BrandSmallText>{fontRoleHints[role]}</BrandSmallText>
+      <Button variant="secondary" size="sm" onClick={onAdd}>
+        <Plus aria-hidden="true" className="size-4" />
+        Adicionar fonte
+      </Button>
     </div>
   );
 }
@@ -55,15 +101,15 @@ function FontCard({ font }: FontCardProps) {
 type FontsTabProps = {
   fonts: BrandFont[];
   onUploadFont: (role: FontRole) => void;
+  onRemoveFont: (role: FontRole) => void;
 };
 
-export function FontsTab({ fonts, onUploadFont }: FontsTabProps) {
+export function FontsTab({ fonts, onUploadFont, onRemoveFont }: FontsTabProps) {
   const titleFont = fonts.find((font) => font.role === "Títulos");
   const bodyFont = fonts.find((font) => font.role === "Parágrafos");
-  const highlightFont = fonts.find((font) => font.role === "Destaque");
-  const orderedFonts = [titleFont, bodyFont].filter((font): font is BrandFont =>
-    Boolean(font),
-  );
+  const nextMissingRole =
+    fontRoles.find((role) => !fonts.some((font) => font.role === role)) ??
+    "Títulos";
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -72,40 +118,31 @@ export function FontsTab({ fonts, onUploadFont }: FontsTabProps) {
         title="Fontes"
         hint=".ttf, .otf, .woff2 ou Google Fonts. Você confirma a licença de uso no envio."
         action={
-          <Button variant="outline" onClick={() => onUploadFont("Títulos")}>
+          <Button variant="outline" onClick={() => onUploadFont(nextMissingRole)}>
             <Upload aria-hidden="true" className="size-4.5" />
             Enviar fonte
           </Button>
         }
       >
         <div className="grid grid-cols-[repeat(auto-fill,minmax(min(210px,100%),1fr))] gap-4">
-          {orderedFonts.map((font) => (
-            <FontCard key={font.role} font={font} />
-          ))}
-          {highlightFont ? (
-            <FontCard font={highlightFont} />
-          ) : (
-            <div className="brand-tile flex min-w-0 flex-col items-start justify-center gap-2.5 rounded-[18px] border-dashed border-muted p-5">
-              <div className="flex w-full items-start justify-between gap-4">
-                <BrandSmallText>Destaque</BrandSmallText>
-                <Badge variant="outline">Opcional</Badge>
-              </div>
-              <b className="text-base font-semibold">
-                Falta a fonte de destaque
-              </b>
-              <BrandSmallText>
-                Para selos, preços e chamadas. Limite de uma fonte extra.
-              </BrandSmallText>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => onUploadFont("Destaque")}
-              >
-                <Plus aria-hidden="true" className="size-4" />
-                Adicionar fonte
-              </Button>
-            </div>
-          )}
+          {fontRoles.map((role) => {
+            const font = fonts.find((currentFont) => currentFont.role === role);
+
+            return font ? (
+              <FontCard
+                key={role}
+                font={font}
+                onReplace={() => onUploadFont(role)}
+                onRemove={() => onRemoveFont(role)}
+              />
+            ) : (
+              <EmptyFontSlot
+                key={role}
+                role={role}
+                onAdd={() => onUploadFont(role)}
+              />
+            );
+          })}
         </div>
       </BrandCard>
 

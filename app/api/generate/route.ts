@@ -7,6 +7,7 @@ import {
   getBrandContext,
   type BrandContext,
 } from "@/lib/brand/get-brand-context";
+import { saveArtworkDraft } from "@/lib/content/save-artwork-draft";
 import {
   formatRetryAfter,
   getBlockedRemainingMs,
@@ -68,6 +69,11 @@ Output ONLY the final English prompt for GPT Image, in a single paragraph, with 
 BRAND GUIDELINES:
 `;
 
+const EDIT_INSTRUCTIONS = `
+THIS IS AN EDIT OF AN EXISTING POST: the attached "Versão anterior do post" image is the post already approved as the base.
+Describe that post faithfully (layout, composition, photo, colors, typography, headline text and graphic elements) and keep all of it unchanged, applying ONLY the change requested in "Ajuste pedido".
+Keep the exact same headline text unless the requested change asks to alter it.`;
+
 type BrandFile = { bytes: Buffer; mimeType: string; label: string };
 
 type BrandFiles = {
@@ -117,24 +123,31 @@ function toImageParts(files: BrandFile[], detail: "high" | "low") {
 
 async function writeImagePrompt(
   openai: OpenAI,
-  { prompt, referenceImage }: GenerateImageInput,
+  { prompt, referenceImage, editInstruction }: GenerateImageInput,
   brandContext: BrandContext | null,
   brandFiles: BrandFiles,
 ) {
+  const systemPrompt = brandContext
+    ? `${BRAND_POST_INSTRUCTIONS}${brandContext.guidelines}`
+    : PROMPT_WRITER_INSTRUCTIONS;
+
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
     temperature: 0.4,
     messages: [
       {
         role: "system",
-        content: brandContext
-          ? `${BRAND_POST_INSTRUCTIONS}${brandContext.guidelines}`
-          : PROMPT_WRITER_INSTRUCTIONS,
+        content: editInstruction
+          ? `${systemPrompt}\n${EDIT_INSTRUCTIONS}`
+          : systemPrompt,
       },
       {
         role: "user",
         content: [
           { type: "text", text: `Pedido do cliente: ${prompt}` },
+          ...(editInstruction
+            ? [{ type: "text" as const, text: `Ajuste pedido: ${editInstruction}` }]
+            : []),
           ...(brandFiles.manual
             ? [
                 {
@@ -170,7 +183,12 @@ async function writeImagePrompt(
             : []),
           ...(referenceImage
             ? [
-                { type: "text" as const, text: "Foto do produto:" },
+                {
+                  type: "text" as const,
+                  text: editInstruction
+                    ? "Versão anterior do post:"
+                    : "Foto do produto:",
+                },
                 {
                   type: "image_url" as const,
                   image_url: { url: referenceImage, detail: "high" as const },
@@ -185,20 +203,27 @@ async function writeImagePrompt(
   return completion.choices[0]?.message.content?.trim();
 }
 
+function buildEditGuardrail(editInstruction: string) {
+  return `Reference image 1 is the previous version of this post. Recreate it as faithfully as possible, with the same layout, composition, photo, colors, typography, text and graphic elements, applying only this change: ${editInstruction}`;
+}
+
 function buildImageGuardrails(
   brandContext: BrandContext | null,
   exampleCount: number,
   hasReferenceImage: boolean,
+  editInstruction?: string,
 ) {
   if (!brandContext) {
-    return "";
+    return editInstruction ? buildEditGuardrail(editInstruction) : "";
   }
 
   const firstExampleIndex = hasReferenceImage ? 2 : 1;
   const lastExampleIndex = firstExampleIndex + exampleCount - 1;
 
   return [
+    editInstruction && buildEditGuardrail(editInstruction),
     hasReferenceImage &&
+      !editInstruction &&
       "Reference image 1 is the product photo: this exact product must be the main subject of the post, reproduced faithfully (same shape, colors, labels and packaging). Do not replace it with any other product.",
     exampleCount > 0 &&
       `Reference images ${firstExampleIndex} to ${lastExampleIndex} are approved posts of this brand, used only as a style guide: match their layout structure, typography style, graphic elements and color usage, but do not copy their products, photos, text or logos.`,
@@ -221,6 +246,16 @@ function toReferenceFile(referenceImage: string) {
   const type = header.slice("data:".length, header.indexOf(";"));
 
   return toFile(Buffer.from(base64, "base64"), "reference", { type });
+}
+
+async function toPreviousPostFile(referenceImage: string) {
+  const [, base64] = referenceImage.split(",");
+
+  return toFile(
+    await hideLogoArea(Buffer.from(base64, "base64")),
+    "versao-anterior.png",
+    { type: "image/png" },
+  );
 }
 
 async function generateImage(
@@ -292,9 +327,12 @@ export async function POST(request: Request) {
   const openai = new OpenAI({ apiKey });
 
   try {
+    const { referenceImage, editInstruction } = parsedInput.data;
     const brandContext = await getBrandContext(claims.sub, openai);
-    const brandFiles = await downloadBrandFiles(brandContext);
-    const { referenceImage } = parsedInput.data;
+    const downloadedBrandFiles = await downloadBrandFiles(brandContext);
+    const brandFiles = editInstruction
+      ? { ...downloadedBrandFiles, goodExamples: [], badExamples: [] }
+      : downloadedBrandFiles;
     const writtenPrompt = await writeImagePrompt(
       openai,
       parsedInput.data,
@@ -307,7 +345,13 @@ export async function POST(request: Request) {
     }
 
     const referenceImages = await Promise.all([
-      ...(referenceImage ? [toReferenceFile(referenceImage)] : []),
+      ...(referenceImage
+        ? [
+            editInstruction
+              ? toPreviousPostFile(referenceImage)
+              : toReferenceFile(referenceImage),
+          ]
+        : []),
       ...brandFiles.goodExamples.map(async (example, index) =>
         toFile(await hideLogoArea(example.bytes), `exemplo-${index + 1}.png`, {
           type: "image/png",
@@ -322,6 +366,7 @@ export async function POST(request: Request) {
         brandContext,
         brandFiles.goodExamples.length,
         Boolean(referenceImage),
+        editInstruction,
       ),
     ]
       .filter(Boolean)
@@ -343,9 +388,17 @@ export async function POST(request: Request) {
           return generatedImage;
         })
       : generatedImage;
+    const artworkId = await saveArtworkDraft({
+      userId: claims.sub,
+      image: finalImage,
+      prompt: editInstruction
+        ? `${parsedInput.data.prompt}\n\nAjuste: ${editInstruction}`
+        : parsedInput.data.prompt,
+    });
 
     return NextResponse.json({
       imageUrl: `data:image/png;base64,${finalImage.toString("base64")}`,
+      artworkId,
     });
   } catch (error) {
     if (error instanceof APIError) {

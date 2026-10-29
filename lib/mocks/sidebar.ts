@@ -6,6 +6,7 @@ export const mockCurrentStore = {
 export const mockTrialUsage = {
   used: 1,
   total: 3,
+  isLimitEnabled: false,
 };
 
 export const mockAgentSuggestionsCount = 3;

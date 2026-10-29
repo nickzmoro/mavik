@@ -154,12 +154,6 @@ export const mockGeneratedArt = {
   subtitle: "Notas de caramelo e castanha. Passa aqui no sábado?",
 };
 
-export const mockRecentArts = [
-  { id: "roasting", title: "Como nasce o seu café", styleIndex: 0 },
-  { id: "combo", title: "Combo da manhã", styleIndex: 1 },
-  { id: "bread", title: "Pão quentinho às 8h", styleIndex: 2 },
-];
-
 export const mockSuggestedCaption =
   "Chegou o blend de outono: notas de caramelo e castanha, passado na hora.\nVem provar no sábado de manhã?";
 
@@ -179,13 +173,6 @@ export const aiEditIdeas = [
   "Fundo mais claro",
   "Frase mais curta",
   "Usar a foto do balcão",
-];
-
-export const studioScheduleDays = [
-  { id: "Qui, 29 out", label: "Qui, 29 out", description: "Sugerido" },
-  { id: "Sex, 30 out", label: "Sex, 30 out", description: "Dia de foco" },
-  { id: "Sáb, 31 out", label: "Sáb, 31 out", description: "Halloween" },
-  { id: "Dom, 1 nov", label: "Dom, 1 nov", description: "Agenda livre" },
 ];
 
 export const studioScheduleTimes = [

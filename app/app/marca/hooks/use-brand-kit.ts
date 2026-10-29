@@ -2,26 +2,30 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import type { SaveBrandKitInput } from "@/actions/save-brand-kit/schema";
+import type { BrandAssetKind } from "@/actions/upload-brand-asset/schema";
+import { useDeleteBrandAsset } from "@/hooks/mutations/use-delete-brand-asset";
+import { useSaveBrandKit } from "@/hooks/mutations/use-save-brand-kit";
+import { useUploadBrandAsset } from "@/hooks/mutations/use-upload-brand-asset";
 import {
-  mockAvoidedColors,
-  mockAvoidedElements,
-  mockAvoidedStyles,
-  mockBannedWords,
-  mockBrandFonts,
-  mockBrandPalette,
-  mockBrandRules,
+  getUploadedFontFamily,
+  logoAssetKinds,
+  type AvoidedColor,
+  type BrandFile,
+  type BrandKitData,
+} from "@/lib/brand/brand-kit-data";
+import {
+  defaultBrandFonts,
+  emptyLayoutModes,
+  fontSamples,
   mockBrandVersions,
-  mockInitialLayoutModes,
-  mockLovedWords,
-  mockPersonas,
-  mockSavedLayouts,
-  mockStyleReferences,
-  mockVoiceSliders,
+  voiceSliders as defaultVoiceSliders,
   type BrandColor,
   type BrandFont,
   type FontRole,
   type ImageStyle,
   type LayoutElementId,
+  type LayoutModes,
   type LogoSlotId,
   type Persona,
   type RestrictionType,
@@ -29,16 +33,19 @@ import {
   type StyleReference,
 } from "@/lib/mocks/brand";
 
-export type UploadedFile = {
-  url: string;
-  fileName: string;
-  isSvg: boolean;
-};
+import { getVoiceSample, getVoiceToneLabel } from "@/lib/brand/voice-sample";
 
-const maxImageSizeInBytes = 10 * 1024 * 1024;
+export type UploadedFile = BrandFile;
+
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+const maxImageSizeInBytes = 5 * 1024 * 1024;
 const minimumLogoWidth = 1000;
 const logoTypes = ["image/svg+xml", "image/png"];
 const imageTypes = ["image/jpeg", "image/png", "image/webp"];
+const autosaveDelayInMs = 800;
+const connectionErrorMessage =
+  "Não conseguimos salvar agora. Confira sua internet e tente de novo.";
 
 type UploadResult = { isSuccess: true } | { isSuccess: false; error: string };
 
@@ -53,79 +60,259 @@ const getImageWidth = async (file: File) => {
 
 const removeExtension = (fileName: string) => fileName.replace(/\.[^.]+$/, "");
 
-export function useBrandKit() {
-  const objectUrlsRef = useRef<string[]>([]);
+const formatFontName = (fileName: string) =>
+  removeExtension(fileName)
+    .replace(/[-_]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .trim();
+
+const getFontFaceName = (assetId: string) => `brand-font-${assetId}`;
+
+const buildSavePayload = (state: {
+  palette: BrandColor[];
+  fonts: BrandFont[];
+  imageStyle: ImageStyle | null;
+  savedLayouts: SavedLayout[];
+  voiceSliders: typeof defaultVoiceSliders;
+  lovedWords: string[];
+  bannedWords: string[];
+  personas: Persona[];
+  activeRuleIds: string[];
+  avoidedColors: AvoidedColor[];
+  avoidedElements: string[];
+  avoidedStyles: string[];
+}): SaveBrandKitInput => {
+  const voiceValue = (sliderId: string) =>
+    state.voiceSliders.find((slider) => slider.id === sliderId)?.value ?? 50;
+
+  return {
+    palette: state.palette.map(({ role, name, hex }) => ({ role, name, hex })),
+    fonts: state.fonts.map(({ role, displayName, assetId }) => ({
+      role,
+      family: displayName,
+      assetId,
+    })),
+    imageStyle: state.imageStyle,
+    layouts: state.savedLayouts.map(
+      ({ id, name, layoutModes, sourceAssetId }) => ({
+        id,
+        name,
+        layoutModes,
+        sourceAssetId,
+      }),
+    ),
+    voice: {
+      formality: voiceValue("formality"),
+      humor: voiceValue("humor"),
+      complexity: voiceValue("complexity"),
+      intent: voiceValue("intent"),
+      toneLabel: getVoiceToneLabel(state.voiceSliders),
+      sampleCaption: getVoiceSample(state.voiceSliders),
+    },
+    lovedWords: state.lovedWords,
+    bannedWords: state.bannedWords,
+    personas: state.personas,
+    activeRuleIds: state.activeRuleIds,
+    avoidedColors: state.avoidedColors,
+    avoidedElements: state.avoidedElements,
+    avoidedStyles: state.avoidedStyles,
+  };
+};
+
+export function useBrandKit(initialData: BrandKitData) {
+  const uploadBrandAssetMutation = useUploadBrandAsset();
+  const deleteBrandAssetMutation = useDeleteBrandAsset();
+  const saveBrandKitMutation = useSaveBrandKit();
   const [uploadedLogos, setUploadedLogos] = useState<
     Partial<Record<LogoSlotId, UploadedFile>>
-  >({});
-  const [palette, setPalette] = useState<BrandColor[]>(mockBrandPalette);
-  const [fonts, setFonts] = useState<BrandFont[]>(mockBrandFonts);
-  const [imageStyle, setImageStyle] = useState<ImageStyle>("photographic");
-  const [references, setReferences] =
-    useState<StyleReference[]>(mockStyleReferences);
-  const [layoutModes, setLayoutModes] = useState(mockInitialLayoutModes);
+  >(initialData.logos);
+  const [palette, setPalette] = useState<BrandColor[]>(initialData.palette);
+  const [fonts, setFonts] = useState<BrandFont[]>(initialData.fonts);
+  const [imageStyle, setImageStyle] = useState<ImageStyle | null>(
+    initialData.imageStyle,
+  );
+  const [references, setReferences] = useState<StyleReference[]>(
+    initialData.references,
+  );
+  const [layoutModes, setLayoutModes] = useState<LayoutModes>(emptyLayoutModes);
   const [layoutPostImage, setLayoutPostImage] = useState<UploadedFile | null>(
     null,
   );
-  const [savedLayouts, setSavedLayouts] =
-    useState<SavedLayout[]>(mockSavedLayouts);
-  const [voiceSliders, setVoiceSliders] = useState(mockVoiceSliders);
-  const [lovedWords, setLovedWords] = useState(mockLovedWords);
-  const [bannedWords, setBannedWords] = useState(mockBannedWords);
-  const [personas, setPersonas] = useState<Persona[]>(mockPersonas);
-  const [activeRuleIds, setActiveRuleIds] = useState(
-    mockBrandRules.map((rule) => rule.id),
+  const [savedLayouts, setSavedLayouts] = useState<SavedLayout[]>(
+    initialData.layouts,
   );
-  const [avoidedColors, setAvoidedColors] = useState(mockAvoidedColors);
-  const [avoidedElements, setAvoidedElements] = useState(mockAvoidedElements);
-  const [avoidedStyles, setAvoidedStyles] = useState(mockAvoidedStyles);
+  const [editingLayoutId, setEditingLayoutId] = useState<string | null>(null);
+  const [voiceSliders, setVoiceSliders] = useState(() =>
+    defaultVoiceSliders.map((slider) => ({
+      ...slider,
+      value: initialData.voiceValues[slider.id] ?? slider.value,
+    })),
+  );
+  const [lovedWords, setLovedWords] = useState(initialData.lovedWords);
+  const [bannedWords, setBannedWords] = useState(initialData.bannedWords);
+  const [personas, setPersonas] = useState<Persona[]>(initialData.personas);
+  const [activeRuleIds, setActiveRuleIds] = useState(initialData.activeRuleIds);
+  const [avoidedColors, setAvoidedColors] = useState(
+    initialData.avoidedColors,
+  );
+  const [avoidedElements, setAvoidedElements] = useState(
+    initialData.avoidedElements,
+  );
+  const [avoidedStyles, setAvoidedStyles] = useState(
+    initialData.avoidedStyles,
+  );
   const [currentVersionId, setCurrentVersionId] = useState(
     mockBrandVersions[0].id,
   );
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+
+  const savePayload = JSON.stringify(
+    buildSavePayload({
+      palette,
+      fonts,
+      imageStyle,
+      savedLayouts,
+      voiceSliders,
+      lovedWords,
+      bannedWords,
+      personas,
+      activeRuleIds,
+      avoidedColors,
+      avoidedElements,
+      avoidedStyles,
+    }),
+  );
+  const lastSavedPayloadRef = useRef(savePayload);
+  const saveBrandKitRef = useRef(saveBrandKitMutation.mutateAsync);
 
   useEffect(() => {
-    const objectUrls = objectUrlsRef.current;
+    saveBrandKitRef.current = saveBrandKitMutation.mutateAsync;
+  }, [saveBrandKitMutation.mutateAsync]);
 
-    return () => objectUrls.forEach((url) => URL.revokeObjectURL(url));
-  }, []);
+  useEffect(() => {
+    if (savePayload === lastSavedPayloadRef.current) {
+      return;
+    }
 
-  const createUploadedFile = (file: File): UploadedFile => {
-    const url = URL.createObjectURL(file);
+    const timeoutId = window.setTimeout(async () => {
+      setSaveStatus("saving");
 
-    objectUrlsRef.current.push(url);
+      const result = await saveBrandKitRef
+        .current(JSON.parse(savePayload) as SaveBrandKitInput)
+        .catch(() => ({ isSuccess: false as const }));
 
-    return { url, fileName: file.name, isSvg: file.type === "image/svg+xml" };
+      if (result.isSuccess) {
+        lastSavedPayloadRef.current = savePayload;
+      }
+
+      setSaveStatus(result.isSuccess ? "saved" : "error");
+    }, autosaveDelayInMs);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [savePayload]);
+
+  useEffect(() => {
+    initialData.fonts.forEach((font) => {
+      if (!font.assetId || !font.url) {
+        return;
+      }
+
+      const fontFace = new FontFace(
+        getFontFaceName(font.assetId),
+        `url(${font.url})`,
+      );
+
+      fontFace
+        .load()
+        .then((loadedFont) => document.fonts.add(loadedFont))
+        .catch(() => undefined);
+    });
+  }, [initialData.fonts]);
+
+  const uploadAsset = async (
+    kind: BrandAssetKind,
+    file: File,
+    width?: number,
+  ): Promise<{ file: UploadedFile } | { error: string }> => {
+    const result = await uploadBrandAssetMutation
+      .mutateAsync({ kind, file, isGenerated: false, width, checks: {} })
+      .catch(() => null);
+
+    if (!result) {
+      return { error: connectionErrorMessage };
+    }
+
+    if (!result.isSuccess) {
+      return { error: result.errorMessage };
+    }
+
+    return {
+      file: {
+        assetId: result.data.id,
+        url: result.data.url,
+        fileName: result.data.fileName,
+        isSvg: file.type === "image/svg+xml",
+      },
+    };
+  };
+
+  const deleteAsset = (assetId?: string) => {
+    if (assetId) {
+      deleteBrandAssetMutation.mutate({ assetId });
+    }
   };
 
   const uploadLogo = async (
     slotId: LogoSlotId,
     file: File,
   ): Promise<UploadResult> => {
+    if (slotId === "monochrome") {
+      return { isSuccess: false, error: "Esta versão é gerada sozinha." };
+    }
+
     if (!logoTypes.includes(file.type)) {
       return { isSuccess: false, error: "Use um arquivo SVG ou PNG." };
     }
 
     if (file.size > maxImageSizeInBytes) {
-      return { isSuccess: false, error: "A logo precisa ter até 10 MB." };
+      return { isSuccess: false, error: "A logo precisa ter até 5 MB." };
     }
 
-    if (file.type === "image/png") {
-      const imageWidth = await getImageWidth(file).catch(() => 0);
+    const imageWidth =
+      file.type === "image/png"
+        ? await getImageWidth(file).catch(() => 0)
+        : undefined;
 
-      if (imageWidth < minimumLogoWidth) {
-        return {
-          isSuccess: false,
-          error: "Use um PNG com pelo menos 1000 px de largura.",
-        };
-      }
+    if (imageWidth !== undefined && imageWidth < minimumLogoWidth) {
+      return {
+        isSuccess: false,
+        error: "Use um PNG com pelo menos 1000 px de largura.",
+      };
+    }
+
+    const upload = await uploadAsset(logoAssetKinds[slotId], file, imageWidth);
+
+    if ("error" in upload) {
+      return { isSuccess: false, error: upload.error };
     }
 
     setUploadedLogos((currentLogos) => ({
       ...currentLogos,
-      [slotId]: createUploadedFile(file),
+      [slotId]: upload.file,
     }));
 
     return { isSuccess: true };
+  };
+
+  const removeLogo = (slotId: LogoSlotId) => {
+    deleteAsset(uploadedLogos[slotId]?.assetId);
+    setUploadedLogos((currentLogos) => {
+      const remainingLogos = { ...currentLogos };
+
+      delete remainingLogos[slotId];
+
+      return remainingLogos;
+    });
   };
 
   const validateImage = (file: File): UploadResult => {
@@ -134,62 +321,80 @@ export function useBrandKit() {
     }
 
     if (file.size > maxImageSizeInBytes) {
-      return { isSuccess: false, error: "A imagem precisa ter até 10 MB." };
+      return { isSuccess: false, error: "A imagem precisa ter até 5 MB." };
     }
 
     return { isSuccess: true };
   };
 
-  const addReference = (file: File): UploadResult => {
+  const addReference = async (file: File): Promise<UploadResult> => {
     const validation = validateImage(file);
 
-    if (validation.isSuccess) {
-      setReferences((currentReferences) => [
-        ...currentReferences,
-        {
-          id: crypto.randomUUID(),
-          caption: removeExtension(file.name),
-          style: imageStyle,
-          imageUrl: createUploadedFile(file).url,
-        },
-      ]);
+    if (!validation.isSuccess) {
+      return validation;
     }
 
-    return validation;
+    const upload = await uploadAsset("post_bom", file);
+
+    if ("error" in upload) {
+      return { isSuccess: false, error: upload.error };
+    }
+
+    setReferences((currentReferences) => [
+      ...currentReferences,
+      {
+        id: upload.file.assetId,
+        caption: removeExtension(file.name),
+        imageUrl: upload.file.url,
+      },
+    ]);
+
+    return { isSuccess: true };
   };
 
-  const uploadLayoutPost = (file: File): UploadResult => {
-    const validation = validateImage(file);
-
-    if (validation.isSuccess) {
-      setLayoutPostImage(createUploadedFile(file));
-    }
-
-    return validation;
+  const removeReference = (referenceId: string) => {
+    deleteAsset(referenceId);
+    setReferences((currentReferences) =>
+      currentReferences.filter((reference) => reference.id !== referenceId),
+    );
   };
 
   const uploadFont = async (role: FontRole, file: File) => {
-    const family = `brand-${role}-${Date.now()}`.replace(/\s+/g, "-");
-    const fontFace = new FontFace(family, await file.arrayBuffer());
+    const upload = await uploadAsset("fonte", file);
+
+    if ("error" in upload) {
+      throw new Error(upload.error);
+    }
+
+    const fontFace = new FontFace(
+      getFontFaceName(upload.file.assetId),
+      await file.arrayBuffer(),
+    );
 
     await fontFace.load();
     document.fonts.add(fontFace);
 
-    const uploadedFont: BrandFont = {
-      role,
-      family: `"${family}", system-ui, sans-serif`,
-      displayName: removeExtension(file.name),
-      sample:
-        role === "Destaque"
-          ? "Só hoje: R$ 12"
-          : (mockBrandFonts.find((font) => font.role === role)?.sample ??
-            "Novo blend de outono"),
-      isRequired: role !== "Destaque",
-    };
-
+    deleteAsset(fonts.find((font) => font.role === role)?.assetId);
     setFonts((currentFonts) => [
       ...currentFonts.filter((font) => font.role !== role),
-      uploadedFont,
+      {
+        role,
+        family: getUploadedFontFamily(upload.file.assetId),
+        displayName: formatFontName(file.name),
+        sample: fontSamples[role],
+        isRequired: role !== "Destaque",
+        isDefault: false,
+        assetId: upload.file.assetId,
+        url: upload.file.url,
+      },
+    ]);
+  };
+
+  const removeFont = (role: FontRole) => {
+    deleteAsset(fonts.find((font) => font.role === role)?.assetId);
+    setFonts((currentFonts) => [
+      ...currentFonts.filter((font) => font.role !== role),
+      ...defaultBrandFonts.filter((font) => font.role === role),
     ]);
   };
 
@@ -212,28 +417,110 @@ export function useBrandKit() {
       },
     ]);
 
-  const toggleLayoutMode = (elementId: LayoutElementId, isFixed: boolean) =>
-    setLayoutModes((currentModes) => ({
-      ...currentModes,
-      [elementId]: isFixed,
-    }));
+  const removeColor = (colorId: string) =>
+    setPalette((currentPalette) =>
+      currentPalette.filter((color) => color.id !== colorId),
+    );
 
-  const resetLayoutEditor = () => {
-    setLayoutModes(mockInitialLayoutModes);
-    setLayoutPostImage(null);
+  const toggleLayoutMode = (elementId: LayoutElementId, isFixed: boolean) => {
+    const nextModes = { ...layoutModes, [elementId]: isFixed };
+
+    setLayoutModes(nextModes);
+
+    if (editingLayoutId) {
+      setSavedLayouts((currentLayouts) =>
+        currentLayouts.map((layout) =>
+          layout.id === editingLayoutId
+            ? { ...layout, layoutModes: nextModes }
+            : layout,
+        ),
+      );
+    }
   };
 
-  const saveLayout = (summary: string) => {
+  const resetLayoutEditor = () => {
+    const isUnsavedPost =
+      layoutPostImage &&
+      !savedLayouts.some(
+        (layout) => layout.sourceAssetId === layoutPostImage.assetId,
+      );
+
+    if (isUnsavedPost) {
+      deleteAsset(layoutPostImage.assetId);
+    }
+
+    setLayoutModes(emptyLayoutModes);
+    setLayoutPostImage(null);
+    setEditingLayoutId(null);
+  };
+
+  const uploadLayoutPost = async (file: File): Promise<UploadResult> => {
+    const validation = validateImage(file);
+
+    if (!validation.isSuccess) {
+      return validation;
+    }
+
+    const upload = await uploadAsset("layout_origem", file);
+
+    if ("error" in upload) {
+      return { isSuccess: false, error: upload.error };
+    }
+
+    resetLayoutEditor();
+    setLayoutPostImage(upload.file);
+
+    return { isSuccess: true };
+  };
+
+  const saveLayout = () => {
+    if (editingLayoutId) {
+      return;
+    }
+
+    const layoutId = crypto.randomUUID();
+
     setSavedLayouts((currentLayouts) => [
       ...currentLayouts,
       {
-        id: crypto.randomUUID(),
+        id: layoutId,
         name: `Layout ${currentLayouts.length + 1}`,
-        summary,
-        thumbnail: "product",
+        layoutModes,
+        postImageUrl: layoutPostImage?.url,
+        sourceAssetId: layoutPostImage?.assetId,
       },
     ]);
-    resetLayoutEditor();
+    setEditingLayoutId(layoutId);
+  };
+
+  const openLayout = (layout: SavedLayout) => {
+    setEditingLayoutId(layout.id);
+    setLayoutModes(layout.layoutModes);
+    setLayoutPostImage(
+      layout.postImageUrl && layout.sourceAssetId
+        ? {
+            assetId: layout.sourceAssetId,
+            url: layout.postImageUrl,
+            fileName: layout.name,
+            isSvg: false,
+          }
+        : null,
+    );
+  };
+
+  const removeLayout = (layoutId: string) => {
+    deleteAsset(
+      savedLayouts.find((layout) => layout.id === layoutId)?.sourceAssetId,
+    );
+    setSavedLayouts((currentLayouts) =>
+      currentLayouts.filter((layout) => layout.id !== layoutId),
+    );
+
+    if (layoutId === editingLayoutId) {
+      setLayoutModes(emptyLayoutModes);
+      setLayoutPostImage(null);
+      setEditingLayoutId(null);
+    }
   };
 
   const updateVoiceSlider = (sliderId: string, value: number) =>
@@ -254,6 +541,13 @@ export function useBrandKit() {
           : [...currentValues, value],
       );
 
+  const removeValue =
+    (setter: React.Dispatch<React.SetStateAction<string[]>>) =>
+    (value: string) =>
+      setter((currentValues) =>
+        currentValues.filter((currentValue) => currentValue !== value),
+      );
+
   const savePersona = (persona: Persona) =>
     setPersonas((currentPersonas) =>
       currentPersonas.some((currentPersona) => currentPersona.id === persona.id)
@@ -261,6 +555,11 @@ export function useBrandKit() {
             currentPersona.id === persona.id ? persona : currentPersona,
           )
         : [...currentPersonas, persona],
+    );
+
+  const removePersona = (personaId: string) =>
+    setPersonas((currentPersonas) =>
+      currentPersonas.filter((persona) => persona.id !== personaId),
     );
 
   const toggleRule = (ruleId: string, isActive: boolean) =>
@@ -289,32 +588,43 @@ export function useBrandKit() {
   };
 
   return {
+    saveStatus,
     uploadedLogos,
     uploadLogo,
+    removeLogo,
     palette,
     updateColor,
     addColor,
+    removeColor,
     fonts,
     uploadFont,
+    removeFont,
     imageStyle,
     setImageStyle,
     references,
     addReference,
+    removeReference,
     layoutModes,
     toggleLayoutMode,
     layoutPostImage,
     uploadLayoutPost,
     resetLayoutEditor,
     savedLayouts,
+    editingLayoutId,
     saveLayout,
+    openLayout,
+    removeLayout,
     voiceSliders,
     updateVoiceSlider,
     lovedWords,
     addLovedWord: addUniqueValue(setLovedWords),
+    removeLovedWord: removeValue(setLovedWords),
     bannedWords,
     addBannedWord: addUniqueValue(setBannedWords),
+    removeBannedWord: removeValue(setBannedWords),
     personas,
     savePersona,
+    removePersona,
     activeRuleIds,
     toggleRule,
     avoidedColors,

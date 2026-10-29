@@ -9,15 +9,13 @@ import { Button } from "@/components/ui/button";
 import { downloadFile } from "@/lib/download-file";
 import {
   logoValidationChecks,
-  mockBrandInitials,
   mockLogoSlots,
   type LogoSlot,
   type LogoSlotId,
 } from "@/lib/mocks/brand";
 
 import type { UploadedFile } from "../hooks/use-brand-kit";
-import { BrandCard } from "./brand-card";
-import { BrandMark } from "./brand-mark";
+import { BrandCard, BrandSmallText } from "./brand-card";
 
 const logoAccept = "image/svg+xml,image/png";
 
@@ -27,71 +25,86 @@ const requirementBadgeVariants = {
   Opcional: "outline",
 } as const;
 
-const buildMarkSvg = (background: string, color: string) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><rect width="1024" height="1024" rx="224" fill="${background}"/><text x="512" y="512" dominant-baseline="central" text-anchor="middle" font-family="DM Serif Display, Georgia, serif" font-size="440" fill="${color}">${mockBrandInitials}</text></svg>`;
+const monochromeFilters = ["brightness(0) invert(1)", "brightness(0)"];
 
-const downloadSvg = (fileName: string, svg: string) =>
-  downloadFile(fileName, new Blob([svg], { type: "image/svg+xml" }));
+function LogoImage({
+  logo,
+  alt,
+  filter,
+}: {
+  logo: UploadedFile;
+  alt: string;
+  filter?: string;
+}) {
+  return (
+    <span className="relative size-full">
+      <Image
+        src={logo.url}
+        alt={alt}
+        fill
+        unoptimized
+        sizes="320px"
+        className="object-contain"
+        style={filter ? { filter } : undefined}
+      />
+    </span>
+  );
+}
+
+const getLogoStatus = (
+  slot: LogoSlot,
+  logo: UploadedFile | undefined,
+  mainLogo: UploadedFile | undefined,
+) => {
+  if (slot.isGenerated) {
+    return mainLogo
+      ? "Geradas automaticamente"
+      : "Envie a logo para fundo claro para gerar";
+  }
+
+  return logo ? `Enviada · ${logo.isSvg ? "SVG" : "PNG"}` : "Ainda não enviada";
+};
 
 type LogoTileProps = {
   slot: LogoSlot;
   uploadedLogo?: UploadedFile;
+  mainLogo?: UploadedFile;
   onUpload: (file: File) => void;
+  onRemove: () => void;
 };
 
-function LogoTile({ slot, uploadedLogo, onUpload }: LogoTileProps) {
-  const handleDownload = () => {
-    if (uploadedLogo) {
-      downloadFile(uploadedLogo.fileName, uploadedLogo.url);
-      return;
-    }
-
-    if (slot.isGenerated) {
-      downloadSvg(
-        "logo-monocromatica-clara.svg",
-        buildMarkSvg("transparent", "#FFFFFF"),
-      );
-      downloadSvg(
-        "logo-monocromatica-escura.svg",
-        buildMarkSvg("transparent", "#1B1530"),
-      );
-      return;
-    }
-
-    downloadSvg(
-      `logo-${slot.id}.svg`,
-      buildMarkSvg(slot.markBackground, slot.markColor),
-    );
-  };
+function LogoTile({
+  slot,
+  uploadedLogo,
+  mainLogo,
+  onUpload,
+  onRemove,
+}: LogoTileProps) {
+  const previewLogo = slot.isGenerated ? mainLogo : uploadedLogo;
 
   return (
     <div className="brand-tile flex flex-col overflow-hidden rounded-[18px]">
       <div
         className="flex h-30 items-center justify-center gap-4 border-b border-brand-tile-border p-3"
-        style={{ background: slot.previewBackground }}
+        style={{ background: previewLogo ? slot.previewBackground : undefined }}
       >
-        {uploadedLogo ? (
-          <span className="relative size-full">
-            <Image
-              src={uploadedLogo.url}
-              alt={`${slot.title} enviada`}
-              fill
-              unoptimized
-              sizes="320px"
-              className="object-contain"
-            />
+        {previewLogo && slot.isGenerated
+          ? monochromeFilters.map((filter) => (
+              <LogoImage
+                key={filter}
+                logo={previewLogo}
+                alt={`${slot.title} gerada`}
+                filter={filter}
+              />
+            ))
+          : null}
+        {previewLogo && !slot.isGenerated ? (
+          <LogoImage logo={previewLogo} alt={`${slot.title} enviada`} />
+        ) : null}
+        {previewLogo ? null : (
+          <span className="flex size-full items-center justify-center rounded-(--r-md) border-[1.5px] border-dashed border-muted text-[13px] text-muted">
+            Nenhuma logo
           </span>
-        ) : slot.isGenerated ? (
-          <>
-            <BrandMark size="md" background="transparent" color="#FFFFFF" />
-            <BrandMark size="md" background="transparent" color="#1B1530" />
-          </>
-        ) : (
-          <BrandMark
-            size={slot.markSize === "lg" ? "lg" : "sm"}
-            background={slot.markBackground}
-            color={slot.markColor}
-          />
         )}
       </div>
       <div className="flex flex-col items-start gap-2 px-4 py-3.5 text-sm">
@@ -100,30 +113,43 @@ function LogoTile({ slot, uploadedLogo, onUpload }: LogoTileProps) {
           {slot.requirement}
         </Badge>
         <span className="inline-flex items-center gap-1.5 text-[13px] text-muted">
-          <Check
-            aria-hidden="true"
-            className="size-3.5 text-success"
-            strokeWidth={2.5}
-          />
-          {uploadedLogo
-            ? `Enviada · ${uploadedLogo.isSvg ? "SVG" : "PNG"}`
-            : slot.status}
+          {previewLogo ? (
+            <Check
+              aria-hidden="true"
+              className="size-3.5 text-success"
+              strokeWidth={2.5}
+            />
+          ) : null}
+          {getLogoStatus(slot, uploadedLogo, mainLogo)}
         </span>
-        <div className="-ml-2 flex flex-wrap gap-1">
-          {slot.isGenerated ? null : (
+        {slot.isGenerated ? null : (
+          <div className="flex flex-wrap gap-2">
             <FileUploadButton
               accept={logoAccept}
-              variant="ghost"
+              variant="outline"
               size="sm"
               onFileSelected={onUpload}
             >
-              Substituir
+              {uploadedLogo ? "Substituir" : "Enviar"}
             </FileUploadButton>
-          )}
-          <Button variant="ghost" size="sm" onClick={handleDownload}>
-            {slot.isGenerated ? "Baixar" : "Baixar original"}
-          </Button>
-        </div>
+            {uploadedLogo ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    downloadFile(uploadedLogo.fileName, uploadedLogo.url)
+                  }
+                >
+                  Baixar original
+                </Button>
+                <Button variant="outline" size="sm" onClick={onRemove}>
+                  Remover
+                </Button>
+              </>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -132,9 +158,14 @@ function LogoTile({ slot, uploadedLogo, onUpload }: LogoTileProps) {
 type LogosTabProps = {
   uploadedLogos: Partial<Record<LogoSlotId, UploadedFile>>;
   onUploadLogo: (slotId: LogoSlotId, file: File) => void;
+  onRemoveLogo: (slotId: LogoSlotId) => void;
 };
 
-export function LogosTab({ uploadedLogos, onUploadLogo }: LogosTabProps) {
+export function LogosTab({
+  uploadedLogos,
+  onUploadLogo,
+  onRemoveLogo,
+}: LogosTabProps) {
   const mainLogo = uploadedLogos.light;
   const validationChecks = [
     {
@@ -167,7 +198,9 @@ export function LogosTab({ uploadedLogos, onUploadLogo }: LogosTabProps) {
               key={slot.id}
               slot={slot}
               uploadedLogo={uploadedLogos[slot.id]}
+              mainLogo={mainLogo}
               onUpload={(file) => onUploadLogo(slot.id, file)}
+              onRemove={() => onRemoveLogo(slot.id)}
             />
           ))}
         </div>
@@ -177,30 +210,42 @@ export function LogosTab({ uploadedLogos, onUploadLogo }: LogosTabProps) {
         titleId="validation-title"
         title="Validação automática"
         hint="Conferido antes de gerar qualquer arte."
-        action={<Badge variant="success">Tudo certo</Badge>}
+        action={
+          mainLogo ? (
+            <Badge variant="success">Tudo certo</Badge>
+          ) : (
+            <Badge variant="outline">Aguardando logo</Badge>
+          )
+        }
       >
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(190px,100%),1fr))] gap-2.5">
-          {validationChecks.map((check) => (
-            <div
-              key={check.label}
-              className="brand-tile flex items-center gap-3 rounded-[18px] px-3.5 py-3 text-sm"
-            >
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success text-on-primary">
-                <Check
-                  aria-hidden="true"
-                  className="size-3.5"
-                  strokeWidth={3}
-                />
-              </span>
-              <span>
-                {check.label}
-                <small className="block text-xs text-muted">
-                  {check.detail}
-                </small>
-              </span>
-            </div>
-          ))}
-        </div>
+        {mainLogo ? (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(190px,100%),1fr))] gap-2.5">
+            {validationChecks.map((check) => (
+              <div
+                key={check.label}
+                className="brand-tile flex items-center gap-3 rounded-[18px] px-3.5 py-3 text-sm"
+              >
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success text-on-primary">
+                  <Check
+                    aria-hidden="true"
+                    className="size-3.5"
+                    strokeWidth={3}
+                  />
+                </span>
+                <span>
+                  {check.label}
+                  <small className="block text-xs text-muted">
+                    {check.detail}
+                  </small>
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <BrandSmallText>
+            Envie a logo para fundo claro para validarmos o arquivo.
+          </BrandSmallText>
+        )}
       </BrandCard>
     </div>
   );

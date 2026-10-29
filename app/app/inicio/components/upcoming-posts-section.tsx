@@ -1,36 +1,68 @@
 import { ChevronRight, Clock } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { PostArtPreview } from "@/components/common/post-art-preview";
 import {
-  mockUpcomingPosts,
-  type UpcomingPost,
-  type UpcomingPostStatus,
-} from "@/lib/mocks/home";
+  getUpcomingContents,
+  type UpcomingContent,
+} from "@/lib/content/get-upcoming-contents";
 import { routes } from "@/lib/routes";
 
 import { HomeSectionTitle } from "./home-section-title";
 
 const postStatusBadges: Record<
-  UpcomingPostStatus,
+  UpcomingContent["status"],
   { label: string; variant: "success" | "warning" | "outline" }
 > = {
-  approved: { label: "Aprovado", variant: "success" },
-  awaitingApproval: { label: "Aguardando você", variant: "warning" },
-  draft: { label: "Rascunho", variant: "outline" },
+  ideia: { label: "Rascunho", variant: "outline" },
+  em_producao: { label: "Em produção", variant: "outline" },
+  em_revisao: { label: "Aguardando você", variant: "warning" },
+  aprovado: { label: "Aprovado", variant: "success" },
+  publicado: { label: "Publicado", variant: "success" },
 };
 
-function UpcomingPostCard({ post }: { post: UpcomingPost }) {
+const formatLabels: Record<UpcomingContent["format"], string> = {
+  post: "Post",
+  story: "Story",
+  reels: "Reels",
+  carrossel: "Carrossel",
+};
+
+const scheduleFormatter = new Intl.DateTimeFormat("pt-BR", {
+  weekday: "short",
+  day: "2-digit",
+  month: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "America/Sao_Paulo",
+});
+
+function UpcomingPostCard({ post }: { post: UpcomingContent }) {
   const statusBadge = postStatusBadges[post.status];
 
   return (
     <article className="glass flex flex-col gap-3 rounded-[20px] p-2.5">
-      <PostArtPreview art={post.art} label={post.previewLabel} />
-      <div className="flex flex-col gap-1.5 px-1 pb-1">
-        <span className="flex items-center gap-1.5 text-sm leading-[1.4] font-semibold">
-          <Clock aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
-          {post.scheduleLabel}
+      {post.imageUrl ? (
+        <div className="relative aspect-4/5 overflow-hidden rounded-[14px]">
+          <Image
+            src={post.imageUrl}
+            alt={`Prévia do post: ${post.title}`}
+            fill
+            unoptimized
+            sizes="240px"
+            className="object-cover"
+          />
+        </div>
+      ) : null}
+      <div className="flex flex-col gap-2 px-1.5 pb-1.5">
+        <b className="line-clamp-2 text-[15px] leading-[1.35] font-semibold">
+          {post.title}
+        </b>
+        <span className="flex items-center gap-1.5 text-sm leading-[1.4] text-muted">
+          <Clock aria-hidden="true" className="size-3.5 shrink-0" />
+          {scheduleFormatter.format(post.scheduledAt)} ·{" "}
+          {formatLabels[post.format]}
         </span>
         <div>
           <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
@@ -40,7 +72,13 @@ function UpcomingPostCard({ post }: { post: UpcomingPost }) {
   );
 }
 
-export function UpcomingPostsSection() {
+export async function UpcomingPostsSection() {
+  const upcomingPosts = await getUpcomingContents();
+
+  if (upcomingPosts.length === 0) {
+    return null;
+  }
+
   return (
     <section aria-labelledby="next-title" className="flex flex-col gap-3.5">
       <div className="flex items-center justify-between gap-3">
@@ -54,7 +92,7 @@ export function UpcomingPostsSection() {
         </Link>
       </div>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 max-[420px]:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]">
-        {mockUpcomingPosts.map((post) => (
+        {upcomingPosts.map((post) => (
           <UpcomingPostCard key={post.id} post={post} />
         ))}
       </div>

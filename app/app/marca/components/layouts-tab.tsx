@@ -9,9 +9,12 @@ import { Button } from "@/components/ui/button";
 import {
   layoutElements,
   layoutFlowSteps,
+  type BrandColor,
   type LayoutElementId,
+  type LayoutModes,
   type SavedLayout,
 } from "@/lib/mocks/brand";
+import { cn } from "@/lib/utils";
 
 import type { UploadedFile } from "../hooks/use-brand-kit";
 import { BrandCard, BrandSmallText } from "./brand-card";
@@ -19,15 +22,28 @@ import { BrandMark } from "./brand-mark";
 
 const maxBalancedFixedElements = 2;
 
-const thumbnailShapes: Record<SavedLayout["thumbnail"], string> = {
-  product: "right-1 bottom-1 size-3 rounded-[3px]",
-  story: "inset-x-1.5 top-2 h-2 rounded-[3px] bg-[#C9A27A]!",
-  carousel: "top-2.5 left-1.5 h-1.5 w-7.5 rounded-[3px]",
+const neutralLayoutColors = {
+  base: "#3A3A3C",
+  secondary: "#8E8E93",
+  light: "#F2F2F7",
+  accent: "#AEAEB2",
 };
 
-const summarizeFixedElements = (
-  layoutModes: Record<LayoutElementId, boolean>,
-) => {
+type LayoutColors = typeof neutralLayoutColors;
+
+const getLayoutColors = (palette: BrandColor[]): LayoutColors => {
+  const findHex = (role: BrandColor["role"]) =>
+    palette.find((color) => color.role === role)?.hex;
+
+  return {
+    base: findHex("primary") ?? neutralLayoutColors.base,
+    secondary: findHex("secondary") ?? neutralLayoutColors.secondary,
+    light: findHex("background") ?? neutralLayoutColors.light,
+    accent: findHex("accent") ?? neutralLayoutColors.accent,
+  };
+};
+
+const summarizeFixedElements = (layoutModes: LayoutModes) => {
   const fixedLabels = layoutElements
     .filter((element) => layoutModes[element.id])
     .map((element) => element.label.split(":")[0].toLowerCase());
@@ -44,9 +60,22 @@ const summarizeFixedElements = (
   return `${summary.charAt(0).toUpperCase()}${summary.slice(1)} ${fixedLabels.length === 1 ? "fixo" : "fixos"}`;
 };
 
-function LayoutPostPreview({ postImage }: { postImage: UploadedFile | null }) {
+type LayoutPostPreviewProps = {
+  postImage: UploadedFile | null;
+  colors: LayoutColors;
+  logoUrl?: string;
+};
+
+function LayoutPostPreview({
+  postImage,
+  colors,
+  logoUrl,
+}: LayoutPostPreviewProps) {
   return (
-    <div className="relative aspect-4/5 overflow-hidden rounded-[18px] bg-[#2B2420]">
+    <div
+      className="relative aspect-4/5 overflow-hidden rounded-[18px]"
+      style={{ backgroundColor: colors.base }}
+    >
       {postImage ? (
         <Image
           src={postImage.url}
@@ -58,22 +87,38 @@ function LayoutPostPreview({ postImage }: { postImage: UploadedFile | null }) {
         />
       ) : (
         <>
-          <span className="absolute inset-y-0 left-0 w-4.5 bg-[#C9A27A]" />
-          <span className="absolute top-[54%] right-5 bottom-5 left-8.5 rounded-(--r-md) bg-linear-160/srgb from-[#C9A27A] to-[#6E4B33]" />
-          <span className="absolute top-8.5 right-15 left-8.5 font-(family-name:--font-dm-serif) text-[28px] leading-[1.1] text-[#F3ECE2]">
-            Novo blend de outono
+          <span
+            className="absolute top-[54%] right-5 bottom-5 left-8.5 rounded-(--r-md)"
+            style={{
+              backgroundImage: `linear-gradient(160deg, ${colors.secondary}, ${colors.base})`,
+            }}
+          />
+          <span
+            className="absolute top-8.5 right-15 left-8.5 font-(family-name:--font-dm-serif) text-[28px] leading-[1.1]"
+            style={{ color: colors.light }}
+          >
+            Título do post
           </span>
         </>
       )}
-      <span className="absolute top-6.5 right-13 left-7 h-18.5 rounded-lg border-[1.5px] border-dashed border-[#F3ECE2]" />
-      <span className="absolute top-26 left-8.5 rounded-md bg-[#F3ECE2] px-1.5 py-0.5 text-[11px] font-semibold text-[#1F1A17]">
+      <span
+        className="absolute top-6.5 right-13 left-7 h-18.5 rounded-lg border-[1.5px] border-dashed"
+        style={{ borderColor: colors.light }}
+      />
+      <span
+        className="absolute top-26 left-8.5 rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
+        style={{ backgroundColor: colors.light, color: colors.base }}
+      >
         Título
       </span>
-      <span className="absolute right-3.5 bottom-3.5 size-13.5 rounded-lg border-[1.5px] border-dashed border-[#8FA98A]" />
+      <span
+        className="absolute right-3.5 bottom-3.5 size-13.5 rounded-lg border-[1.5px] border-dashed"
+        style={{ borderColor: colors.accent }}
+      />
       <BrandMark
         size="xs"
-        background="#F3ECE2"
-        color="#2B2420"
+        background={colors.light}
+        logoUrl={logoUrl}
         className="absolute right-5.5 bottom-5.5"
       />
     </div>
@@ -81,26 +126,50 @@ function LayoutPostPreview({ postImage }: { postImage: UploadedFile | null }) {
 }
 
 type LayoutsTabProps = {
-  layoutModes: Record<LayoutElementId, boolean>;
+  palette: BrandColor[];
+  logoUrl?: string;
+  layoutModes: LayoutModes;
   postImage: UploadedFile | null;
   savedLayouts: SavedLayout[];
+  editingLayoutId: string | null;
   onToggleMode: (elementId: LayoutElementId, isFixed: boolean) => void;
   onUploadPost: (file: File) => void;
-  onSave: (summary: string) => void;
+  onSave: () => void;
   onDiscard: () => void;
+  onOpenLayout: (layout: SavedLayout) => void;
+  onRemoveLayout: (layoutId: string) => void;
 };
 
 export function LayoutsTab({
+  palette,
+  logoUrl,
   layoutModes,
   postImage,
   savedLayouts,
+  editingLayoutId,
   onToggleMode,
   onUploadPost,
   onSave,
   onDiscard,
+  onOpenLayout,
+  onRemoveLayout,
 }: LayoutsTabProps) {
+  const colors = getLayoutColors(palette);
+  const editingLayout = savedLayouts.find(
+    (layout) => layout.id === editingLayoutId,
+  );
   const fixedCount = Object.values(layoutModes).filter(Boolean).length;
   const hasHealthyVariation = fixedCount <= maxBalancedFixedElements;
+
+  const getPreviewHint = () => {
+    if (editingLayout) {
+      return `Editando ${editingLayout.name}. As mudanças são salvas na hora.`;
+    }
+
+    return postImage
+      ? `Enviado: ${postImage.fileName}`
+      : "Prévia com as cores da sua paleta.";
+  };
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -135,12 +204,12 @@ export function LayoutsTab({
 
         <div className="grid items-start gap-6 md:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
           <div className="mx-auto flex w-full max-w-75 flex-col gap-2.5">
-            <LayoutPostPreview postImage={postImage} />
-            <BrandSmallText>
-              {postImage
-                ? `Enviado: ${postImage.fileName}`
-                : "Fixo: logo no canto inferior direito e faixa lateral."}
-            </BrandSmallText>
+            <LayoutPostPreview
+              postImage={postImage}
+              colors={colors}
+              logoUrl={logoUrl}
+            />
+            <BrandSmallText>{getPreviewHint()}</BrandSmallText>
           </div>
           <div className="flex min-w-0 flex-col gap-3">
             <b className="font-display text-base font-semibold">
@@ -171,7 +240,7 @@ export function LayoutsTab({
                       </Button>
                       <Button
                         size="sm"
-                        variant={isFixed ? "ghost" : "secondary"}
+                        variant={isFixed ? "ghost" : "default"}
                         aria-pressed={!isFixed}
                         onClick={() => onToggleMode(element.id, false)}
                       >
@@ -194,14 +263,18 @@ export function LayoutsTab({
               </AlertDescription>
             </Alert>
             <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => onSave(summarizeFixedElements(layoutModes))}
-              >
-                Salvar como layout de marca
-              </Button>
-              <Button variant="ghost" onClick={onDiscard}>
-                Descartar
-              </Button>
+              {editingLayout ? (
+                <Button variant="outline" onClick={onDiscard}>
+                  Criar novo layout
+                </Button>
+              ) : (
+                <>
+                  <Button onClick={onSave}>Salvar como layout de marca</Button>
+                  <Button variant="outline" onClick={onDiscard}>
+                    Descartar
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -217,29 +290,63 @@ export function LayoutsTab({
           </BrandSmallText>
         }
       >
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(200px,100%),1fr))] gap-3.5">
-          {savedLayouts.map((layout) => (
-            <div
-              key={layout.id}
-              className="brand-tile flex items-center gap-3 rounded-[18px] p-3 text-sm"
-            >
-              <span
-                aria-hidden="true"
-                className="relative h-15 w-12 shrink-0 rounded-lg bg-[#2B2420]"
+        {savedLayouts.length > 0 ? (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(200px,100%),1fr))] gap-3.5">
+            {savedLayouts.map((layout) => (
+              <div
+                key={layout.id}
+                className={cn(
+                  "brand-tile flex items-center gap-2 rounded-[18px] p-3 text-sm",
+                  layout.id === editingLayoutId &&
+                    "border-primary bg-brand-selected",
+                )}
               >
-                <span
-                  className={`absolute bg-[#F3ECE2] ${thumbnailShapes[layout.thumbnail]}`}
-                />
-              </span>
-              <span className="min-w-0">
-                <b className="block truncate font-semibold">{layout.name}</b>
-                <small className="block text-xs text-muted">
-                  {layout.summary}
-                </small>
-              </span>
-            </div>
-          ))}
-        </div>
+                <button
+                  type="button"
+                  aria-label={`Abrir ${layout.name}`}
+                  onClick={() => onOpenLayout(layout)}
+                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 border-0 bg-transparent p-0 text-left text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="relative h-15 w-12 shrink-0 overflow-hidden rounded-lg"
+                    style={{ backgroundColor: colors.base }}
+                  >
+                    <span
+                      className="absolute inset-x-1 bottom-1 h-6 rounded-[3px]"
+                      style={{ backgroundColor: colors.secondary }}
+                    />
+                    <span
+                      className="absolute right-1 bottom-1 size-3 rounded-[3px]"
+                      style={{ backgroundColor: colors.light }}
+                    />
+                  </span>
+                  <span className="min-w-0">
+                    <b className="block truncate font-semibold">
+                      {layout.name}
+                    </b>
+                    <small className="block text-xs text-muted">
+                      {summarizeFixedElements(layout.layoutModes)}
+                    </small>
+                  </span>
+                </button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label={`Remover ${layout.name}`}
+                  onClick={() => onRemoveLayout(layout.id)}
+                >
+                  Remover
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <BrandSmallText>
+            Nenhum layout salvo ainda. Envie um post e salve como layout de
+            marca.
+          </BrandSmallText>
+        )}
       </BrandCard>
     </div>
   );

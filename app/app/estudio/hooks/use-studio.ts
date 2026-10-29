@@ -4,7 +4,9 @@ import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { useGenerateImage } from "@/hooks/mutations/use-generate-image";
+import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
 import { useAttachments } from "@/hooks/use-attachments";
+import { compressImageDataUrl } from "@/lib/compress-image-data-url";
 import {
   artFormats,
   buildGuidedPrompt,
@@ -20,9 +22,15 @@ import { STUDIO_PAUTA_PARAM } from "@/lib/routes";
 import {
   REFERENCE_IMAGE_MAX_BYTES,
   REFERENCE_IMAGE_TYPES,
+  type GenerateImageResult,
 } from "@/lib/validations/image-generation";
-import type { StudioPromptFormValues } from "@/lib/validations/studio";
+import type {
+  ScheduleArtFormValues,
+  StudioPromptFormValues,
+} from "@/lib/validations/studio";
 import { useToast } from "@/providers/toast-provider";
+
+import { toScheduledAt } from "../utils/schedule-days";
 
 export type StudioMode = "guided" | "free";
 export type StudioPhase = "idle" | "generating" | "done";
@@ -38,6 +46,7 @@ export function useStudio() {
   const { showToast } = useToast();
   const pauta = useSearchParams().get(STUDIO_PAUTA_PARAM) ?? "";
   const generateImageMutation = useGenerateImage();
+  const scheduleArtworkMutation = useScheduleArtwork();
   const generationIdRef = useRef(0);
   const [mode, setMode] = useState<StudioMode | null>(pauta ? "free" : null);
   const [guidedStep, setGuidedStep] = useState(0);
@@ -59,11 +68,19 @@ export function useStudio() {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [dialog, setDialog] = useState<StudioDialog>("none");
   const [caption, setCaption] = useState(mockSuggestedCaption);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<
+    GenerateImageResult[]
+  >([]);
   const [lastPrompt, setLastPrompt] = useState(pauta);
+  const [editorOriginalImage, setEditorOriginalImage] =
+    useState<GenerateImageResult | null>(null);
+  const [isAdjusting, setIsAdjusting] = useState(false);
 
+  const imageUrls = generatedImages.map((image) => image.imageUrl);
   const artLimit = mockTrialUsage.total;
-  const remainingArts = Math.max(0, artLimit - usedArts);
+  const remainingArts = mockTrialUsage.isLimitEnabled
+    ? Math.max(0, artLimit - usedArts)
+    : Number.POSITIVE_INFINITY;
   const format =
     artFormats.find((artFormat) => artFormat.id === formatId) ?? artFormats[1];
   const isGuidedComplete = guidedStep >= studioQuestions.length;
@@ -144,14 +161,14 @@ export function useStudio() {
       return;
     }
 
-    const generatedUrls = results.flatMap((result) =>
-      result.status === "fulfilled" ? [result.value.imageUrl] : [],
+    const generatedResults = results.flatMap((result) =>
+      result.status === "fulfilled" ? [result.value] : [],
     );
     const failedResult = results.find(
       (result): result is PromiseRejectedResult => result.status === "rejected",
     );
 
-    if (generatedUrls.length === 0) {
+    if (generatedResults.length === 0) {
       setPhase("idle");
       showToast(
         failedResult?.reason instanceof Error
@@ -163,13 +180,13 @@ export function useStudio() {
 
     if (failedResult) {
       showToast(
-        `Geramos ${formatArtCount(generatedUrls.length)} de ${variationCount}. Tente de novo para as outras.`,
+        `Geramos ${formatArtCount(generatedResults.length)} de ${variationCount}. Tente de novo para as outras.`,
       );
     }
 
-    setImageUrls(generatedUrls);
+    setGeneratedImages(generatedResults);
     setSelectedVariation(0);
-    setUsedArts((currentUsed) => currentUsed + generatedUrls.length);
+    setUsedArts((currentUsed) => currentUsed + generatedResults.length);
     setPhase("done");
   };
 
@@ -180,9 +197,115 @@ export function useStudio() {
     setPhase("idle");
   };
 
-  const openEditor = (variationIndex = selectedVariation) => {
+  const activeVariation = Math.min(
+    selectedVariation,
+    Math.max(imageUrls.length, 1) - 1,
+  );
+
+  const openEditor = (variationIndex = activeVariation) => {
     setSelectedVariation(variationIndex);
+    setEditorOriginalImage(generatedImages[variationIndex] ?? null);
     setDialog("editor");
+  };
+
+  const replaceImage = (
+    variationIndex: number,
+    generatedImage: GenerateImageResult,
+  ) =>
+    setGeneratedImages((currentImages) =>
+      currentImages.map((currentImage, index) =>
+        index === variationIndex ? generatedImage : currentImage,
+      ),
+    );
+
+  const adjustVariation = async (editInstruction: string) => {
+    const currentImageUrl = imageUrls[activeVariation];
+
+    if (!currentImageUrl) {
+      showToast("Gere uma arte antes de pedir ajuste.");
+      return false;
+    }
+
+    if (remainingArts <= 0) {
+      setDialog("limit");
+      return false;
+    }
+
+    setIsAdjusting(true);
+
+    try {
+      const referenceImage = await compressImageDataUrl(currentImageUrl);
+      const adjustedImage = await generateImageMutation.mutateAsync({
+        prompt: lastPrompt,
+        referenceImage,
+        editInstruction,
+      });
+
+      replaceImage(activeVariation, adjustedImage);
+      setUsedArts((currentUsed) => currentUsed + 1);
+
+      return true;
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Não conseguimos ajustar a arte. Tente de novo.",
+      );
+
+      return false;
+    } finally {
+      setIsAdjusting(false);
+    }
+  };
+
+  const postTitle = lastPrompt.split("\n")[0].trim().slice(0, 120);
+
+  const scheduleArt = async ({ day, time, caption }: ScheduleArtFormValues) => {
+    const currentImage = generatedImages[activeVariation];
+
+    if (!currentImage) {
+      showToast("Gere uma arte antes de agendar.");
+      return false;
+    }
+
+    const result = await (
+      currentImage.artworkId
+        ? Promise.resolve(undefined)
+        : compressImageDataUrl(currentImage.imageUrl)
+    )
+      .then((imageDataUrl) =>
+        scheduleArtworkMutation.mutateAsync({
+          title: postTitle || "Post do Estúdio",
+          prompt: lastPrompt,
+          caption,
+          format: format.id === "story" ? "story" : "post",
+          scheduledAt: toScheduledAt(day, time),
+          artworkId: currentImage.artworkId,
+          imageDataUrl,
+        }),
+      )
+      .catch(() => null);
+
+    if (!result?.isSuccess) {
+      showToast(
+        result?.errorMessage ??
+          "Não conseguimos agendar agora. Confira sua internet e tente de novo.",
+      );
+      return false;
+    }
+
+    setCaption(caption);
+    setDialog("none");
+
+    return true;
+  };
+
+  const discardAdjustments = () => {
+    if (editorOriginalImage) {
+      replaceImage(activeVariation, editorOriginalImage);
+    }
+
+    setDialog("none");
   };
 
   const changeVariationCount = (count: number) => {
@@ -207,10 +330,10 @@ export function useStudio() {
     phase,
     imageUrls,
     defaultPrompt: pauta,
-    selectedVariation: Math.min(
-      selectedVariation,
-      Math.max(imageUrls.length, 1) - 1,
-    ),
+    selectedVariation: activeVariation,
+    isAdjusting,
+    isScheduling: scheduleArtworkMutation.isPending,
+    postTitle,
     isOptionsOpen,
     dialog,
     caption,
@@ -228,6 +351,9 @@ export function useStudio() {
     cancelGeneration,
     selectVariation: setSelectedVariation,
     openEditor,
+    adjustVariation,
+    scheduleArt,
+    discardAdjustments,
     openSchedule: () => setDialog("schedule"),
     closeDialog,
     setCaption,
