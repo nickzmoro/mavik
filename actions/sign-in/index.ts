@@ -11,6 +11,7 @@ import {
   authErrorFailure,
   validationFailure,
 } from "@/lib/auth-error-messages";
+import { getPostAuthRoute } from "@/lib/onboarding/get-post-auth-route";
 import {
   formatRetryAfter,
   getBlockedRemainingMs,
@@ -65,7 +66,7 @@ export async function signIn(input: SignInInput): Promise<SignInResult> {
   const supabase = await createSupabaseServerClient({
     isSessionOnly: !remember,
   });
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
     options: { captchaToken },
@@ -75,7 +76,11 @@ export async function signIn(input: SignInInput): Promise<SignInResult> {
     await resetAttempts(ipAndEmailKey);
     await setSessionPersistence(remember);
 
-    return authSuccess({ redirectTo: getSafeRedirectPath(redirectTo) });
+    return authSuccess({
+      redirectTo: redirectTo
+        ? getSafeRedirectPath(redirectTo)
+        : await getPostAuthRoute(data.user?.id),
+    });
   }
 
   if (error.code === "invalid_credentials") {
