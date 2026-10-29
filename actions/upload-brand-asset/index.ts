@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 
 import { and, count, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { brandAssets } from "@/db/schema";
@@ -153,6 +154,10 @@ export async function uploadBrandAsset(
 
     if (kind === "manual") {
       await deleteManualRules(brandKit.id);
+    }
+
+    if (kind === "simbolo") {
+      revalidatePath("/app", "layout");
     }
 
     if (previousAssets.length > 0) {

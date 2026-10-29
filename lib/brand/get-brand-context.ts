@@ -1,10 +1,11 @@
 import "server-only";
 
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, count, eq, ne } from "drizzle-orm";
 import type OpenAI from "openai";
 
 import { db } from "@/db";
 import {
+  artworks,
   brandAssets,
   brandColors,
   brandFonts,
@@ -35,6 +36,10 @@ export type BrandContext = {
   brandName: string;
   guidelines: string;
   colorHexes: string[];
+  restrictions: string[];
+  forbiddenTerms: string[];
+  primaryHex?: string;
+  artworkCount: number;
   logos: LogoAsset[];
   manual?: StoredFile;
   goodExamples: StoredFile[];
@@ -115,6 +120,7 @@ export async function getBrandContext(
     assets,
     layouts,
     activeRules,
+    [artworkTotal],
   ] = await Promise.all([
     db
       .select({ name: storeProducts.name })
@@ -130,7 +136,7 @@ export async function getBrandContext(
     db.select().from(brandVoice).where(eq(brandVoice.brandKitId, brandKit.id)),
     db.select().from(brandTerms).where(eq(brandTerms.brandKitId, brandKit.id)),
     db
-      .select({ value: brandRestrictions.value })
+      .select({ kind: brandRestrictions.kind, value: brandRestrictions.value })
       .from(brandRestrictions)
       .where(eq(brandRestrictions.brandKitId, brandKit.id)),
     db.select().from(personas).where(eq(personas.brandKitId, brandKit.id)),
@@ -152,6 +158,10 @@ export async function getBrandContext(
           eq(brandRules.isActive, true),
         ),
       ),
+    db
+      .select({ total: count() })
+      .from(artworks)
+      .where(eq(artworks.storeId, store.id)),
   ]);
 
   const manual = assets.find(({ kind }) => kind === "manual");
@@ -194,7 +204,7 @@ export async function getBrandContext(
     fixedLayoutElements.length > 0 &&
       `Elementos fixos do layout da marca: ${fixedLayoutElements.join(", ")}.`,
     restrictions.length > 0 &&
-      `Evitar na arte: ${restrictions.map(({ value }) => value).join(", ")}.`,
+      `PROIBIDO NA ARTE (prioridade máxima, nunca usar, mesmo que apareça nos posts aprovados):\n- ${restrictions.map(({ value }) => value).join("\n- ")}`,
     storePersonas.length > 0 &&
       `Público: ${storePersonas.map(({ name, age, description }) => `${name}, ${age ?? "?"} anos${description ? ` (${description})` : ""}`).join("; ")}.`,
     store.isRegulated &&
@@ -203,6 +213,14 @@ export async function getBrandContext(
   ].filter((section): section is string => Boolean(section));
 
   const guidelines = sections.join("\n");
+  const avoidedHexes = new Set(
+    restrictions
+      .filter(({ kind }) => kind === "cor")
+      .map(({ value }) => value.toUpperCase()),
+  );
+  const allowedHexText = [...colors.map(({ hex }) => hex), ...manualRules].join(
+    " ",
+  );
   const toStoredFile = ({
     storagePath,
     mimeType,
@@ -218,9 +236,18 @@ export async function getBrandContext(
     guidelines,
     colorHexes: [
       ...new Set(
-        guidelines.match(/#[0-9A-Fa-f]{6}\b/g)?.map((hex) => hex.toUpperCase()),
+        allowedHexText
+          .match(/#[0-9A-Fa-f]{6}\b/g)
+          ?.map((hex) => hex.toUpperCase())
+          .filter((hex) => !avoidedHexes.has(hex)),
       ),
     ],
+    restrictions: restrictions.map(({ value }) => value),
+    forbiddenTerms: forbiddenTerms.map(({ term }) => term),
+    primaryHex: colors
+      .find(({ role }) => role === "primaria")
+      ?.hex.toUpperCase(),
+    artworkCount: artworkTotal?.total ?? 0,
     manual:
       manual?.mimeType === "application/pdf" ? toStoredFile(manual) : undefined,
     goodExamples: assets

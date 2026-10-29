@@ -8,7 +8,10 @@ import { brandRules } from "@/db/schema";
 import type { ExtractedBrandKit } from "@/actions/extract-brand-manual/schema";
 import { LUNA_MODEL } from "@/lib/ai/models";
 import { parseColor } from "@/lib/color-contrast";
-import { MAX_FONT_NAME_LENGTH, MAX_RESTRICTIONS } from "@/lib/onboarding/constants";
+import {
+  MAX_FONT_NAME_LENGTH,
+  MAX_RESTRICTIONS,
+} from "@/lib/onboarding/constants";
 
 const MANUAL_READER_INSTRUCTIONS = `You are a senior brand designer reading a brand manual (brand book).
 Extract every rule a designer needs to create Instagram posts that follow this manual exactly.

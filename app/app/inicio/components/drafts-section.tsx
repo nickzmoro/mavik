@@ -4,11 +4,14 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { getRecentArtworks } from "@/lib/content/get-recent-artworks";
-import { routes } from "@/lib/routes";
+import { getStudioUrlForArtwork, routes } from "@/lib/routes";
 
 import { HomeSectionTitle } from "./home-section-title";
 
 const draftsLimit = 4;
+
+export const postCardLinkClassName =
+  "glass flex flex-col gap-3 rounded-[20px] p-2.5 text-inherit no-underline transition-transform duration-150 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 
 const createdAtFormatter = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
@@ -42,9 +45,11 @@ export async function DraftsSection() {
       </div>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 max-[420px]:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]">
         {drafts.map((draft) => (
-          <article
+          <Link
             key={draft.id}
-            className="glass flex flex-col gap-3 rounded-[20px] p-2.5"
+            href={getStudioUrlForArtwork(draft.id)}
+            aria-label={`Abrir rascunho no Estúdio: ${draft.title}`}
+            className={postCardLinkClassName}
           >
             <div className="relative aspect-4/5 overflow-hidden rounded-[14px]">
               <Image
@@ -67,7 +72,7 @@ export async function DraftsSection() {
                 <Badge variant="outline">Rascunho</Badge>
               </div>
             </div>
-          </article>
+          </Link>
         ))}
       </div>
     </section>

@@ -22,10 +22,7 @@ import {
   type StudioPromptFormValues,
 } from "@/lib/validations/studio";
 
-import {
-  formatVariationCount,
-  type StudioState,
-} from "../hooks/use-studio";
+import { formatVariationCount, type StudioState } from "../hooks/use-studio";
 import { FormatOptionsPopover } from "./format-options-popover";
 import { RoundSendButton } from "./round-send-button";
 import {
@@ -66,7 +63,10 @@ export function StudioPromptForm({
     <div className="flex flex-col gap-4">
       {studio.mode === "guided" ? (
         <p className="m-0 flex items-start gap-2 text-sm leading-normal text-muted">
-          <Bot aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+          <Bot
+            aria-hidden="true"
+            className="mt-0.5 size-4 shrink-0 text-primary"
+          />
           Montei o pedido com as suas respostas. Ajuste o que quiser e envie.
         </p>
       ) : null}

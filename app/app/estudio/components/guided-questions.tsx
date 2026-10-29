@@ -45,7 +45,11 @@ function GuidedAnswerForm({ studio }: GuidedQuestionsProps) {
 
   return (
     <Form {...form}>
-      <form noValidate onSubmit={form.handleSubmit(handleAnswer)} className="m-0">
+      <form
+        noValidate
+        onSubmit={form.handleSubmit(handleAnswer)}
+        className="m-0"
+      >
         <FormField
           control={form.control}
           name="answer"
@@ -109,7 +113,11 @@ export function GuidedQuestions({ studio }: GuidedQuestionsProps) {
             </p>
           </div>
         </div>
-        <div role="group" aria-label="Respostas rápidas" className="flex flex-wrap gap-2">
+        <div
+          role="group"
+          aria-label="Respostas rápidas"
+          className="flex flex-wrap gap-2"
+        >
           {question.options.map((option) => (
             <button
               key={option}

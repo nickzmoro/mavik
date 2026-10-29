@@ -3,15 +3,16 @@
 import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 
+import { useGeneratePostCaption } from "@/hooks/mutations/use-generate-post-caption";
 import { useGenerateImage } from "@/hooks/mutations/use-generate-image";
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
 import { useAttachments } from "@/hooks/use-attachments";
 import { compressImageDataUrl } from "@/lib/compress-image-data-url";
+import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import {
   artFormats,
   buildGuidedPrompt,
   maxVariationsPerGeneration,
-  mockSuggestedCaption,
   skippedAnswer,
   studioQuestions,
   type ArtFormatId,
@@ -42,17 +43,23 @@ export const formatArtCount = (count: number) =>
 export const formatVariationCount = (count: number) =>
   count === 1 ? "1 variação" : `${count} variações`;
 
-export function useStudio() {
+export function useStudio(initialArtwork: StudioArtwork | null) {
   const { showToast } = useToast();
   const pauta = useSearchParams().get(STUDIO_PAUTA_PARAM) ?? "";
+  const initialPrompt = initialArtwork?.prompt ?? pauta;
   const generateImageMutation = useGenerateImage();
+  const generatePostCaptionMutation = useGeneratePostCaption();
   const scheduleArtworkMutation = useScheduleArtwork();
   const generationIdRef = useRef(0);
-  const [mode, setMode] = useState<StudioMode | null>(pauta ? "free" : null);
+  const [mode, setMode] = useState<StudioMode | null>(
+    initialPrompt || initialArtwork ? "free" : null,
+  );
   const [guidedStep, setGuidedStep] = useState(0);
   const [guidedAnswers, setGuidedAnswers] = useState<string[]>([]);
   const attachments = useAttachments();
-  const [formatId, setFormatId] = useState<ArtFormatId>("portrait");
+  const [formatId, setFormatId] = useState<ArtFormatId>(
+    initialArtwork?.isStory ? "story" : "portrait",
+  );
   const [usedArts, setUsedArts] = useState(mockTrialUsage.used);
   const [variationCount, setVariationCount] = useState(
     Math.max(
@@ -63,15 +70,24 @@ export function useStudio() {
       ),
     ),
   );
-  const [phase, setPhase] = useState<StudioPhase>("idle");
+  const [phase, setPhase] = useState<StudioPhase>(
+    initialArtwork ? "done" : "idle",
+  );
   const [selectedVariation, setSelectedVariation] = useState(0);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [dialog, setDialog] = useState<StudioDialog>("none");
-  const [caption, setCaption] = useState(mockSuggestedCaption);
-  const [generatedImages, setGeneratedImages] = useState<
-    GenerateImageResult[]
-  >([]);
-  const [lastPrompt, setLastPrompt] = useState(pauta);
+  const [caption, setCaption] = useState(initialArtwork?.caption ?? "");
+  const [generatedImages, setGeneratedImages] = useState<GenerateImageResult[]>(
+    initialArtwork
+      ? [
+          {
+            imageUrl: initialArtwork.imageUrl,
+            artworkId: initialArtwork.artworkId,
+          },
+        ]
+      : [],
+  );
+  const [lastPrompt, setLastPrompt] = useState(initialPrompt);
   const [editorOriginalImage, setEditorOriginalImage] =
     useState<GenerateImageResult | null>(null);
   const [isAdjusting, setIsAdjusting] = useState(false);
@@ -281,6 +297,7 @@ export function useStudio() {
           format: format.id === "story" ? "story" : "post",
           scheduledAt: toScheduledAt(day, time),
           artworkId: currentImage.artworkId,
+          contentId: initialArtwork?.contentId,
           imageDataUrl,
         }),
       )
@@ -298,6 +315,38 @@ export function useStudio() {
     setDialog("none");
 
     return true;
+  };
+
+  const generateCaption = async () => {
+    const currentImageUrl = imageUrls[activeVariation];
+
+    if (!currentImageUrl) {
+      showToast("Gere uma arte antes de pedir a legenda.");
+      return;
+    }
+
+    const imageDataUrl = await compressImageDataUrl(
+      currentImageUrl,
+      512,
+      0.8,
+    ).catch(() => undefined);
+    const result = await generatePostCaptionMutation
+      .mutateAsync({
+        prompt: lastPrompt,
+        imageDataUrl,
+        previousCaption: caption,
+      })
+      .catch(() => null);
+
+    if (!result?.isSuccess) {
+      showToast(
+        result?.errorMessage ??
+          "Não conseguimos gerar a legenda agora. Tente de novo.",
+      );
+      return;
+    }
+
+    setCaption(result.data.caption);
   };
 
   const discardAdjustments = () => {
@@ -329,10 +378,11 @@ export function useStudio() {
     variationCount,
     phase,
     imageUrls,
-    defaultPrompt: pauta,
+    defaultPrompt: initialPrompt,
     selectedVariation: activeVariation,
     isAdjusting,
     isScheduling: scheduleArtworkMutation.isPending,
+    isGeneratingCaption: generatePostCaptionMutation.isPending,
     postTitle,
     isOptionsOpen,
     dialog,
@@ -354,6 +404,7 @@ export function useStudio() {
     adjustVariation,
     scheduleArt,
     discardAdjustments,
+    generateCaption,
     openSchedule: () => setDialog("schedule"),
     closeDialog,
     setCaption,

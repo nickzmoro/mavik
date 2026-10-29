@@ -51,8 +51,16 @@ export async function scheduleArtwork(
     return authFailure(onboardingErrorMessages.storeMissing);
   }
 
-  const { title, prompt, caption, format, scheduledAt, artworkId, imageDataUrl } =
-    parsedInput.data;
+  const {
+    title,
+    prompt,
+    caption,
+    format,
+    scheduledAt,
+    artworkId,
+    contentId: requestedContentId,
+    imageDataUrl,
+  } = parsedInput.data;
   const supabase = await createSupabaseServerClient();
   let uploadedRenderPath: string | null = null;
 
@@ -60,12 +68,30 @@ export async function scheduleArtwork(
     const brandKit = await getOrCreateCurrentBrandKit(store.id, userId);
     const [draftArtwork] = artworkId
       ? await db
-          .select({ id: artworks.id })
+          .select({ id: artworks.id, contentId: artworks.contentId })
           .from(artworks)
-          .where(and(eq(artworks.id, artworkId), eq(artworks.storeId, store.id)))
+          .where(
+            and(eq(artworks.id, artworkId), eq(artworks.storeId, store.id)),
+          )
+      : [];
+    const existingContentId = requestedContentId ?? draftArtwork?.contentId;
+    const [existingContent] = existingContentId
+      ? await db
+          .select({ id: contents.id })
+          .from(contents)
+          .where(
+            and(
+              eq(contents.id, existingContentId),
+              eq(contents.storeId, store.id),
+            ),
+          )
       : [];
 
-    if (!brandKit || (artworkId && !draftArtwork)) {
+    if (
+      !brandKit ||
+      (artworkId && !draftArtwork) ||
+      (requestedContentId && !existingContent)
+    ) {
       return authFailure(scheduleFailedMessage);
     }
 
@@ -89,19 +115,28 @@ export async function scheduleArtwork(
 
     const contentId = await db.transaction(async (tx) => {
       const approvedAt = new Date();
-      const [content] = await tx
-        .insert(contents)
-        .values({
-          storeId: store.id,
-          title,
-          format,
-          goal: "engajar",
-          scheduledAt: new Date(scheduledAt),
-          status: "aprovado",
-          caption,
-          createdBy: userId,
-        })
-        .returning({ id: contents.id });
+      const contentValues = {
+        title,
+        format,
+        scheduledAt: new Date(scheduledAt),
+        status: "aprovado" as const,
+        caption,
+      };
+      const [content] = existingContent
+        ? await tx
+            .update(contents)
+            .set(contentValues)
+            .where(eq(contents.id, existingContent.id))
+            .returning({ id: contents.id })
+        : await tx
+            .insert(contents)
+            .values({
+              storeId: store.id,
+              goal: "engajar",
+              createdBy: userId,
+              ...contentValues,
+            })
+            .returning({ id: contents.id });
       const approval = {
         contentId: content.id,
         format,

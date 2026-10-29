@@ -1,6 +1,7 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 import { db } from "@/db";
 import { brandAssets } from "@/db/schema";
@@ -52,13 +53,20 @@ export async function deleteBrandAsset(
           eq(brandAssets.brandKitId, brandKit.id),
         ),
       )
-      .returning({ storagePath: brandAssets.storagePath });
+      .returning({
+        storagePath: brandAssets.storagePath,
+        kind: brandAssets.kind,
+      });
 
     if (deletedAsset) {
       const supabase = await createSupabaseServerClient();
       await supabase.storage
         .from(BRAND_ASSETS_BUCKET)
         .remove([deletedAsset.storagePath]);
+
+      if (deletedAsset.kind === "simbolo") {
+        revalidatePath("/app", "layout");
+      }
     }
   } catch (error) {
     console.error("[onboarding] falha ao remover arquivo da marca", error);

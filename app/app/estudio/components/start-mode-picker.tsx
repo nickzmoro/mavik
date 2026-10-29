@@ -44,7 +44,11 @@ export function StartModePicker({ onPick }: StartModePickerProps) {
           Como você prefere começar?
         </p>
       </div>
-      <div role="group" aria-label="Como começar" className="flex flex-col gap-2.5">
+      <div
+        role="group"
+        aria-label="Como começar"
+        className="flex flex-col gap-2.5"
+      >
         {startOptions.map(({ mode, title, description, icon: Icon }) => (
           <button
             key={mode}

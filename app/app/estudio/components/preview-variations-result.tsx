@@ -3,6 +3,7 @@ import {
   Copy,
   Download,
   PenLine,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
   WandSparkles,
@@ -16,6 +17,9 @@ import { cn } from "@/lib/utils";
 
 import type { StudioState } from "../hooks/use-studio";
 import { VariationGrid } from "./variation-grid";
+
+const captionActionClassName =
+  "inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border-0 bg-transparent px-2.5 text-[13px] font-semibold text-primary transition-colors duration-150 hover:bg-icon-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-default disabled:opacity-60 motion-reduce:transition-none";
 
 type PreviewVariationsResultProps = {
   studio: StudioState;
@@ -90,18 +94,60 @@ export function PreviewVariationsResult({
           <span className="text-xs leading-[1.4] font-semibold text-primary">
             Legenda sugerida
           </span>
-          <button
-            type="button"
-            onClick={onCopyCaption}
-            className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border-0 bg-transparent px-2.5 text-[13px] font-semibold text-primary transition-colors duration-150 hover:bg-icon-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-          >
-            <Copy aria-hidden="true" className="size-3.5" />
-            Copiar
-          </button>
+          {studio.caption ? (
+            <span className="flex gap-0.5">
+              <button
+                type="button"
+                onClick={studio.generateCaption}
+                disabled={studio.isGeneratingCaption}
+                className={captionActionClassName}
+              >
+                <RefreshCw
+                  aria-hidden="true"
+                  className={cn(
+                    "size-3.5",
+                    studio.isGeneratingCaption &&
+                      "animate-spin motion-reduce:animate-none",
+                  )}
+                />
+                {studio.isGeneratingCaption ? "Gerando…" : "Gerar outra"}
+              </button>
+              <button
+                type="button"
+                onClick={onCopyCaption}
+                className={captionActionClassName}
+              >
+                <Copy aria-hidden="true" className="size-3.5" />
+                Copiar
+              </button>
+            </span>
+          ) : null}
         </div>
-        <p className="m-0 text-sm leading-[1.55] whitespace-pre-line">
-          {studio.caption}
-        </p>
+        {studio.caption ? (
+          <p
+            aria-live="polite"
+            className="m-0 text-sm leading-[1.55] whitespace-pre-line"
+          >
+            {studio.caption}
+          </p>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="m-0 text-sm leading-[1.55] text-muted">
+              Crie uma legenda sobre o produto deste post.
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={studio.generateCaption}
+              loading={studio.isGeneratingCaption}
+            >
+              {studio.isGeneratingCaption ? null : (
+                <Sparkles aria-hidden="true" className="size-4" />
+              )}
+              {studio.isGeneratingCaption ? "Gerando…" : "Gerar legenda"}
+            </Button>
+          </div>
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="inline-flex items-center gap-1.5 text-[13px] leading-[1.4] font-semibold">

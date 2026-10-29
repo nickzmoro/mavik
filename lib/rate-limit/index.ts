@@ -75,6 +75,12 @@ export const rateLimitRules = {
     blockMs: MINUTE_MS,
     maxBlockMs: HOUR_MS,
   },
+  generatePostCaptionByUser: {
+    limit: 30,
+    windowMs: 10 * MINUTE_MS,
+    blockMs: MINUTE_MS,
+    maxBlockMs: HOUR_MS,
+  },
 } satisfies Record<string, RateLimitRule>;
 
 const globalForRateLimit = globalThis as typeof globalThis & {

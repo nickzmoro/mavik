@@ -4,10 +4,7 @@ import { and, asc, eq, gte, ne } from "drizzle-orm";
 
 import { db } from "@/db";
 import { contents } from "@/db/schema";
-import {
-  getCurrentUserId,
-  getOwnedStore,
-} from "@/lib/onboarding/store-access";
+import { getCurrentUserId, getOwnedStore } from "@/lib/onboarding/store-access";
 
 import { getArtworkImageUrls } from "./artwork-images";
 
@@ -46,6 +43,7 @@ export async function getUpcomingContents() {
 
   return upcomingContents.map(({ currentArtworkId, ...content }) => ({
     ...content,
+    artworkId: currentArtworkId ?? undefined,
     imageUrl: currentArtworkId
       ? imageUrlByArtwork.get(currentArtworkId)
       : undefined,

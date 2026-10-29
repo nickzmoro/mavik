@@ -24,6 +24,7 @@ export function compressImageDataUrl(
       resolve(canvas.toDataURL("image/jpeg", quality));
     };
     image.onerror = () => reject(new Error("Imagem inválida"));
+    image.crossOrigin = "anonymous";
     image.src = dataUrl;
   });
 }

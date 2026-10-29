@@ -1,5 +1,6 @@
 "use client";
 
+import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import type { ScheduleArtFormValues } from "@/lib/validations/studio";
 import { useToast } from "@/providers/toast-provider";
 
@@ -11,22 +12,35 @@ import { StudioPreviewPanel } from "./studio-preview-panel";
 import { StudioRequestPanel } from "./studio-request-panel";
 import { TrialLimitDialog } from "./trial-limit-dialog";
 
-export function StudioWorkspace() {
-  const studio = useStudio();
+type StudioWorkspaceProps = {
+  initialArtwork: StudioArtwork | null;
+};
+
+export function StudioWorkspace({ initialArtwork }: StudioWorkspaceProps) {
+  const studio = useStudio(initialArtwork);
   const { showToast } = useToast();
 
-  const handleDialogOpenChange = (dialog: StudioDialog) => (isOpen: boolean) => {
-    if (!isOpen && studio.dialog === dialog) {
-      studio.closeDialog();
-    }
-  };
+  const handleDialogOpenChange =
+    (dialog: StudioDialog) => (isOpen: boolean) => {
+      if (!isOpen && studio.dialog === dialog) {
+        studio.closeDialog();
+      }
+    };
 
-  const handleDownload = (variationIndex: number) => {
-    const link = document.createElement("a");
-    link.href = studio.imageUrls[variationIndex];
-    link.download = `arte-variacao-${variationIndex + 1}.png`;
-    link.click();
-    showToast(`Variação ${variationIndex + 1} baixada em PNG`);
+  const handleDownload = async (variationIndex: number) => {
+    try {
+      const imageBlob = await fetch(studio.imageUrls[variationIndex]).then(
+        (response) => response.blob(),
+      );
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(imageBlob);
+      link.download = `arte-variacao-${variationIndex + 1}.png`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast(`Variação ${variationIndex + 1} baixada em PNG`);
+    } catch {
+      showToast("Não foi possível baixar a arte");
+    }
   };
 
   const handleCopyCaption = async () => {

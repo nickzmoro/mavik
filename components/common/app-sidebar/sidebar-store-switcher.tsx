@@ -1,16 +1,48 @@
+import { and, eq } from "drizzle-orm";
 import { ChevronsUpDown } from "lucide-react";
+import Image from "next/image";
 
+import { db } from "@/db";
+import { brandAssets } from "@/db/schema";
 import { getInitials } from "@/lib/get-initials";
-import { getCurrentUserId, getOwnedStore } from "@/lib/onboarding/store-access";
+import { signStoragePaths } from "@/lib/onboarding/get-step-data";
+import {
+  getCurrentBrandKit,
+  getCurrentUserId,
+  getOwnedStore,
+} from "@/lib/onboarding/store-access";
 import { cn } from "@/lib/utils";
 
 const storeCardClassName =
   "relative flex min-h-14 w-full items-center gap-3 rounded-(--r-lg) border border-white/14 bg-white/8 px-2.5 py-2 text-left text-white";
 
+async function getSymbolUrl(storeId: string) {
+  const brandKit = await getCurrentBrandKit(storeId);
+
+  if (!brandKit) {
+    return null;
+  }
+
+  const [symbol] = await db
+    .select({ storagePath: brandAssets.storagePath })
+    .from(brandAssets)
+    .where(
+      and(
+        eq(brandAssets.brandKitId, brandKit.id),
+        eq(brandAssets.kind, "simbolo"),
+      ),
+    )
+    .limit(1);
+  const [signed] = symbol ? await signStoragePaths([symbol.storagePath]) : [];
+
+  return signed?.signedUrl ?? null;
+}
+
 export async function SidebarStoreSwitcher() {
   const userId = await getCurrentUserId();
   const store = userId ? await getOwnedStore(userId) : null;
   const storeName = store?.name.trim() ?? "";
+  const symbolUrl = store ? await getSymbolUrl(store.id) : null;
 
   return (
     <button
@@ -25,12 +57,25 @@ export async function SidebarStoreSwitcher() {
         aria-hidden="true"
         className={cn(
           "flex size-9 shrink-0 items-center justify-center rounded-[10px] font-display text-sm font-semibold",
-          storeName
-            ? "bg-[#2e2a27] text-[#f4ede4]"
-            : "border-[1.5px] border-dashed border-white/30",
+          symbolUrl
+            ? "relative overflow-hidden bg-white"
+            : storeName
+              ? "bg-[#2e2a27] text-[#f4ede4]"
+              : "border-[1.5px] border-dashed border-white/30",
         )}
       >
-        {storeName ? getInitials(storeName) : null}
+        {symbolUrl ? (
+          <Image
+            src={symbolUrl}
+            alt=""
+            fill
+            unoptimized
+            sizes="36px"
+            className="object-contain p-1"
+          />
+        ) : storeName ? (
+          getInitials(storeName)
+        ) : null}
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-xs leading-[1.4] font-medium text-(--violet-200)">
