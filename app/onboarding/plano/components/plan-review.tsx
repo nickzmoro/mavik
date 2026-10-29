@@ -100,7 +100,13 @@ export function PlanReview({
           )}
           isNew={!selectedItem}
           item={
-            selectedItem ?? { day: selectedDay, kind: "educativo", title: "" }
+            selectedItem ?? {
+              day: selectedDay,
+              kind: "educativo",
+              format: "post",
+              goal: "atrair",
+              title: "",
+            }
           }
           onApply={(item) =>
             updateItems([...items.filter(({ day }) => day !== item.day), item])

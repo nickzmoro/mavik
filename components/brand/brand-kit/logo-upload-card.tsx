@@ -101,6 +101,7 @@ export function LogoUploadCard({
     setPendingLogo(undefined);
     onUploaded(
       {
+        id: result.data.id,
         url: result.data.url,
         fileName: result.data.fileName,
         isGenerated,

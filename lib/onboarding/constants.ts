@@ -137,6 +137,26 @@ export const LOGO_MAX_BYTES = 5 * 1024 * 1024;
 export const MANUAL_MAX_BYTES = 5 * 1024 * 1024;
 export const LOGO_MIME_TYPES = ["image/svg+xml", "image/png", "image/webp"];
 
+export const titleFontFamilies = [
+  "DM Serif Display",
+  "Playfair Display",
+  "Lora",
+  "Poppins",
+  "Sora",
+  "Montserrat",
+] as const;
+
+export const bodyFontFamilies = [
+  "Inter",
+  "Lato",
+  "Open Sans",
+  "Nunito",
+  "Roboto",
+  "Source Sans 3",
+] as const;
+
+export const fontFamilies = [...titleFontFamilies, ...bodyFontFamilies];
+
 export const DEFAULT_TITLE_FONT = "Poppins";
 export const DEFAULT_BODY_FONT = "Inter";
 export const MAX_FONT_NAME_LENGTH = 60;

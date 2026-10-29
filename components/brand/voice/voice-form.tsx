@@ -38,7 +38,6 @@ import { VoicePreviewCard } from "./voice-preview-card";
 
 type VoiceFormProps = {
   isRegulated: boolean;
-  firstProduct?: string;
   defaultValues: SaveOnboardingVoiceFormValues;
   isSettings?: boolean;
   postExamples: PostExample[];
@@ -46,7 +45,6 @@ type VoiceFormProps = {
 
 export function VoiceForm({
   isRegulated,
-  firstProduct,
   defaultValues,
   postExamples,
   isSettings = false,
@@ -60,7 +58,7 @@ export function VoiceForm({
   });
 
   const tone = useWatch({ control: form.control, name: "tone" });
-  const sampleCaption = buildSampleCaption(tone, firstProduct);
+  const sampleCaption = buildSampleCaption(tone);
 
   const autosaveStatus = useOnboardingAutosave({
     form,
@@ -68,7 +66,7 @@ export function VoiceForm({
     save: (values) =>
       saveVoiceMutation.mutateAsync({
         ...values,
-        sampleCaption: buildSampleCaption(values.tone, firstProduct),
+        sampleCaption: buildSampleCaption(values.tone),
         shouldAdvance: false,
       }),
   });

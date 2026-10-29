@@ -322,7 +322,11 @@ export async function getPlanStepData(userId: string) {
     diagnosis,
     sources: diagnosis.sources as Record<string, boolean>,
     planStartDate: rationale.startDate ?? plan.month,
-    planItems: rationale.items ?? [],
+    planItems: (rationale.items ?? []).map((item) => ({
+      ...item,
+      format: item.format ?? "post",
+      goal: item.goal ?? "engajar",
+    })),
     isPlanApproved: plan.status === "aprovado",
   };
 }
