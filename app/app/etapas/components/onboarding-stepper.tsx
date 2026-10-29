@@ -6,6 +6,7 @@ import {
   Palette,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,76 +22,112 @@ const stepIcons: Record<OnboardingStepNumber, LucideIcon> = {
   4: CalendarDays,
 };
 
-type OnboardingStepperProps = {
-  currentStep: OnboardingStepNumber;
+type StepStatus = "done" | "current" | "pending";
+
+const statusLabels: Record<StepStatus, string> = {
+  done: "Concluída",
+  current: "Em andamento",
+  pending: "",
 };
 
-export function OnboardingStepper({ currentStep }: OnboardingStepperProps) {
-  return (
-    <nav
-      aria-label="Etapas da configuração"
-      className="glass shrink-0 rounded-none border-x-0 border-t-0 px-4 py-3 sm:px-6 sm:py-4"
-    >
-      <ol className="m-0 mx-auto flex max-w-240 list-none items-center p-0">
-        {onboardingSteps.map(({ number, label }, index) => {
-          const isDone = number < currentStep;
-          const isCurrent = number === currentStep;
-          const isLast = index === onboardingSteps.length - 1;
-          const StepIcon = stepIcons[number];
+type OnboardingStepperProps = {
+  currentStep: OnboardingStepNumber;
+  reachedStep: OnboardingStepNumber;
+};
 
-          return (
-            <li
-              key={number}
-              aria-current={isCurrent ? "step" : undefined}
-              className={cn(
-                "flex min-w-0 items-center gap-3",
-                isLast ? "flex-none" : "flex-1",
-              )}
-            >
+export function OnboardingStepper({
+  currentStep,
+  reachedStep,
+}: OnboardingStepperProps) {
+  return (
+    <nav aria-label="Etapas da configuração">
+      <p className="m-0 mb-4 hidden text-xs font-medium text-muted lg:block">
+        Primeiros passos · {onboardingSteps.length} etapas
+      </p>
+      <ol className="m-0 flex list-none items-start justify-between gap-2 p-0 lg:flex-col lg:gap-0">
+        {onboardingSteps.map(({ number, label, href }, index) => {
+          const StepIcon = stepIcons[number];
+          const status: StepStatus =
+            number === currentStep
+              ? "current"
+              : number < Math.max(currentStep, reachedStep)
+                ? "done"
+                : "pending";
+          const isNavigable = number <= reachedStep && status !== "current";
+          const isLast = index === onboardingSteps.length - 1;
+
+          const content = (
+            <>
               <span
+                aria-hidden="true"
                 className={cn(
-                  "flex size-10 shrink-0 items-center justify-center rounded-full border-[1.5px] bg-bg",
-                  isDone && "border-success bg-success text-on-primary",
-                  isCurrent && "border-primary bg-surface-2 text-primary",
-                  !isDone && !isCurrent && "border-muted text-muted",
+                  "flex size-10 flex-none items-center justify-center rounded-full border-[1.5px] bg-bg",
+                  status === "done" &&
+                    "border-success bg-success text-on-primary",
+                  status === "current" &&
+                    "border-primary bg-surface-2 text-primary",
+                  status === "pending" && "border-muted text-muted",
                 )}
               >
-                {isDone ? (
-                  <Check aria-hidden="true" className="size-4.5" />
+                {status === "done" ? (
+                  <Check className="size-4.5" />
                 ) : (
-                  <StepIcon aria-hidden="true" className="size-4.5" />
+                  <StepIcon className="size-4.5" />
                 )}
               </span>
-              <span
-                className={cn(
-                  "min-w-0 flex-col items-start gap-1",
-                  isCurrent ? "flex" : "hidden lg:flex",
-                )}
-              >
+              <span className="hidden flex-col items-start gap-1 sm:flex">
                 <span className="text-xs leading-[1.4] font-medium text-muted">
                   Etapa {number}
                 </span>
                 <span
                   className={cn(
-                    "text-[15px] leading-[1.3]",
-                    isDone || isCurrent
-                      ? "font-medium text-text"
-                      : "text-muted",
+                    "text-[15px] leading-tight",
+                    status === "pending"
+                      ? "text-muted"
+                      : "font-medium text-text",
                   )}
                 >
                   {label}
                 </span>
-                {isDone ? <Badge variant="success">Concluída</Badge> : null}
-                {isCurrent ? <Badge>Em andamento</Badge> : null}
+                {status === "done" ? (
+                  <Badge variant="success">{statusLabels.done}</Badge>
+                ) : null}
+                {status === "current" ? (
+                  <Badge>{statusLabels.current}</Badge>
+                ) : null}
               </span>
+              <span className="sr-only sm:hidden">
+                Etapa {number}: {label}. {statusLabels[status]}
+              </span>
+            </>
+          );
+
+          return (
+            <li
+              key={number}
+              aria-current={status === "current" ? "step" : undefined}
+              className="relative flex flex-1 lg:flex-none lg:pb-8 lg:last:pb-0"
+            >
               {isLast ? null : (
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "mx-1 h-0.5 min-w-4 flex-1 rounded-full sm:mx-2",
-                    isDone ? "bg-success" : "bg-border",
+                    "absolute top-5 left-12 hidden h-0.5 w-[calc(100%-3.5rem)] sm:block lg:top-11 lg:left-5 lg:h-[calc(100%-3rem)] lg:w-0.5",
+                    status === "done" ? "bg-success" : "bg-border",
                   )}
                 />
+              )}
+              {isNavigable ? (
+                <Link
+                  href={href}
+                  className="relative flex items-start gap-3 rounded-(--r-md) text-text no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <span className="relative flex items-start gap-3">
+                  {content}
+                </span>
               )}
             </li>
           );

@@ -32,7 +32,7 @@ type PlanData = NonNullable<OnboardingData["plan"]>;
 type PlanStepProps = {
   plan: PlanData;
   onBack: () => void;
-  onFinish: () => void;
+  onFinish: (firstPauta?: string) => void;
 };
 
 export function PlanStep({ plan, onBack, onFinish }: PlanStepProps) {
@@ -100,7 +100,7 @@ export function PlanStep({ plan, onBack, onFinish }: PlanStepProps) {
 
   const handleFinish = async () => {
     if (isPlanApproved || (await approvePlan())) {
-      onFinish();
+      onFinish(items[0]?.title);
     }
   };
 

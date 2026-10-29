@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { getInitials } from "@/lib/get-initials";
 import { getOnboardingData } from "@/lib/onboarding/get-onboarding-data";
 import { getOnboardingStepRoute, routes } from "@/lib/routes";
 import { getCurrentUserProfile } from "@/lib/supabase/get-current-user-profile";
 
+import { OnboardingSkeleton } from "./components/onboarding-skeleton";
 import { OnboardingWorkspace } from "./components/onboarding-workspace";
 import { parseOnboardingStep } from "./utils/parse-onboarding-step";
 
@@ -18,9 +20,7 @@ type OnboardingPageProps = {
   searchParams: Promise<{ etapa?: string }>;
 };
 
-export default async function OnboardingPage({
-  searchParams,
-}: OnboardingPageProps) {
+async function OnboardingContent({ searchParams }: OnboardingPageProps) {
   const [{ etapa }, { fullName, email }, data] = await Promise.all([
     searchParams,
     getCurrentUserProfile(),
@@ -33,7 +33,6 @@ export default async function OnboardingPage({
 
   const unlockedStep = parseOnboardingStep(data.currentStep);
   const requestedStep = etapa ? parseOnboardingStep(etapa) : unlockedStep;
-
   const isPlanMissing = requestedStep === 4 && !data.plan;
 
   if (requestedStep > unlockedStep || isPlanMissing) {
@@ -47,8 +46,17 @@ export default async function OnboardingPage({
   return (
     <OnboardingWorkspace
       step={requestedStep}
+      reachedStep={unlockedStep}
       userInitials={getInitials(fullName || email, "U")}
       data={data}
     />
+  );
+}
+
+export default function OnboardingPage({ searchParams }: OnboardingPageProps) {
+  return (
+    <Suspense fallback={<OnboardingSkeleton />}>
+      <OnboardingContent searchParams={searchParams} />
+    </Suspense>
   );
 }

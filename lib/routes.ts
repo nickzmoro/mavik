@@ -18,11 +18,6 @@ export const routes = {
   brand: "/app/marca",
   onboarding: "/app/etapas",
   plans: "/app/planos",
-  legacyOnboarding: "/onboarding",
-  onboardingCompany: "/onboarding/empresa",
-  onboardingBrand: "/onboarding/marca",
-  onboardingVoice: "/onboarding/voz",
-  onboardingPlan: "/onboarding/plano",
 } as const;
 
 export const getAgentConversationRoute = (conversationId: string) =>
@@ -39,8 +34,4 @@ export function getStudioUrlForPauta(pauta: string) {
 
 export const authRoutes = [routes.login, routes.signUp, routes.recoverPassword];
 
-export const protectedRoutes = [
-  routes.appRoot,
-  routes.legacyOnboarding,
-  routes.resetPassword,
-];
+export const protectedRoutes = [routes.appRoot, routes.resetPassword];
