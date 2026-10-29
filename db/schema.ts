@@ -23,7 +23,11 @@ import {
 } from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 
-export const storeRoleEnum = pgEnum("store_role", ["owner", "designer", "member"]);
+export const storeRoleEnum = pgEnum("store_role", [
+  "owner",
+  "designer",
+  "member",
+]);
 export const marketingLevelEnum = pgEnum("marketing_level", [
   "simples",
   "intermediario",
@@ -70,8 +74,16 @@ export const colorRoleEnum = pgEnum("color_role", [
   "texto",
   "extra",
 ]);
-export const fontRoleEnum = pgEnum("font_role", ["titulo", "paragrafo", "destaque"]);
-export const fontSourceEnum = pgEnum("font_source", ["google", "upload"]);
+export const fontRoleEnum = pgEnum("font_role", [
+  "titulo",
+  "paragrafo",
+  "destaque",
+]);
+export const fontSourceEnum = pgEnum("font_source", [
+  "google",
+  "upload",
+  "nome",
+]);
 export const imageStyleEnum = pgEnum("image_style", [
   "fotografico",
   "ilustrado",
@@ -95,8 +107,16 @@ export const restrictionKindEnum = pgEnum("restriction_kind", [
   "estilo",
   "termo",
 ]);
-export const messageRoleEnum = pgEnum("message_role", ["user", "assistant", "system"]);
-export const memoryKindEnum = pgEnum("memory_kind", ["preferencia", "decisao", "fato"]);
+export const messageRoleEnum = pgEnum("message_role", [
+  "user",
+  "assistant",
+  "system",
+]);
+export const memoryKindEnum = pgEnum("memory_kind", [
+  "preferencia",
+  "decisao",
+  "fato",
+]);
 export const contentFormatEnum = pgEnum("content_format", [
   "post",
   "story",
@@ -141,7 +161,11 @@ export const jobStatusEnum = pgEnum("job_status", [
   "concluido",
   "erro",
 ]);
-export const planStatusEnum = pgEnum("plan_status", ["sugerido", "aprovado", "arquivado"]);
+export const planStatusEnum = pgEnum("plan_status", [
+  "sugerido",
+  "aprovado",
+  "arquivado",
+]);
 export const contentStatusEnum = pgEnum("content_status", [
   "ideia",
   "em_producao",
@@ -282,8 +306,14 @@ export const profiles = pgTable(
     createdAt: createdAt(),
   },
   (table) => [
-    check("profiles_theme_check", sql`${table.theme} in ('light', 'dark', 'system')`),
-    check("profiles_full_name_length_check", sql`char_length(${table.fullName}) <= 120`),
+    check(
+      "profiles_theme_check",
+      sql`${table.theme} in ('light', 'dark', 'system')`,
+    ),
+    check(
+      "profiles_full_name_length_check",
+      sql`char_length(${table.fullName}) <= 120`,
+    ),
     check(
       "profiles_avatar_url_check",
       sql`${table.avatarUrl} is null or ${table.avatarUrl} ~ '^https://'`,
@@ -330,7 +360,10 @@ export const stores = pgTable(
   (table) => [
     index("stores_created_by_idx").on(table.createdBy),
     check("stores_slug_check", sql`${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`),
-    check("stores_onboarding_step_check", sql`${table.onboardingStep} between 1 and 4`),
+    check(
+      "stores_onboarding_step_check",
+      sql`${table.onboardingStep} between 1 and 4`,
+    ),
     check(
       "stores_focus_weekdays_check",
       sql`${table.focusWeekdays} <@ '{0,1,2,3,4,5,6}'::smallint[]`,
@@ -429,9 +462,18 @@ export const diagnostics = pgTable(
     consistencyScore: smallint("consistency_score").notNull(),
     contentScore: smallint("content_score").notNull(),
     offerScore: smallint("offer_score").notNull(),
-    strengths: text("strengths").array().notNull().default(sql`'{}'`),
-    attentionPoints: text("attention_points").array().notNull().default(sql`'{}'`),
-    opportunities: text("opportunities").array().notNull().default(sql`'{}'`),
+    strengths: text("strengths")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    attentionPoints: text("attention_points")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    opportunities: text("opportunities")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
     sources: jsonb("sources").notNull().default({}),
     isBaseline: boolean("is_baseline").notNull().default(false),
     createdAt: createdAt(),
@@ -439,7 +481,10 @@ export const diagnostics = pgTable(
   (table) => [
     index("diagnostics_store_id_idx").on(table.storeId),
     check("diagnostics_score_check", isScore(table.score)),
-    check("diagnostics_consistency_score_check", isScore(table.consistencyScore)),
+    check(
+      "diagnostics_consistency_score_check",
+      isScore(table.consistencyScore),
+    ),
     check("diagnostics_content_score_check", isScore(table.contentScore)),
     check("diagnostics_offer_score_check", isScore(table.offerScore)),
     storeMembersReadPolicy(table.storeId),
@@ -480,7 +525,10 @@ export const subscriptions = pgTable(
   },
   (table) => [
     index("subscriptions_plan_id_idx").on(table.planId),
-    check("subscriptions_trial_art_limit_check", sql`${table.trialArtLimit} >= 0`),
+    check(
+      "subscriptions_trial_art_limit_check",
+      sql`${table.trialArtLimit} >= 0`,
+    ),
     readPolicy("membros veem a assinatura", isStoreMember(table.storeId)),
   ],
 );
@@ -523,7 +571,10 @@ export const brandKits = pgTable(
     createdAt: createdAt(),
   },
   (table) => [
-    unique("brand_kits_store_id_version_unique").on(table.storeId, table.version),
+    unique("brand_kits_store_id_version_unique").on(
+      table.storeId,
+      table.version,
+    ),
     index("brand_kits_store_id_idx").on(table.storeId),
     index("brand_kits_created_by_idx").on(table.createdBy),
     uniqueIndex("brand_kits_one_current")
@@ -589,11 +640,17 @@ export const brandFonts = pgTable(
     assetId: uuid("asset_id").references(() => brandAssets.id, {
       onDelete: "set null",
     }),
-    weights: integer("weights").array().notNull().default(sql`'{400}'`),
+    weights: integer("weights")
+      .array()
+      .notNull()
+      .default(sql`'{400}'`),
     licenseConfirmed: boolean("license_confirmed").notNull().default(false),
   },
   (table) => [
-    unique("brand_fonts_brand_kit_id_role_unique").on(table.brandKitId, table.role),
+    unique("brand_fonts_brand_kit_id_role_unique").on(
+      table.brandKitId,
+      table.role,
+    ),
     index("brand_fonts_brand_kit_id_idx").on(table.brandKitId),
     index("brand_fonts_asset_id_idx").on(table.assetId),
     check(
@@ -642,7 +699,10 @@ export const brandVoice = pgTable(
     check("brand_voice_formal_casual_check", isScore(table.formalCasual)),
     check("brand_voice_serious_fun_check", isScore(table.seriousFun)),
     check("brand_voice_technical_simple_check", isScore(table.technicalSimple)),
-    check("brand_voice_educational_sales_check", isScore(table.educationalSales)),
+    check(
+      "brand_voice_educational_sales_check",
+      isScore(table.educationalSales),
+    ),
     brandKitMembersPolicy(table.brandKitId),
   ],
 );
@@ -673,7 +733,10 @@ export const personas = pgTable(
   },
   (table) => [
     index("personas_brand_kit_id_idx").on(table.brandKitId),
-    check("personas_age_check", sql`${table.age} is null or ${table.age} between 0 and 120`),
+    check(
+      "personas_age_check",
+      sql`${table.age} is null or ${table.age} between 0 and 120`,
+    ),
     brandKitMembersPolicy(table.brandKitId),
   ],
 );
@@ -788,7 +851,9 @@ export const calendarDates = pgTable(
   "calendar_dates",
   {
     id: id(),
-    storeId: uuid("store_id").references(() => stores.id, { onDelete: "cascade" }),
+    storeId: uuid("store_id").references(() => stores.id, {
+      onDelete: "cascade",
+    }),
     name: text("name").notNull(),
     date: date("date").notNull(),
     kind: dateKindEnum("kind").notNull(),
@@ -813,15 +878,21 @@ export const ideas = pgTable(
   {
     id: id(),
     storeId: storeId(),
-    parentIdeaId: uuid("parent_idea_id").references((): AnyPgColumn => ideas.id, {
-      onDelete: "set null",
-    }),
+    parentIdeaId: uuid("parent_idea_id").references(
+      (): AnyPgColumn => ideas.id,
+      {
+        onDelete: "set null",
+      },
+    ),
     requestId: uuid("request_id").references(() => ideaRequests.id, {
       onDelete: "set null",
     }),
-    calendarDateId: uuid("calendar_date_id").references(() => calendarDates.id, {
-      onDelete: "set null",
-    }),
+    calendarDateId: uuid("calendar_date_id").references(
+      () => calendarDates.id,
+      {
+        onDelete: "set null",
+      },
+    ),
     personaId: uuid("persona_id").references(() => personas.id, {
       onDelete: "set null",
     }),
@@ -847,7 +918,11 @@ export const ideas = pgTable(
     index("ideas_request_id_idx").on(table.requestId),
     index("ideas_calendar_date_id_idx").on(table.calendarDateId),
     index("ideas_persona_id_idx").on(table.personaId),
-    index("ideas_store_id_goal_format_idx").on(table.storeId, table.goal, table.format),
+    index("ideas_store_id_goal_format_idx").on(
+      table.storeId,
+      table.goal,
+      table.format,
+    ),
     storeMembersPolicy(table.storeId),
   ],
 );
@@ -886,8 +961,14 @@ export const ideaRequests = pgTable(
     requestedBy: profileId("requested_by"),
     theme: text("theme"),
     goal: contentGoalEnum("goal"),
-    formats: contentFormatEnum("formats").array().notNull().default(sql`'{}'`),
-    contentTypes: contentTypeEnum("content_types").array().notNull().default(sql`'{}'`),
+    formats: contentFormatEnum("formats")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+    contentTypes: contentTypeEnum("content_types")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
     quantity: smallint("quantity").notNull().default(6),
     status: jobStatusEnum("status").notNull().default("pendente"),
     createdAt: createdAt(),
@@ -895,7 +976,10 @@ export const ideaRequests = pgTable(
   (table) => [
     index("idea_requests_store_id_idx").on(table.storeId),
     index("idea_requests_requested_by_idx").on(table.requestedBy),
-    check("idea_requests_quantity_check", sql`${table.quantity} between 1 and 50`),
+    check(
+      "idea_requests_quantity_check",
+      sql`${table.quantity} between 1 and 50`,
+    ),
     readPolicy("membros leem", isStoreMember(table.storeId)),
     pgPolicy("membros pedem ideias", {
       for: "insert",
@@ -913,7 +997,10 @@ export const contentPlans = pgTable(
     month: date("month").notNull(),
     weeklyFrequency: text("weekly_frequency").notNull(),
     focusWeekdays: smallint("focus_weekdays").array().notNull(),
-    includeDateIds: uuid("include_date_ids").array().notNull().default(sql`'{}'`),
+    includeDateIds: uuid("include_date_ids")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
     useSavedIdeas: boolean("use_saved_ideas").notNull().default(true),
     rationale: jsonb("rationale").notNull().default({}),
     status: planStatusEnum("status").notNull().default("sugerido"),
@@ -922,7 +1009,10 @@ export const contentPlans = pgTable(
     createdAt: createdAt(),
   },
   (table) => [
-    unique("content_plans_store_id_month_unique").on(table.storeId, table.month),
+    unique("content_plans_store_id_month_unique").on(
+      table.storeId,
+      table.month,
+    ),
     index("content_plans_store_id_idx").on(table.storeId),
     index("content_plans_approved_by_idx").on(table.approvedBy),
     check(
@@ -946,10 +1036,16 @@ export const campaigns = pgTable(
     startDate: date("start_date").notNull(),
     endDate: date("end_date").notNull(),
     goal: contentGoalEnum("goal").notNull(),
-    calendarDateId: uuid("calendar_date_id").references(() => calendarDates.id, {
-      onDelete: "set null",
-    }),
-    formats: contentFormatEnum("formats").array().notNull().default(sql`'{}'`),
+    calendarDateId: uuid("calendar_date_id").references(
+      () => calendarDates.id,
+      {
+        onDelete: "set null",
+      },
+    ),
+    formats: contentFormatEnum("formats")
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
     autoDistribute: boolean("auto_distribute").notNull().default(true),
     status: campaignStatusEnum("status").notNull().default("ativa"),
     createdAt: createdAt(),
@@ -973,7 +1069,9 @@ export const contents = pgTable(
     campaignId: uuid("campaign_id").references(() => campaigns.id, {
       onDelete: "set null",
     }),
-    ideaId: uuid("idea_id").references(() => ideas.id, { onDelete: "set null" }),
+    ideaId: uuid("idea_id").references(() => ideas.id, {
+      onDelete: "set null",
+    }),
     title: text("title").notNull(),
     format: contentFormatEnum("format").notNull(),
     goal: contentGoalEnum("goal").notNull(),
@@ -986,9 +1084,12 @@ export const contents = pgTable(
       (): AnyPgColumn => artworks.id,
       { onDelete: "set null" },
     ),
-    socialAccountId: uuid("social_account_id").references(() => socialAccounts.id, {
-      onDelete: "set null",
-    }),
+    socialAccountId: uuid("social_account_id").references(
+      () => socialAccounts.id,
+      {
+        onDelete: "set null",
+      },
+    ),
     externalPostId: text("external_post_id"),
     permalink: text("permalink"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
@@ -1010,7 +1111,10 @@ export const contents = pgTable(
     index("contents_current_artwork_id_idx").on(table.currentArtworkId),
     index("contents_social_account_id_idx").on(table.socialAccountId),
     index("contents_created_by_idx").on(table.createdBy),
-    index("contents_store_id_scheduled_at_idx").on(table.storeId, table.scheduledAt),
+    index("contents_store_id_scheduled_at_idx").on(
+      table.storeId,
+      table.scheduledAt,
+    ),
     index("contents_store_id_status_idx").on(table.storeId, table.status),
     storeMembersPolicy(table.storeId),
   ],
@@ -1142,7 +1246,10 @@ export const socialAccounts = pgTable(
     createdAt: createdAt(),
   },
   (table) => [
-    unique("social_accounts_store_id_provider_unique").on(table.storeId, table.provider),
+    unique("social_accounts_store_id_provider_unique").on(
+      table.storeId,
+      table.provider,
+    ),
     index("social_accounts_store_id_idx").on(table.storeId),
     storeMembersReadPolicy(table.storeId),
   ],
@@ -1164,7 +1271,10 @@ export const metricSnapshots = pgTable(
   (table) => [
     primaryKey({ columns: [table.socialAccountId, table.day] }),
     index("metric_snapshots_store_id_idx").on(table.storeId),
-    index("metric_snapshots_store_id_day_idx").on(table.storeId, table.day.desc()),
+    index("metric_snapshots_store_id_day_idx").on(
+      table.storeId,
+      table.day.desc(),
+    ),
     storeMembersReadPolicy(table.storeId),
   ],
 );
@@ -1190,7 +1300,10 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
 }));
 
 export const storesRelations = relations(stores, ({ one, many }) => ({
-  creator: one(profiles, { fields: [stores.createdBy], references: [profiles.id] }),
+  creator: one(profiles, {
+    fields: [stores.createdBy],
+    references: [profiles.id],
+  }),
   members: many(storeMembers),
   products: many(storeProducts),
   positioning: one(storePositioning),
@@ -1214,24 +1327,45 @@ export const storesRelations = relations(stores, ({ one, many }) => ({
 }));
 
 export const storeMembersRelations = relations(storeMembers, ({ one }) => ({
-  store: one(stores, { fields: [storeMembers.storeId], references: [stores.id] }),
-  user: one(profiles, { fields: [storeMembers.userId], references: [profiles.id] }),
+  store: one(stores, {
+    fields: [storeMembers.storeId],
+    references: [stores.id],
+  }),
+  user: one(profiles, {
+    fields: [storeMembers.userId],
+    references: [profiles.id],
+  }),
 }));
 
 export const storeProductsRelations = relations(storeProducts, ({ one }) => ({
-  store: one(stores, { fields: [storeProducts.storeId], references: [stores.id] }),
+  store: one(stores, {
+    fields: [storeProducts.storeId],
+    references: [stores.id],
+  }),
 }));
 
-export const storePositioningRelations = relations(storePositioning, ({ one }) => ({
-  store: one(stores, { fields: [storePositioning.storeId], references: [stores.id] }),
-}));
+export const storePositioningRelations = relations(
+  storePositioning,
+  ({ one }) => ({
+    store: one(stores, {
+      fields: [storePositioning.storeId],
+      references: [stores.id],
+    }),
+  }),
+);
 
 export const competitorsRelations = relations(competitors, ({ one }) => ({
-  store: one(stores, { fields: [competitors.storeId], references: [stores.id] }),
+  store: one(stores, {
+    fields: [competitors.storeId],
+    references: [stores.id],
+  }),
 }));
 
 export const diagnosticsRelations = relations(diagnostics, ({ one }) => ({
-  store: one(stores, { fields: [diagnostics.storeId], references: [stores.id] }),
+  store: one(stores, {
+    fields: [diagnostics.storeId],
+    references: [stores.id],
+  }),
 }));
 
 export const plansRelations = relations(plans, ({ many }) => ({
@@ -1239,18 +1373,30 @@ export const plansRelations = relations(plans, ({ many }) => ({
 }));
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
-  store: one(stores, { fields: [subscriptions.storeId], references: [stores.id] }),
+  store: one(stores, {
+    fields: [subscriptions.storeId],
+    references: [stores.id],
+  }),
   plan: one(plans, { fields: [subscriptions.planId], references: [plans.id] }),
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
-  user: one(profiles, { fields: [notifications.userId], references: [profiles.id] }),
-  store: one(stores, { fields: [notifications.storeId], references: [stores.id] }),
+  user: one(profiles, {
+    fields: [notifications.userId],
+    references: [profiles.id],
+  }),
+  store: one(stores, {
+    fields: [notifications.storeId],
+    references: [stores.id],
+  }),
 }));
 
 export const brandKitsRelations = relations(brandKits, ({ one, many }) => ({
   store: one(stores, { fields: [brandKits.storeId], references: [stores.id] }),
-  creator: one(profiles, { fields: [brandKits.createdBy], references: [profiles.id] }),
+  creator: one(profiles, {
+    fields: [brandKits.createdBy],
+    references: [profiles.id],
+  }),
   assets: many(brandAssets),
   colors: many(brandColors),
   fonts: many(brandFonts),
@@ -1290,17 +1436,20 @@ export const brandFontsRelations = relations(brandFonts, ({ one }) => ({
   }),
 }));
 
-export const brandLayoutsRelations = relations(brandLayouts, ({ one, many }) => ({
-  brandKit: one(brandKits, {
-    fields: [brandLayouts.brandKitId],
-    references: [brandKits.id],
+export const brandLayoutsRelations = relations(
+  brandLayouts,
+  ({ one, many }) => ({
+    brandKit: one(brandKits, {
+      fields: [brandLayouts.brandKitId],
+      references: [brandKits.id],
+    }),
+    sourceAsset: one(brandAssets, {
+      fields: [brandLayouts.sourceAssetId],
+      references: [brandAssets.id],
+    }),
+    artworks: many(artworks),
   }),
-  sourceAsset: one(brandAssets, {
-    fields: [brandLayouts.sourceAssetId],
-    references: [brandAssets.id],
-  }),
-  artworks: many(artworks),
-}));
+);
 
 export const brandVoiceRelations = relations(brandVoice, ({ one }) => ({
   brandKit: one(brandKits, {
@@ -1331,19 +1480,31 @@ export const brandRulesRelations = relations(brandRules, ({ one }) => ({
   }),
 }));
 
-export const brandRestrictionsRelations = relations(brandRestrictions, ({ one }) => ({
-  brandKit: one(brandKits, {
-    fields: [brandRestrictions.brandKitId],
-    references: [brandKits.id],
+export const brandRestrictionsRelations = relations(
+  brandRestrictions,
+  ({ one }) => ({
+    brandKit: one(brandKits, {
+      fields: [brandRestrictions.brandKitId],
+      references: [brandKits.id],
+    }),
   }),
-}));
+);
 
-export const conversationsRelations = relations(conversations, ({ one, many }) => ({
-  store: one(stores, { fields: [conversations.storeId], references: [stores.id] }),
-  user: one(profiles, { fields: [conversations.userId], references: [profiles.id] }),
-  messages: many(messages),
-  agentMemories: many(agentMemories),
-}));
+export const conversationsRelations = relations(
+  conversations,
+  ({ one, many }) => ({
+    store: one(stores, {
+      fields: [conversations.storeId],
+      references: [stores.id],
+    }),
+    user: one(profiles, {
+      fields: [conversations.userId],
+      references: [profiles.id],
+    }),
+    messages: many(messages),
+    agentMemories: many(agentMemories),
+  }),
+);
 
 export const messagesRelations = relations(messages, ({ one }) => ({
   conversation: one(conversations, {
@@ -1353,18 +1514,27 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 }));
 
 export const agentMemoriesRelations = relations(agentMemories, ({ one }) => ({
-  store: one(stores, { fields: [agentMemories.storeId], references: [stores.id] }),
+  store: one(stores, {
+    fields: [agentMemories.storeId],
+    references: [stores.id],
+  }),
   conversation: one(conversations, {
     fields: [agentMemories.conversationId],
     references: [conversations.id],
   }),
 }));
 
-export const calendarDatesRelations = relations(calendarDates, ({ one, many }) => ({
-  store: one(stores, { fields: [calendarDates.storeId], references: [stores.id] }),
-  ideas: many(ideas),
-  campaigns: many(campaigns),
-}));
+export const calendarDatesRelations = relations(
+  calendarDates,
+  ({ one, many }) => ({
+    store: one(stores, {
+      fields: [calendarDates.storeId],
+      references: [stores.id],
+    }),
+    ideas: many(ideas),
+    campaigns: many(campaigns),
+  }),
+);
 
 export const ideasRelations = relations(ideas, ({ one, many }) => ({
   store: one(stores, { fields: [ideas.storeId], references: [stores.id] }),
@@ -1382,33 +1552,51 @@ export const ideasRelations = relations(ideas, ({ one, many }) => ({
     fields: [ideas.calendarDateId],
     references: [calendarDates.id],
   }),
-  persona: one(personas, { fields: [ideas.personaId], references: [personas.id] }),
+  persona: one(personas, {
+    fields: [ideas.personaId],
+    references: [personas.id],
+  }),
   saves: many(ideaSaves),
   contents: many(contents),
 }));
 
 export const ideaSavesRelations = relations(ideaSaves, ({ one }) => ({
   idea: one(ideas, { fields: [ideaSaves.ideaId], references: [ideas.id] }),
-  user: one(profiles, { fields: [ideaSaves.userId], references: [profiles.id] }),
-}));
-
-export const ideaRequestsRelations = relations(ideaRequests, ({ one, many }) => ({
-  store: one(stores, { fields: [ideaRequests.storeId], references: [stores.id] }),
-  requester: one(profiles, {
-    fields: [ideaRequests.requestedBy],
+  user: one(profiles, {
+    fields: [ideaSaves.userId],
     references: [profiles.id],
   }),
-  ideas: many(ideas),
 }));
 
-export const contentPlansRelations = relations(contentPlans, ({ one, many }) => ({
-  store: one(stores, { fields: [contentPlans.storeId], references: [stores.id] }),
-  approver: one(profiles, {
-    fields: [contentPlans.approvedBy],
-    references: [profiles.id],
+export const ideaRequestsRelations = relations(
+  ideaRequests,
+  ({ one, many }) => ({
+    store: one(stores, {
+      fields: [ideaRequests.storeId],
+      references: [stores.id],
+    }),
+    requester: one(profiles, {
+      fields: [ideaRequests.requestedBy],
+      references: [profiles.id],
+    }),
+    ideas: many(ideas),
   }),
-  contents: many(contents),
-}));
+);
+
+export const contentPlansRelations = relations(
+  contentPlans,
+  ({ one, many }) => ({
+    store: one(stores, {
+      fields: [contentPlans.storeId],
+      references: [stores.id],
+    }),
+    approver: one(profiles, {
+      fields: [contentPlans.approvedBy],
+      references: [profiles.id],
+    }),
+    contents: many(contents),
+  }),
+);
 
 export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
   store: one(stores, { fields: [campaigns.storeId], references: [stores.id] }),
@@ -1421,8 +1609,14 @@ export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
 
 export const contentsRelations = relations(contents, ({ one, many }) => ({
   store: one(stores, { fields: [contents.storeId], references: [stores.id] }),
-  plan: one(contentPlans, { fields: [contents.planId], references: [contentPlans.id] }),
-  campaign: one(campaigns, { fields: [contents.campaignId], references: [campaigns.id] }),
+  plan: one(contentPlans, {
+    fields: [contents.planId],
+    references: [contentPlans.id],
+  }),
+  campaign: one(campaigns, {
+    fields: [contents.campaignId],
+    references: [campaigns.id],
+  }),
   idea: one(ideas, { fields: [contents.ideaId], references: [ideas.id] }),
   currentArtwork: one(artworks, {
     fields: [contents.currentArtworkId],
@@ -1433,7 +1627,10 @@ export const contentsRelations = relations(contents, ({ one, many }) => ({
     fields: [contents.socialAccountId],
     references: [socialAccounts.id],
   }),
-  creator: one(profiles, { fields: [contents.createdBy], references: [profiles.id] }),
+  creator: one(profiles, {
+    fields: [contents.createdBy],
+    references: [profiles.id],
+  }),
   artworks: many(artworks, { relationName: "contentArtworks" }),
   statusHistory: many(contentStatusHistory),
 }));
@@ -1459,7 +1656,10 @@ export const artworksRelations = relations(artworks, ({ one, many }) => ({
     references: [contents.id],
     relationName: "contentArtworks",
   }),
-  brandKit: one(brandKits, { fields: [artworks.brandKitId], references: [brandKits.id] }),
+  brandKit: one(brandKits, {
+    fields: [artworks.brandKitId],
+    references: [brandKits.id],
+  }),
   layout: one(brandLayouts, {
     fields: [artworks.layoutId],
     references: [brandLayouts.id],
@@ -1479,29 +1679,47 @@ export const artworksRelations = relations(artworks, ({ one, many }) => ({
   usage: many(artUsage),
 }));
 
-export const artworkVersionsRelations = relations(artworkVersions, ({ one }) => ({
-  artwork: one(artworks, {
-    fields: [artworkVersions.artworkId],
-    references: [artworks.id],
+export const artworkVersionsRelations = relations(
+  artworkVersions,
+  ({ one }) => ({
+    artwork: one(artworks, {
+      fields: [artworkVersions.artworkId],
+      references: [artworks.id],
+    }),
   }),
-}));
+);
 
 export const artUsageRelations = relations(artUsage, ({ one }) => ({
   store: one(stores, { fields: [artUsage.storeId], references: [stores.id] }),
-  artwork: one(artworks, { fields: [artUsage.artworkId], references: [artworks.id] }),
+  artwork: one(artworks, {
+    fields: [artUsage.artworkId],
+    references: [artworks.id],
+  }),
   user: one(profiles, { fields: [artUsage.userId], references: [profiles.id] }),
 }));
 
-export const socialAccountsRelations = relations(socialAccounts, ({ one, many }) => ({
-  store: one(stores, { fields: [socialAccounts.storeId], references: [stores.id] }),
-  contents: many(contents),
-  metricSnapshots: many(metricSnapshots),
-}));
-
-export const metricSnapshotsRelations = relations(metricSnapshots, ({ one }) => ({
-  socialAccount: one(socialAccounts, {
-    fields: [metricSnapshots.socialAccountId],
-    references: [socialAccounts.id],
+export const socialAccountsRelations = relations(
+  socialAccounts,
+  ({ one, many }) => ({
+    store: one(stores, {
+      fields: [socialAccounts.storeId],
+      references: [stores.id],
+    }),
+    contents: many(contents),
+    metricSnapshots: many(metricSnapshots),
   }),
-  store: one(stores, { fields: [metricSnapshots.storeId], references: [stores.id] }),
-}));
+);
+
+export const metricSnapshotsRelations = relations(
+  metricSnapshots,
+  ({ one }) => ({
+    socialAccount: one(socialAccounts, {
+      fields: [metricSnapshots.socialAccountId],
+      references: [socialAccounts.id],
+    }),
+    store: one(stores, {
+      fields: [metricSnapshots.storeId],
+      references: [stores.id],
+    }),
+  }),
+);
