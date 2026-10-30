@@ -1,7 +1,7 @@
 import OpenAI, { APIError, toFile } from "openai";
 import { NextResponse } from "next/server";
 
-import { LUNA_MODEL } from "@/lib/ai/models";
+import { IMAGE_PROMPT_MODEL } from "@/lib/ai/models";
 import { applyLogo, hideLogoArea } from "@/lib/brand/apply-logo";
 import {
   defaultLogoPlacement,
@@ -202,7 +202,8 @@ async function writeImagePrompt(
     : `${PROMPT_WRITER_INSTRUCTIONS}\n${describeFormat(format, null)}`;
 
   const completion = await openai.chat.completions.create({
-    model: LUNA_MODEL,
+    model: IMAGE_PROMPT_MODEL,
+    temperature: 0.4,
     ...(brandContext ? { response_format: writtenPromptFormat } : {}),
     messages: [
       {
