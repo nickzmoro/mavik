@@ -12,22 +12,34 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-type StudioPageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-export default async function StudioPage({ searchParams }: StudioPageProps) {
+async function StudioWorkspaceLoader({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const artworkId = (await searchParams)[STUDIO_ARTWORK_PARAM];
   const initialArtwork =
     typeof artworkId === "string" ? await getStudioArtwork(artworkId) : null;
 
   return (
+    <StudioWorkspace
+      key={initialArtwork?.artworkId}
+      initialArtwork={initialArtwork}
+    />
+  );
+}
+
+export default function StudioPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  return (
     <div className={`${brandDisplayFont.variable} flex flex-col gap-5`}>
       <Suspense fallback={null}>
-        <StudioWorkspace
-          key={initialArtwork?.artworkId}
-          initialArtwork={initialArtwork}
-        />
+        <StudioWorkspaceLoader searchParams={searchParams} />
       </Suspense>
     </div>
   );

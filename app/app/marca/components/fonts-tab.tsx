@@ -73,13 +73,7 @@ function FontCard({ font, onReplace, onRemove }: FontCardProps) {
   );
 }
 
-function EmptyFontSlot({
-  role,
-  onAdd,
-}: {
-  role: FontRole;
-  onAdd: () => void;
-}) {
+function EmptyFontSlot({ role, onAdd }: { role: FontRole; onAdd: () => void }) {
   return (
     <div className="brand-tile flex min-w-0 flex-col items-start justify-center gap-2.5 rounded-[18px] border-dashed border-muted p-5">
       <div className="flex w-full items-start justify-between gap-4">
@@ -118,7 +112,10 @@ export function FontsTab({ fonts, onUploadFont, onRemoveFont }: FontsTabProps) {
         title="Fontes"
         hint=".ttf, .otf, .woff2 ou Google Fonts. Você confirma a licença de uso no envio."
         action={
-          <Button variant="outline" onClick={() => onUploadFont(nextMissingRole)}>
+          <Button
+            variant="outline"
+            onClick={() => onUploadFont(nextMissingRole)}
+          >
             <Upload aria-hidden="true" className="size-4.5" />
             Enviar fonte
           </Button>

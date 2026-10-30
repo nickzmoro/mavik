@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar } from "lucide-react";
+import { Calendar, Send } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { studioScheduleTimes, type ArtFormat } from "@/lib/mocks/studio";
 import {
   scheduleArtFormSchema,
+  scheduleStoryFormSchema,
   type ScheduleArtFormValues,
 } from "@/lib/validations/studio";
 
@@ -43,7 +44,9 @@ type ScheduleArtFormProps = {
   format: ArtFormat;
   caption: string;
   isScheduling: boolean;
+  isPublishing: boolean;
   onScheduled: (values: ScheduleArtFormValues) => void;
+  onPublishNow: (caption: string) => void;
 };
 
 function ScheduleArtForm({
@@ -53,19 +56,24 @@ function ScheduleArtForm({
   format,
   caption,
   isScheduling,
+  isPublishing,
   onScheduled,
+  onPublishNow,
 }: ScheduleArtFormProps) {
   const [scheduleDays] = useState(() => getScheduleDayOptions());
   const scheduleFields = [
     { name: "day", label: "Dia", options: scheduleDays },
     { name: "time", label: "Horário", options: studioScheduleTimes },
   ] as const;
+  const isStory = format.id === "story";
   const form = useForm<ScheduleArtFormValues>({
-    resolver: zodResolver(scheduleArtFormSchema),
+    resolver: zodResolver(
+      isStory ? scheduleStoryFormSchema : scheduleArtFormSchema,
+    ),
     defaultValues: {
       day: scheduleDays[0].id,
       time: studioScheduleTimes[2].id,
-      caption,
+      caption: isStory ? "" : caption,
     },
   });
   const [day, time] = useWatch({
@@ -73,6 +81,7 @@ function ScheduleArtForm({
     name: ["day", "time"],
   });
   const variationLabel = `Variação ${variationIndex + 1}`;
+  const isBusy = isScheduling || isPublishing;
   const dayLabel =
     scheduleDays.find((scheduleDay) => scheduleDay.id === day)?.label ?? day;
 
@@ -128,21 +137,27 @@ function ScheduleArtForm({
               )}
             />
           ))}
-          <FormField
-            control={form.control}
-            name="caption"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm leading-[1.4] font-semibold">
-                  Legenda
-                </FormLabel>
-                <FormControl>
-                  <Textarea rows={3} className="min-h-0" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {isStory ? (
+            <p className="m-0 text-[13px] leading-[1.4] text-muted">
+              Stories não têm legenda no Instagram. Só a arte é publicada.
+            </p>
+          ) : (
+            <FormField
+              control={form.control}
+              name="caption"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm leading-[1.4] font-semibold">
+                    Legenda
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea rows={3} className="min-h-0" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </form>
       </Form>
       <DialogFooter>
@@ -150,15 +165,26 @@ function ScheduleArtForm({
           {dayLabel} às {time}
         </span>
         <DialogClose asChild>
-          <Button variant="ghost" disabled={isScheduling}>
+          <Button variant="ghost" disabled={isBusy}>
             Cancelar
           </Button>
         </DialogClose>
         <Button
+          variant="outline"
+          onClick={form.handleSubmit(({ caption }) => onPublishNow(caption))}
+          loading={isPublishing}
+          disabled={!imageUrl || isScheduling}
+        >
+          {isPublishing ? null : (
+            <Send aria-hidden="true" className="size-4.5" />
+          )}
+          {isPublishing ? "Publicando…" : "Publicar agora"}
+        </Button>
+        <Button
           type="submit"
           form={scheduleArtFormId}
           loading={isScheduling}
-          disabled={!imageUrl}
+          disabled={!imageUrl || isPublishing}
         >
           {isScheduling ? null : (
             <Calendar aria-hidden="true" className="size-4.5" />
@@ -186,8 +212,8 @@ export function ScheduleArtDialog({
         <DialogHeader contentClassName="gap-1">
           <DialogTitle>Aprovar e agendar</DialogTitle>
           <DialogDescription>
-            A arte entra na Agenda como aprovada. Você ainda confirma antes de
-            publicar.
+            Agende para um dia da Agenda ou publique agora no Instagram
+            conectado.
           </DialogDescription>
         </DialogHeader>
         <ScheduleArtForm {...formProps} />

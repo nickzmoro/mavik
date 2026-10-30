@@ -1,6 +1,6 @@
 export const CAPTION_LIMIT = 2200;
 export const VISIBLE_WINDOW = 125;
-export const MAX_HASHTAGS = 5;
+export const MAX_HASHTAGS = 3;
 
 export const CAPTION_CLICHES = [
   "descubra",
@@ -56,9 +56,19 @@ const typographicReplacements: [RegExp, string][] = [
 const fold = (text: string) =>
   text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
+const escapeRegExp = (text: string) =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const containsTerm = (foldedText: string, term: string) =>
-  new RegExp(`(?<![\\p{L}\\p{N}])${fold(term)}(?![\\p{L}\\p{N}])`, "u").test(
-    foldedText,
+  new RegExp(
+    `(?<![\\p{L}\\p{N}])${escapeRegExp(fold(term))}(?![\\p{L}\\p{N}])`,
+    "u",
+  ).test(foldedText);
+
+export const findMentionedProducts = (prompt: string, productNames: string[]) =>
+  productNames.filter(
+    (productName) =>
+      productName.trim() && containsTerm(fold(prompt), productName.trim()),
   );
 
 export function humanizeCaption(caption: string) {

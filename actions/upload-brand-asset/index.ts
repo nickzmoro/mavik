@@ -29,7 +29,7 @@ import {
   allowsMultipleAssets,
   fromUploadBrandAssetFormData,
   getFileExtension,
-  isPostExampleKind,
+  isExampleKind,
   uploadBrandAssetSchema,
 } from "./schema";
 
@@ -91,9 +91,7 @@ export async function uploadBrandAsset(
       return authFailure(onboardingErrorMessages.uploadFailed);
     }
 
-    const isPostExample = isPostExampleKind(kind);
-
-    if (isPostExample) {
+    if (isExampleKind(kind)) {
       const [{ total }] = await db
         .select({ total: count() })
         .from(brandAssets)

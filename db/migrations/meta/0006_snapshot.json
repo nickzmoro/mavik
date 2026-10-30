@@ -1,0 +1,5611 @@
+{
+  "id": "9c9ab494-adb3-418e-9963-d3cf6b1dce4b",
+  "prevId": "89177924-7671-43e9-abcd-9ae4ef296450",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.agent_memories": {
+      "name": "agent_memories",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "memory_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "conversation_id": {
+          "name": "conversation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confirmed": {
+          "name": "confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "agent_memories_store_id_idx": {
+          "name": "agent_memories_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "agent_memories_conversation_id_idx": {
+          "name": "agent_memories_conversation_id_idx",
+          "columns": [
+            {
+              "expression": "conversation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "agent_memories_store_id_stores_id_fk": {
+          "name": "agent_memories_store_id_stores_id_fk",
+          "tableFrom": "agent_memories",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "agent_memories_conversation_id_conversations_id_fk": {
+          "name": "agent_memories_conversation_id_conversations_id_fk",
+          "tableFrom": "agent_memories",
+          "tableTo": "conversations",
+          "columnsFrom": [
+            "conversation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"agent_memories\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"agent_memories\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.art_usage": {
+      "name": "art_usage",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "artwork_id": {
+          "name": "artwork_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "art_usage_store_id_idx": {
+          "name": "art_usage_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "art_usage_artwork_id_idx": {
+          "name": "art_usage_artwork_id_idx",
+          "columns": [
+            {
+              "expression": "artwork_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "art_usage_user_id_idx": {
+          "name": "art_usage_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "art_usage_store_id_stores_id_fk": {
+          "name": "art_usage_store_id_stores_id_fk",
+          "tableFrom": "art_usage",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "art_usage_artwork_id_artworks_id_fk": {
+          "name": "art_usage_artwork_id_artworks_id_fk",
+          "tableFrom": "art_usage",
+          "tableTo": "artworks",
+          "columnsFrom": [
+            "artwork_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "art_usage_user_id_profiles_id_fk": {
+          "name": "art_usage_user_id_profiles_id_fk",
+          "tableFrom": "art_usage",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"art_usage\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.artwork_versions": {
+      "name": "artwork_versions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "artwork_id": {
+          "name": "artwork_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "layers": {
+          "name": "layers",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "render_path": {
+          "name": "render_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "caption": {
+          "name": "caption",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "author": {
+          "name": "author",
+          "type": "author_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'agente'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "artwork_versions_artwork_id_idx": {
+          "name": "artwork_versions_artwork_id_idx",
+          "columns": [
+            {
+              "expression": "artwork_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "artwork_versions_artwork_id_artworks_id_fk": {
+          "name": "artwork_versions_artwork_id_artworks_id_fk",
+          "tableFrom": "artwork_versions",
+          "tableTo": "artworks",
+          "columnsFrom": [
+            "artwork_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "artwork_versions_artwork_id_version_unique": {
+          "name": "artwork_versions_artwork_id_version_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "artwork_id",
+            "version"
+          ]
+        }
+      },
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"artworks\" where \"artworks\".\"id\" = \"artwork_versions\".\"artwork_id\" and public.is_store_member(\"artworks\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"artworks\" where \"artworks\".\"id\" = \"artwork_versions\".\"artwork_id\" and public.is_store_member(\"artworks\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {
+        "artwork_versions_version_check": {
+          "name": "artwork_versions_version_check",
+          "value": "\"artwork_versions\".\"version\" >= 1"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.artworks": {
+      "name": "artworks",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_id": {
+          "name": "content_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "layout_id": {
+          "name": "layout_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prompt": {
+          "name": "prompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "format": {
+          "name": "format",
+          "type": "content_format",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "artwork_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'rascunho'"
+        },
+        "approved_by": {
+          "name": "approved_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "artworks_store_id_idx": {
+          "name": "artworks_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "artworks_content_id_idx": {
+          "name": "artworks_content_id_idx",
+          "columns": [
+            {
+              "expression": "content_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "artworks_brand_kit_id_idx": {
+          "name": "artworks_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "artworks_layout_id_idx": {
+          "name": "artworks_layout_id_idx",
+          "columns": [
+            {
+              "expression": "layout_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "artworks_approved_by_idx": {
+          "name": "artworks_approved_by_idx",
+          "columns": [
+            {
+              "expression": "approved_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "artworks_created_by_idx": {
+          "name": "artworks_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "artworks_store_id_stores_id_fk": {
+          "name": "artworks_store_id_stores_id_fk",
+          "tableFrom": "artworks",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "artworks_content_id_contents_id_fk": {
+          "name": "artworks_content_id_contents_id_fk",
+          "tableFrom": "artworks",
+          "tableTo": "contents",
+          "columnsFrom": [
+            "content_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "artworks_brand_kit_id_brand_kits_id_fk": {
+          "name": "artworks_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "artworks",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "artworks_layout_id_brand_layouts_id_fk": {
+          "name": "artworks_layout_id_brand_layouts_id_fk",
+          "tableFrom": "artworks",
+          "tableTo": "brand_layouts",
+          "columnsFrom": [
+            "layout_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "artworks_approved_by_profiles_id_fk": {
+          "name": "artworks_approved_by_profiles_id_fk",
+          "tableFrom": "artworks",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "approved_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "artworks_created_by_profiles_id_fk": {
+          "name": "artworks_created_by_profiles_id_fk",
+          "tableFrom": "artworks",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"artworks\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"artworks\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.brand_art_rules": {
+      "name": "brand_art_rules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rule": {
+          "name": "rule",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "brand_art_rules_brand_kit_id_idx": {
+          "name": "brand_art_rules_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_art_rules_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_art_rules_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_art_rules",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_art_rules\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        },
+        "só o dono altera": {
+          "name": "só o dono altera",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_art_rules\".\"brand_kit_id\" and public.is_store_owner(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_art_rules\".\"brand_kit_id\" and public.is_store_owner(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {
+        "brand_art_rules_rule_check": {
+          "name": "brand_art_rules_rule_check",
+          "value": "char_length(\"brand_art_rules\".\"rule\") between 1 and 500"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.brand_assets": {
+      "name": "brand_assets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "brand_asset_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "storage_path": {
+          "name": "storage_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_generated": {
+          "name": "is_generated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "status": {
+          "name": "status",
+          "type": "asset_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pendente'"
+        },
+        "validation": {
+          "name": "validation",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "brand_assets_brand_kit_id_idx": {
+          "name": "brand_assets_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_assets_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_assets_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_assets",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_assets\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        },
+        "só o dono altera": {
+          "name": "só o dono altera",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_assets\".\"brand_kit_id\" and public.is_store_owner(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_assets\".\"brand_kit_id\" and public.is_store_owner(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {
+        "brand_assets_dimensions_check": {
+          "name": "brand_assets_dimensions_check",
+          "value": "(\"brand_assets\".\"width\" is null or \"brand_assets\".\"width\" > 0) and (\"brand_assets\".\"height\" is null or \"brand_assets\".\"height\" > 0)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.brand_colors": {
+      "name": "brand_colors",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "color_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hex": {
+          "name": "hex",
+          "type": "char(7)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "brand_colors_brand_kit_id_idx": {
+          "name": "brand_colors_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_colors_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_colors_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_colors",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_colors\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        },
+        "só o dono altera": {
+          "name": "só o dono altera",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_colors\".\"brand_kit_id\" and public.is_store_owner(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_colors\".\"brand_kit_id\" and public.is_store_owner(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {
+        "brand_colors_hex_check": {
+          "name": "brand_colors_hex_check",
+          "value": "\"brand_colors\".\"hex\" ~ '^#[0-9A-Fa-f]{6}$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.brand_fonts": {
+      "name": "brand_fonts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "font_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "family": {
+          "name": "family",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "font_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weights": {
+          "name": "weights",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{400}'"
+        },
+        "license_confirmed": {
+          "name": "license_confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "brand_fonts_brand_kit_id_idx": {
+          "name": "brand_fonts_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "brand_fonts_asset_id_idx": {
+          "name": "brand_fonts_asset_id_idx",
+          "columns": [
+            {
+              "expression": "asset_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_fonts_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_fonts_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_fonts",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "brand_fonts_asset_id_brand_assets_id_fk": {
+          "name": "brand_fonts_asset_id_brand_assets_id_fk",
+          "tableFrom": "brand_fonts",
+          "tableTo": "brand_assets",
+          "columnsFrom": [
+            "asset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "brand_fonts_brand_kit_id_role_unique": {
+          "name": "brand_fonts_brand_kit_id_role_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "brand_kit_id",
+            "role"
+          ]
+        }
+      },
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_fonts\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_fonts\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {
+        "brand_fonts_upload_asset_check": {
+          "name": "brand_fonts_upload_asset_check",
+          "value": "\"brand_fonts\".\"source\" <> 'upload' or \"brand_fonts\".\"asset_id\" is not null"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.brand_kits": {
+      "name": "brand_kits",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_current": {
+          "name": "is_current",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "source": {
+          "name": "source",
+          "type": "brand_kit_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'guiado'"
+        },
+        "image_style": {
+          "name": "image_style",
+          "type": "image_style",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completeness": {
+          "name": "completeness",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "brand_kits_store_id_idx": {
+          "name": "brand_kits_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "brand_kits_created_by_idx": {
+          "name": "brand_kits_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "brand_kits_one_current": {
+          "name": "brand_kits_one_current",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"brand_kits\".\"is_current\"",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_kits_store_id_stores_id_fk": {
+          "name": "brand_kits_store_id_stores_id_fk",
+          "tableFrom": "brand_kits",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "brand_kits_created_by_profiles_id_fk": {
+          "name": "brand_kits_created_by_profiles_id_fk",
+          "tableFrom": "brand_kits",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "brand_kits_store_id_version_unique": {
+          "name": "brand_kits_store_id_version_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "store_id",
+            "version"
+          ]
+        }
+      },
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"brand_kits\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"brand_kits\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {
+        "brand_kits_version_check": {
+          "name": "brand_kits_version_check",
+          "value": "\"brand_kits\".\"version\" >= 1"
+        },
+        "brand_kits_completeness_check": {
+          "name": "brand_kits_completeness_check",
+          "value": "\"brand_kits\".\"completeness\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.brand_layouts": {
+      "name": "brand_layouts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "format": {
+          "name": "format",
+          "type": "content_format",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_asset_id": {
+          "name": "source_asset_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "structure": {
+          "name": "structure",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "brand_layouts_brand_kit_id_idx": {
+          "name": "brand_layouts_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "brand_layouts_source_asset_id_idx": {
+          "name": "brand_layouts_source_asset_id_idx",
+          "columns": [
+            {
+              "expression": "source_asset_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_layouts_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_layouts_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_layouts",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "brand_layouts_source_asset_id_brand_assets_id_fk": {
+          "name": "brand_layouts_source_asset_id_brand_assets_id_fk",
+          "tableFrom": "brand_layouts",
+          "tableTo": "brand_assets",
+          "columnsFrom": [
+            "source_asset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_layouts\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_layouts\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.brand_restrictions": {
+      "name": "brand_restrictions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "restriction_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "brand_restrictions_brand_kit_id_idx": {
+          "name": "brand_restrictions_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_restrictions_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_restrictions_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_restrictions",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_restrictions\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_restrictions\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.brand_rules": {
+      "name": "brand_rules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rule": {
+          "name": "rule",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "rule_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {
+        "brand_rules_brand_kit_id_idx": {
+          "name": "brand_rules_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_rules_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_rules_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_rules",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_rules\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_rules\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.brand_terms": {
+      "name": "brand_terms",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "term_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "term": {
+          "name": "term",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "brand_terms_brand_kit_id_idx": {
+          "name": "brand_terms_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "brand_terms_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_terms_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_terms",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_terms\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_terms\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.brand_voice": {
+      "name": "brand_voice",
+      "schema": "",
+      "columns": {
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "formal_casual": {
+          "name": "formal_casual",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "serious_fun": {
+          "name": "serious_fun",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "technical_simple": {
+          "name": "technical_simple",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "educational_sales": {
+          "name": "educational_sales",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tone_label": {
+          "name": "tone_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sample_caption": {
+          "name": "sample_caption",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sample_approved": {
+          "name": "sample_approved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "brand_voice_brand_kit_id_brand_kits_id_fk": {
+          "name": "brand_voice_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "brand_voice",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_voice\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"brand_voice\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {
+        "brand_voice_formal_casual_check": {
+          "name": "brand_voice_formal_casual_check",
+          "value": "\"brand_voice\".\"formal_casual\" between 0 and 100"
+        },
+        "brand_voice_serious_fun_check": {
+          "name": "brand_voice_serious_fun_check",
+          "value": "\"brand_voice\".\"serious_fun\" between 0 and 100"
+        },
+        "brand_voice_technical_simple_check": {
+          "name": "brand_voice_technical_simple_check",
+          "value": "\"brand_voice\".\"technical_simple\" between 0 and 100"
+        },
+        "brand_voice_educational_sales_check": {
+          "name": "brand_voice_educational_sales_check",
+          "value": "\"brand_voice\".\"educational_sales\" between 0 and 100"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.calendar_dates": {
+      "name": "calendar_dates",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "date_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "segment": {
+          "name": "segment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "calendar_dates_store_id_idx": {
+          "name": "calendar_dates_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "calendar_dates_store_id_stores_id_fk": {
+          "name": "calendar_dates_store_id_stores_id_fk",
+          "tableFrom": "calendar_dates",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "datas globais e da loja": {
+          "name": "datas globais e da loja",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"calendar_dates\".\"store_id\" is null or public.is_store_member(\"calendar_dates\".\"store_id\")"
+        },
+        "loja gerencia suas datas": {
+          "name": "loja gerencia suas datas",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"calendar_dates\".\"store_id\" is not null and public.is_store_member(\"calendar_dates\".\"store_id\")",
+          "withCheck": "\"calendar_dates\".\"store_id\" is not null and public.is_store_member(\"calendar_dates\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.campaigns": {
+      "name": "campaigns",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "goal": {
+          "name": "goal",
+          "type": "content_goal",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "calendar_date_id": {
+          "name": "calendar_date_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "formats": {
+          "name": "formats",
+          "type": "content_format[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "auto_distribute": {
+          "name": "auto_distribute",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "status": {
+          "name": "status",
+          "type": "campaign_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ativa'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "campaigns_store_id_idx": {
+          "name": "campaigns_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "campaigns_calendar_date_id_idx": {
+          "name": "campaigns_calendar_date_id_idx",
+          "columns": [
+            {
+              "expression": "calendar_date_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "campaigns_store_id_stores_id_fk": {
+          "name": "campaigns_store_id_stores_id_fk",
+          "tableFrom": "campaigns",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "campaigns_calendar_date_id_calendar_dates_id_fk": {
+          "name": "campaigns_calendar_date_id_calendar_dates_id_fk",
+          "tableFrom": "campaigns",
+          "tableTo": "calendar_dates",
+          "columnsFrom": [
+            "calendar_date_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"campaigns\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"campaigns\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {
+        "campaigns_dates_check": {
+          "name": "campaigns_dates_check",
+          "value": "\"campaigns\".\"end_date\" >= \"campaigns\".\"start_date\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.competitors": {
+      "name": "competitors",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "handle": {
+          "name": "handle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "competitors_store_id_idx": {
+          "name": "competitors_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "competitors_store_id_stores_id_fk": {
+          "name": "competitors_store_id_stores_id_fk",
+          "tableFrom": "competitors",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"competitors\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"competitors\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.content_plans": {
+      "name": "content_plans",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "month": {
+          "name": "month",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "weekly_frequency": {
+          "name": "weekly_frequency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "focus_weekdays": {
+          "name": "focus_weekdays",
+          "type": "smallint[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "include_date_ids": {
+          "name": "include_date_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "use_saved_ideas": {
+          "name": "use_saved_ideas",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "rationale": {
+          "name": "rationale",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "status": {
+          "name": "status",
+          "type": "plan_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'sugerido'"
+        },
+        "approved_by": {
+          "name": "approved_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "approved_at": {
+          "name": "approved_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "content_plans_store_id_idx": {
+          "name": "content_plans_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "content_plans_approved_by_idx": {
+          "name": "content_plans_approved_by_idx",
+          "columns": [
+            {
+              "expression": "approved_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "content_plans_store_id_stores_id_fk": {
+          "name": "content_plans_store_id_stores_id_fk",
+          "tableFrom": "content_plans",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "content_plans_approved_by_profiles_id_fk": {
+          "name": "content_plans_approved_by_profiles_id_fk",
+          "tableFrom": "content_plans",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "approved_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "content_plans_store_id_month_unique": {
+          "name": "content_plans_store_id_month_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "store_id",
+            "month"
+          ]
+        }
+      },
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"content_plans\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"content_plans\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {
+        "content_plans_month_check": {
+          "name": "content_plans_month_check",
+          "value": "\"content_plans\".\"month\" = date_trunc('month', \"content_plans\".\"month\")::date"
+        },
+        "content_plans_focus_weekdays_check": {
+          "name": "content_plans_focus_weekdays_check",
+          "value": "\"content_plans\".\"focus_weekdays\" <@ '{0,1,2,3,4,5,6}'::smallint[]"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.content_status_history": {
+      "name": "content_status_history",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "content_id": {
+          "name": "content_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from_status": {
+          "name": "from_status",
+          "type": "content_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "to_status": {
+          "name": "to_status",
+          "type": "content_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "changed_by": {
+          "name": "changed_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "changed_at": {
+          "name": "changed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "content_status_history_content_id_idx": {
+          "name": "content_status_history_content_id_idx",
+          "columns": [
+            {
+              "expression": "content_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "content_status_history_changed_by_idx": {
+          "name": "content_status_history_changed_by_idx",
+          "columns": [
+            {
+              "expression": "changed_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "content_status_history_content_id_contents_id_fk": {
+          "name": "content_status_history_content_id_contents_id_fk",
+          "tableFrom": "content_status_history",
+          "tableTo": "contents",
+          "columnsFrom": [
+            "content_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "content_status_history_changed_by_profiles_id_fk": {
+          "name": "content_status_history_changed_by_profiles_id_fk",
+          "tableFrom": "content_status_history",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "changed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"contents\" where \"contents\".\"id\" = \"content_status_history\".\"content_id\" and public.is_store_member(\"contents\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.contents": {
+      "name": "contents",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "campaign_id": {
+          "name": "campaign_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "idea_id": {
+          "name": "idea_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "format": {
+          "name": "format",
+          "type": "content_format",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "goal": {
+          "name": "goal",
+          "type": "content_goal",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_at": {
+          "name": "scheduled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "content_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ideia'"
+        },
+        "origin": {
+          "name": "origin",
+          "type": "content_origin",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'usuario'"
+        },
+        "why_this_day": {
+          "name": "why_this_day",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "caption": {
+          "name": "caption",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_artwork_id": {
+          "name": "current_artwork_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "social_account_id": {
+          "name": "social_account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "external_post_id": {
+          "name": "external_post_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "permalink": {
+          "name": "permalink",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "contents_store_id_idx": {
+          "name": "contents_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "contents_plan_id_idx": {
+          "name": "contents_plan_id_idx",
+          "columns": [
+            {
+              "expression": "plan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "contents_campaign_id_idx": {
+          "name": "contents_campaign_id_idx",
+          "columns": [
+            {
+              "expression": "campaign_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "contents_idea_id_idx": {
+          "name": "contents_idea_id_idx",
+          "columns": [
+            {
+              "expression": "idea_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "contents_current_artwork_id_idx": {
+          "name": "contents_current_artwork_id_idx",
+          "columns": [
+            {
+              "expression": "current_artwork_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "contents_social_account_id_idx": {
+          "name": "contents_social_account_id_idx",
+          "columns": [
+            {
+              "expression": "social_account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "contents_created_by_idx": {
+          "name": "contents_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "contents_store_id_scheduled_at_idx": {
+          "name": "contents_store_id_scheduled_at_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "scheduled_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "contents_store_id_status_idx": {
+          "name": "contents_store_id_status_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "contents_store_id_stores_id_fk": {
+          "name": "contents_store_id_stores_id_fk",
+          "tableFrom": "contents",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "contents_plan_id_content_plans_id_fk": {
+          "name": "contents_plan_id_content_plans_id_fk",
+          "tableFrom": "contents",
+          "tableTo": "content_plans",
+          "columnsFrom": [
+            "plan_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contents_campaign_id_campaigns_id_fk": {
+          "name": "contents_campaign_id_campaigns_id_fk",
+          "tableFrom": "contents",
+          "tableTo": "campaigns",
+          "columnsFrom": [
+            "campaign_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contents_idea_id_ideas_id_fk": {
+          "name": "contents_idea_id_ideas_id_fk",
+          "tableFrom": "contents",
+          "tableTo": "ideas",
+          "columnsFrom": [
+            "idea_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contents_current_artwork_id_artworks_id_fk": {
+          "name": "contents_current_artwork_id_artworks_id_fk",
+          "tableFrom": "contents",
+          "tableTo": "artworks",
+          "columnsFrom": [
+            "current_artwork_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contents_social_account_id_social_accounts_id_fk": {
+          "name": "contents_social_account_id_social_accounts_id_fk",
+          "tableFrom": "contents",
+          "tableTo": "social_accounts",
+          "columnsFrom": [
+            "social_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contents_created_by_profiles_id_fk": {
+          "name": "contents_created_by_profiles_id_fk",
+          "tableFrom": "contents",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "contents_social_account_id_external_post_id_unique": {
+          "name": "contents_social_account_id_external_post_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "social_account_id",
+            "external_post_id"
+          ]
+        }
+      },
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"contents\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"contents\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.conversations": {
+      "name": "conversations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Nova conversa'"
+        },
+        "tag": {
+          "name": "tag",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pinned": {
+          "name": "pinned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "archived": {
+          "name": "archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "next_steps": {
+          "name": "next_steps",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "last_message_at": {
+          "name": "last_message_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "conversations_store_id_idx": {
+          "name": "conversations_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "conversations_user_id_idx": {
+          "name": "conversations_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "conversations_store_id_stores_id_fk": {
+          "name": "conversations_store_id_stores_id_fk",
+          "tableFrom": "conversations",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "conversations_user_id_profiles_id_fk": {
+          "name": "conversations_user_id_profiles_id_fk",
+          "tableFrom": "conversations",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"conversations\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"conversations\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.diagnostics": {
+      "name": "diagnostics",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "score": {
+          "name": "score",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "consistency_score": {
+          "name": "consistency_score",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_score": {
+          "name": "content_score",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "offer_score": {
+          "name": "offer_score",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "strengths": {
+          "name": "strengths",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "attention_points": {
+          "name": "attention_points",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "opportunities": {
+          "name": "opportunities",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "sources": {
+          "name": "sources",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "is_baseline": {
+          "name": "is_baseline",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "diagnostics_store_id_idx": {
+          "name": "diagnostics_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "diagnostics_store_id_stores_id_fk": {
+          "name": "diagnostics_store_id_stores_id_fk",
+          "tableFrom": "diagnostics",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"diagnostics\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {
+        "diagnostics_score_check": {
+          "name": "diagnostics_score_check",
+          "value": "\"diagnostics\".\"score\" between 0 and 100"
+        },
+        "diagnostics_consistency_score_check": {
+          "name": "diagnostics_consistency_score_check",
+          "value": "\"diagnostics\".\"consistency_score\" between 0 and 100"
+        },
+        "diagnostics_content_score_check": {
+          "name": "diagnostics_content_score_check",
+          "value": "\"diagnostics\".\"content_score\" between 0 and 100"
+        },
+        "diagnostics_offer_score_check": {
+          "name": "diagnostics_offer_score_check",
+          "value": "\"diagnostics\".\"offer_score\" between 0 and 100"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.idea_requests": {
+      "name": "idea_requests",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requested_by": {
+          "name": "requested_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "theme": {
+          "name": "theme",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "goal": {
+          "name": "goal",
+          "type": "content_goal",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "formats": {
+          "name": "formats",
+          "type": "content_format[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "content_types": {
+          "name": "content_types",
+          "type": "content_type[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 6
+        },
+        "status": {
+          "name": "status",
+          "type": "job_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pendente'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idea_requests_store_id_idx": {
+          "name": "idea_requests_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idea_requests_requested_by_idx": {
+          "name": "idea_requests_requested_by_idx",
+          "columns": [
+            {
+              "expression": "requested_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "idea_requests_store_id_stores_id_fk": {
+          "name": "idea_requests_store_id_stores_id_fk",
+          "tableFrom": "idea_requests",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "idea_requests_requested_by_profiles_id_fk": {
+          "name": "idea_requests_requested_by_profiles_id_fk",
+          "tableFrom": "idea_requests",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "requested_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"idea_requests\".\"store_id\")"
+        },
+        "membros pedem ideias": {
+          "name": "membros pedem ideias",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "public.is_store_member(\"idea_requests\".\"store_id\") and \"idea_requests\".\"requested_by\" = (select auth.uid())"
+        }
+      },
+      "checkConstraints": {
+        "idea_requests_quantity_check": {
+          "name": "idea_requests_quantity_check",
+          "value": "\"idea_requests\".\"quantity\" between 1 and 50"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.idea_saves": {
+      "name": "idea_saves",
+      "schema": "",
+      "columns": {
+        "idea_id": {
+          "name": "idea_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idea_saves_user_id_idx": {
+          "name": "idea_saves_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "idea_saves_idea_id_ideas_id_fk": {
+          "name": "idea_saves_idea_id_ideas_id_fk",
+          "tableFrom": "idea_saves",
+          "tableTo": "ideas",
+          "columnsFrom": [
+            "idea_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "idea_saves_user_id_profiles_id_fk": {
+          "name": "idea_saves_user_id_profiles_id_fk",
+          "tableFrom": "idea_saves",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "idea_saves_idea_id_user_id_pk": {
+          "name": "idea_saves_idea_id_user_id_pk",
+          "columns": [
+            "idea_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "salvos próprios": {
+          "name": "salvos próprios",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"idea_saves\".\"user_id\" = (select auth.uid()) and exists (select 1 from \"ideas\" where \"ideas\".\"id\" = \"idea_saves\".\"idea_id\" and public.is_store_member(\"ideas\".\"store_id\"))",
+          "withCheck": "\"idea_saves\".\"user_id\" = (select auth.uid()) and exists (select 1 from \"ideas\" where \"ideas\".\"id\" = \"idea_saves\".\"idea_id\" and public.is_store_member(\"ideas\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.ideas": {
+      "name": "ideas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_idea_id": {
+          "name": "parent_idea_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "calendar_date_id": {
+          "name": "calendar_date_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "persona_id": {
+          "name": "persona_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "format": {
+          "name": "format",
+          "type": "content_format",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_type": {
+          "name": "content_type",
+          "type": "content_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "goal": {
+          "name": "goal",
+          "type": "content_goal",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "funnel_stage": {
+          "name": "funnel_stage",
+          "type": "funnel_stage",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "audience": {
+          "name": "audience",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "why": {
+          "name": "why",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "how_to_use": {
+          "name": "how_to_use",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "steps": {
+          "name": "steps",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "caption_example": {
+          "name": "caption_example",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "best_time": {
+          "name": "best_time",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "recommended": {
+          "name": "recommended",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "source": {
+          "name": "source",
+          "type": "idea_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'gerada'"
+        },
+        "variation_tone": {
+          "name": "variation_tone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "ideas_store_id_idx": {
+          "name": "ideas_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ideas_parent_idea_id_idx": {
+          "name": "ideas_parent_idea_id_idx",
+          "columns": [
+            {
+              "expression": "parent_idea_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ideas_request_id_idx": {
+          "name": "ideas_request_id_idx",
+          "columns": [
+            {
+              "expression": "request_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ideas_calendar_date_id_idx": {
+          "name": "ideas_calendar_date_id_idx",
+          "columns": [
+            {
+              "expression": "calendar_date_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ideas_persona_id_idx": {
+          "name": "ideas_persona_id_idx",
+          "columns": [
+            {
+              "expression": "persona_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "ideas_store_id_goal_format_idx": {
+          "name": "ideas_store_id_goal_format_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "goal",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "format",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "ideas_store_id_stores_id_fk": {
+          "name": "ideas_store_id_stores_id_fk",
+          "tableFrom": "ideas",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ideas_parent_idea_id_ideas_id_fk": {
+          "name": "ideas_parent_idea_id_ideas_id_fk",
+          "tableFrom": "ideas",
+          "tableTo": "ideas",
+          "columnsFrom": [
+            "parent_idea_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "ideas_request_id_idea_requests_id_fk": {
+          "name": "ideas_request_id_idea_requests_id_fk",
+          "tableFrom": "ideas",
+          "tableTo": "idea_requests",
+          "columnsFrom": [
+            "request_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "ideas_calendar_date_id_calendar_dates_id_fk": {
+          "name": "ideas_calendar_date_id_calendar_dates_id_fk",
+          "tableFrom": "ideas",
+          "tableTo": "calendar_dates",
+          "columnsFrom": [
+            "calendar_date_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "ideas_persona_id_personas_id_fk": {
+          "name": "ideas_persona_id_personas_id_fk",
+          "tableFrom": "ideas",
+          "tableTo": "personas",
+          "columnsFrom": [
+            "persona_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"ideas\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"ideas\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.messages": {
+      "name": "messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "conversation_id": {
+          "name": "conversation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "message_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "attachments": {
+          "name": "attachments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "messages_conversation_id_idx": {
+          "name": "messages_conversation_id_idx",
+          "columns": [
+            {
+              "expression": "conversation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "messages_conversation_id_conversations_id_fk": {
+          "name": "messages_conversation_id_conversations_id_fk",
+          "tableFrom": "messages",
+          "tableTo": "conversations",
+          "columnsFrom": [
+            "conversation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"conversations\" where \"conversations\".\"id\" = \"messages\".\"conversation_id\" and public.is_store_member(\"conversations\".\"store_id\"))"
+        },
+        "membros enviam mensagens": {
+          "name": "membros enviam mensagens",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"messages\".\"role\" = 'user' and exists (select 1 from \"conversations\" where \"conversations\".\"id\" = \"messages\".\"conversation_id\" and public.is_store_member(\"conversations\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.metric_snapshots": {
+      "name": "metric_snapshots",
+      "schema": "",
+      "columns": {
+        "social_account_id": {
+          "name": "social_account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "day": {
+          "name": "day",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account": {
+          "name": "account",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "posts": {
+          "name": "posts",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "audience": {
+          "name": "audience",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "metric_snapshots_store_id_idx": {
+          "name": "metric_snapshots_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "metric_snapshots_store_id_day_idx": {
+          "name": "metric_snapshots_store_id_day_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "day",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "metric_snapshots_social_account_id_social_accounts_id_fk": {
+          "name": "metric_snapshots_social_account_id_social_accounts_id_fk",
+          "tableFrom": "metric_snapshots",
+          "tableTo": "social_accounts",
+          "columnsFrom": [
+            "social_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "metric_snapshots_store_id_stores_id_fk": {
+          "name": "metric_snapshots_store_id_stores_id_fk",
+          "tableFrom": "metric_snapshots",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "metric_snapshots_social_account_id_day_pk": {
+          "name": "metric_snapshots_social_account_id_day_pk",
+          "columns": [
+            "social_account_id",
+            "day"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"metric_snapshots\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notifications": {
+      "name": "notifications",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "read_at": {
+          "name": "read_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "notifications_user_id_idx": {
+          "name": "notifications_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "notifications_store_id_idx": {
+          "name": "notifications_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "notifications_user_id_profiles_id_fk": {
+          "name": "notifications_user_id_profiles_id_fk",
+          "tableFrom": "notifications",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "notifications_store_id_stores_id_fk": {
+          "name": "notifications_store_id_stores_id_fk",
+          "tableFrom": "notifications",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "avisos próprios": {
+          "name": "avisos próprios",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"notifications\".\"user_id\" = (select auth.uid())"
+        },
+        "usuário marca aviso como lido": {
+          "name": "usuário marca aviso como lido",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"notifications\".\"user_id\" = (select auth.uid())",
+          "withCheck": "\"notifications\".\"user_id\" = (select auth.uid())"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.personas": {
+      "name": "personas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "brand_kit_id": {
+          "name": "brand_kit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "age": {
+          "name": "age",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "confirmed": {
+          "name": "confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "personas_brand_kit_id_idx": {
+          "name": "personas_brand_kit_id_idx",
+          "columns": [
+            {
+              "expression": "brand_kit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "personas_brand_kit_id_brand_kits_id_fk": {
+          "name": "personas_brand_kit_id_brand_kits_id_fk",
+          "tableFrom": "personas",
+          "tableTo": "brand_kits",
+          "columnsFrom": [
+            "brand_kit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"personas\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))",
+          "withCheck": "exists (select 1 from \"brand_kits\" where \"brand_kits\".\"id\" = \"personas\".\"brand_kit_id\" and public.is_store_member(\"brand_kits\".\"store_id\"))"
+        }
+      },
+      "checkConstraints": {
+        "personas_age_check": {
+          "name": "personas_age_check",
+          "value": "\"personas\".\"age\" is null or \"personas\".\"age\" between 0 and 120"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.plans": {
+      "name": "plans",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "monthly_art_limit": {
+          "name": "monthly_art_limit",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_cents": {
+          "name": "price_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "planos visíveis": {
+          "name": "planos visíveis",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "plans_price_cents_check": {
+          "name": "plans_price_cents_check",
+          "value": "\"plans\".\"price_cents\" >= 0"
+        },
+        "plans_monthly_art_limit_check": {
+          "name": "plans_monthly_art_limit_check",
+          "value": "\"plans\".\"monthly_art_limit\" is null or \"plans\".\"monthly_art_limit\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.profiles": {
+      "name": "profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "marketing_level": {
+          "name": "marketing_level",
+          "type": "marketing_level",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'simples'"
+        },
+        "theme": {
+          "name": "theme",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'system'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "profiles_id_users_id_fk": {
+          "name": "profiles_id_users_id_fk",
+          "tableFrom": "profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "perfil próprio e da equipe": {
+          "name": "perfil próprio e da equipe",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"profiles\".\"id\" = (select auth.uid()) or public.shares_store_with(\"profiles\".\"id\")"
+        },
+        "usuário altera o próprio perfil": {
+          "name": "usuário altera o próprio perfil",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"profiles\".\"id\" = (select auth.uid())",
+          "withCheck": "\"profiles\".\"id\" = (select auth.uid())"
+        }
+      },
+      "checkConstraints": {
+        "profiles_theme_check": {
+          "name": "profiles_theme_check",
+          "value": "\"profiles\".\"theme\" in ('light', 'dark', 'system')"
+        },
+        "profiles_full_name_length_check": {
+          "name": "profiles_full_name_length_check",
+          "value": "char_length(\"profiles\".\"full_name\") <= 120"
+        },
+        "profiles_avatar_url_check": {
+          "name": "profiles_avatar_url_check",
+          "value": "\"profiles\".\"avatar_url\" is null or \"profiles\".\"avatar_url\" ~ '^https://'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.social_account_tokens": {
+      "name": "social_account_tokens",
+      "schema": "",
+      "columns": {
+        "social_account_id": {
+          "name": "social_account_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "access_token_encrypted": {
+          "name": "access_token_encrypted",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refreshed_at": {
+          "name": "refreshed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "social_account_tokens_expires_at_idx": {
+          "name": "social_account_tokens_expires_at_idx",
+          "columns": [
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "social_account_tokens_social_account_id_social_accounts_id_fk": {
+          "name": "social_account_tokens_social_account_id_social_accounts_id_fk",
+          "tableFrom": "social_account_tokens",
+          "tableTo": "social_accounts",
+          "columnsFrom": [
+            "social_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.social_accounts": {
+      "name": "social_accounts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "social_provider",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "external_id": {
+          "name": "external_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_user_id": {
+          "name": "provider_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "handle": {
+          "name": "handle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token_secret_id": {
+          "name": "token_secret_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "connection_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'conectado'"
+        },
+        "account_type": {
+          "name": "account_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scopes": {
+          "name": "scopes",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "connected_by": {
+          "name": "connected_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_synced_at": {
+          "name": "last_synced_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "social_accounts_store_id_idx": {
+          "name": "social_accounts_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "social_accounts_store_id_stores_id_fk": {
+          "name": "social_accounts_store_id_stores_id_fk",
+          "tableFrom": "social_accounts",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "social_accounts_connected_by_profiles_id_fk": {
+          "name": "social_accounts_connected_by_profiles_id_fk",
+          "tableFrom": "social_accounts",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "connected_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "social_accounts_store_id_provider_unique": {
+          "name": "social_accounts_store_id_provider_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "store_id",
+            "provider"
+          ]
+        }
+      },
+      "policies": {
+        "membros leem": {
+          "name": "membros leem",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"social_accounts\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.store_members": {
+      "name": "store_members",
+      "schema": "",
+      "columns": {
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "store_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'member'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "store_members_user_id_idx": {
+          "name": "store_members_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "store_members_store_id_stores_id_fk": {
+          "name": "store_members_store_id_stores_id_fk",
+          "tableFrom": "store_members",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "store_members_user_id_profiles_id_fk": {
+          "name": "store_members_user_id_profiles_id_fk",
+          "tableFrom": "store_members",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "store_members_store_id_user_id_pk": {
+          "name": "store_members_store_id_user_id_pk",
+          "columns": [
+            "store_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "membros veem a equipe": {
+          "name": "membros veem a equipe",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"store_members\".\"store_id\")"
+        },
+        "dono gerencia a equipe": {
+          "name": "dono gerencia a equipe",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_owner(\"store_members\".\"store_id\")",
+          "withCheck": "public.is_store_owner(\"store_members\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.store_positioning": {
+      "name": "store_positioning",
+      "schema": "",
+      "columns": {
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "differentiators": {
+          "name": "differentiators",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "objections": {
+          "name": "objections",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "store_positioning_store_id_stores_id_fk": {
+          "name": "store_positioning_store_id_stores_id_fk",
+          "tableFrom": "store_positioning",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"store_positioning\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"store_positioning\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.store_products": {
+      "name": "store_products",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "store_products_store_id_idx": {
+          "name": "store_products_store_id_idx",
+          "columns": [
+            {
+              "expression": "store_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "store_products_store_id_stores_id_fk": {
+          "name": "store_products_store_id_stores_id_fk",
+          "tableFrom": "store_products",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membros da loja": {
+          "name": "membros da loja",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"store_products\".\"store_id\")",
+          "withCheck": "public.is_store_member(\"store_products\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {
+        "store_products_position_check": {
+          "name": "store_products_position_check",
+          "value": "\"store_products\".\"position\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.stores": {
+      "name": "stores",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "segment": {
+          "name": "segment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "serves_online": {
+          "name": "serves_online",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "website_url": {
+          "name": "website_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "instagram_handle": {
+          "name": "instagram_handle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "main_goal": {
+          "name": "main_goal",
+          "type": "business_goal",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_objective": {
+          "name": "current_objective",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "focus_weekdays": {
+          "name": "focus_weekdays",
+          "type": "smallint[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{4,5,6}'"
+        },
+        "is_regulated": {
+          "name": "is_regulated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "onboarding_step": {
+          "name": "onboarding_step",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "onboarding_completed_at": {
+          "name": "onboarding_completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "stores_created_by_idx": {
+          "name": "stores_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "stores_created_by_profiles_id_fk": {
+          "name": "stores_created_by_profiles_id_fk",
+          "tableFrom": "stores",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "stores_slug_unique": {
+          "name": "stores_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {
+        "membros leem a loja": {
+          "name": "membros leem a loja",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"stores\".\"id\") or \"stores\".\"created_by\" = (select auth.uid())"
+        },
+        "qualquer usuário cria loja": {
+          "name": "qualquer usuário cria loja",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"stores\".\"created_by\" = (select auth.uid())"
+        },
+        "dono altera a loja": {
+          "name": "dono altera a loja",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_owner(\"stores\".\"id\")",
+          "withCheck": "public.is_store_owner(\"stores\".\"id\")"
+        },
+        "dono exclui a loja": {
+          "name": "dono exclui a loja",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_owner(\"stores\".\"id\")"
+        }
+      },
+      "checkConstraints": {
+        "stores_slug_check": {
+          "name": "stores_slug_check",
+          "value": "\"stores\".\"slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'"
+        },
+        "stores_onboarding_step_check": {
+          "name": "stores_onboarding_step_check",
+          "value": "\"stores\".\"onboarding_step\" between 1 and 4"
+        },
+        "stores_focus_weekdays_check": {
+          "name": "stores_focus_weekdays_check",
+          "value": "\"stores\".\"focus_weekdays\" <@ '{0,1,2,3,4,5,6}'::smallint[]"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.subscriptions": {
+      "name": "subscriptions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "subscription_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'trialing'"
+        },
+        "trial_art_limit": {
+          "name": "trial_art_limit",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 3
+        },
+        "current_period_end": {
+          "name": "current_period_end",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "provider_customer_id": {
+          "name": "provider_customer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "subscriptions_plan_id_idx": {
+          "name": "subscriptions_plan_id_idx",
+          "columns": [
+            {
+              "expression": "plan_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "subscriptions_store_id_stores_id_fk": {
+          "name": "subscriptions_store_id_stores_id_fk",
+          "tableFrom": "subscriptions",
+          "tableTo": "stores",
+          "columnsFrom": [
+            "store_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "subscriptions_plan_id_plans_id_fk": {
+          "name": "subscriptions_plan_id_plans_id_fk",
+          "tableFrom": "subscriptions",
+          "tableTo": "plans",
+          "columnsFrom": [
+            "plan_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "subscriptions_store_id_unique": {
+          "name": "subscriptions_store_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "store_id"
+          ]
+        }
+      },
+      "policies": {
+        "membros veem a assinatura": {
+          "name": "membros veem a assinatura",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_store_member(\"subscriptions\".\"store_id\")"
+        }
+      },
+      "checkConstraints": {
+        "subscriptions_trial_art_limit_check": {
+          "name": "subscriptions_trial_art_limit_check",
+          "value": "\"subscriptions\".\"trial_art_limit\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.artwork_status": {
+      "name": "artwork_status",
+      "schema": "public",
+      "values": [
+        "rascunho",
+        "em_revisao",
+        "aprovada",
+        "descartada"
+      ]
+    },
+    "public.asset_status": {
+      "name": "asset_status",
+      "schema": "public",
+      "values": [
+        "pendente",
+        "validado",
+        "rejeitado"
+      ]
+    },
+    "public.author_kind": {
+      "name": "author_kind",
+      "schema": "public",
+      "values": [
+        "usuario",
+        "agente"
+      ]
+    },
+    "public.brand_asset_kind": {
+      "name": "brand_asset_kind",
+      "schema": "public",
+      "values": [
+        "logo_claro",
+        "logo_escuro",
+        "simbolo",
+        "logo_mono",
+        "fonte",
+        "manual",
+        "referencia_estilo",
+        "layout_origem",
+        "post_bom",
+        "post_ruim"
+      ]
+    },
+    "public.brand_kit_source": {
+      "name": "brand_kit_source",
+      "schema": "public",
+      "values": [
+        "upload_manual",
+        "guiado"
+      ]
+    },
+    "public.business_goal": {
+      "name": "business_goal",
+      "schema": "public",
+      "values": [
+        "vender_mais",
+        "ganhar_seguidores",
+        "divulgar_lancamento",
+        "gerar_contatos"
+      ]
+    },
+    "public.campaign_status": {
+      "name": "campaign_status",
+      "schema": "public",
+      "values": [
+        "rascunho",
+        "ativa",
+        "encerrada"
+      ]
+    },
+    "public.color_role": {
+      "name": "color_role",
+      "schema": "public",
+      "values": [
+        "primaria",
+        "secundaria",
+        "destaque",
+        "fundo",
+        "texto",
+        "extra"
+      ]
+    },
+    "public.connection_status": {
+      "name": "connection_status",
+      "schema": "public",
+      "values": [
+        "conectado",
+        "expirado",
+        "desconectado"
+      ]
+    },
+    "public.content_format": {
+      "name": "content_format",
+      "schema": "public",
+      "values": [
+        "post",
+        "story",
+        "reels",
+        "carrossel"
+      ]
+    },
+    "public.content_goal": {
+      "name": "content_goal",
+      "schema": "public",
+      "values": [
+        "atrair",
+        "engajar",
+        "vender",
+        "fidelizar"
+      ]
+    },
+    "public.content_origin": {
+      "name": "content_origin",
+      "schema": "public",
+      "values": [
+        "plano_mes",
+        "biblioteca",
+        "agente",
+        "campanha",
+        "resultados",
+        "usuario",
+        "onboarding"
+      ]
+    },
+    "public.content_status": {
+      "name": "content_status",
+      "schema": "public",
+      "values": [
+        "ideia",
+        "em_producao",
+        "em_revisao",
+        "aprovado",
+        "publicado"
+      ]
+    },
+    "public.content_type": {
+      "name": "content_type",
+      "schema": "public",
+      "values": [
+        "educativo",
+        "comercial",
+        "institucional",
+        "autoridade"
+      ]
+    },
+    "public.date_kind": {
+      "name": "date_kind",
+      "schema": "public",
+      "values": [
+        "feriado",
+        "data_comercial",
+        "data_setor",
+        "tendencia"
+      ]
+    },
+    "public.font_role": {
+      "name": "font_role",
+      "schema": "public",
+      "values": [
+        "titulo",
+        "paragrafo",
+        "destaque"
+      ]
+    },
+    "public.font_source": {
+      "name": "font_source",
+      "schema": "public",
+      "values": [
+        "google",
+        "upload",
+        "nome"
+      ]
+    },
+    "public.funnel_stage": {
+      "name": "funnel_stage",
+      "schema": "public",
+      "values": [
+        "descoberta",
+        "consideracao",
+        "decisao",
+        "fidelizacao"
+      ]
+    },
+    "public.idea_source": {
+      "name": "idea_source",
+      "schema": "public",
+      "values": [
+        "biblioteca",
+        "gerada",
+        "versao",
+        "agente",
+        "resultados",
+        "usuario"
+      ]
+    },
+    "public.image_style": {
+      "name": "image_style",
+      "schema": "public",
+      "values": [
+        "fotografico",
+        "ilustrado",
+        "minimalista",
+        "3d",
+        "outro"
+      ]
+    },
+    "public.job_status": {
+      "name": "job_status",
+      "schema": "public",
+      "values": [
+        "pendente",
+        "processando",
+        "concluido",
+        "erro"
+      ]
+    },
+    "public.marketing_level": {
+      "name": "marketing_level",
+      "schema": "public",
+      "values": [
+        "simples",
+        "intermediario",
+        "avancado"
+      ]
+    },
+    "public.memory_kind": {
+      "name": "memory_kind",
+      "schema": "public",
+      "values": [
+        "preferencia",
+        "decisao",
+        "fato"
+      ]
+    },
+    "public.message_role": {
+      "name": "message_role",
+      "schema": "public",
+      "values": [
+        "user",
+        "assistant",
+        "system"
+      ]
+    },
+    "public.plan_status": {
+      "name": "plan_status",
+      "schema": "public",
+      "values": [
+        "sugerido",
+        "aprovado",
+        "arquivado"
+      ]
+    },
+    "public.restriction_kind": {
+      "name": "restriction_kind",
+      "schema": "public",
+      "values": [
+        "cor",
+        "elemento",
+        "estilo",
+        "termo"
+      ]
+    },
+    "public.rule_source": {
+      "name": "rule_source",
+      "schema": "public",
+      "values": [
+        "layouts",
+        "cores",
+        "fontes",
+        "estilo",
+        "voz",
+        "evitar",
+        "manual"
+      ]
+    },
+    "public.social_provider": {
+      "name": "social_provider",
+      "schema": "public",
+      "values": [
+        "instagram",
+        "facebook",
+        "google_business"
+      ]
+    },
+    "public.store_role": {
+      "name": "store_role",
+      "schema": "public",
+      "values": [
+        "owner",
+        "designer",
+        "member"
+      ]
+    },
+    "public.subscription_status": {
+      "name": "subscription_status",
+      "schema": "public",
+      "values": [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled"
+      ]
+    },
+    "public.term_kind": {
+      "name": "term_kind",
+      "schema": "public",
+      "values": [
+        "amada",
+        "proibida"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {
+    "public.store_art_usage": {
+      "columns": {
+        "store_id": {
+          "name": "store_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trial_art_limit": {
+          "name": "trial_art_limit",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 3
+        }
+      },
+      "definition": "select \"subscriptions\".\"store_id\", count(\"art_usage\".\"id\")::int as \"arts_used\", \"subscriptions\".\"trial_art_limit\" from \"subscriptions\" left join \"art_usage\" on \"art_usage\".\"store_id\" = \"subscriptions\".\"store_id\" group by \"subscriptions\".\"store_id\", \"subscriptions\".\"trial_art_limit\"",
+      "name": "store_art_usage",
+      "schema": "public",
+      "isExisting": false,
+      "with": {
+        "securityInvoker": true
+      },
+      "materialized": false
+    }
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

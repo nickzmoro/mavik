@@ -25,12 +25,15 @@ export type BrandFile = {
 
 export type AvoidedColor = { name: string; hex: string };
 
+export type ArtRule = { id: string; rule: string; isActive: boolean };
+
 export type BrandKitData = {
   logos: Partial<Record<UploadableLogoSlotId, BrandFile>>;
   palette: BrandColor[];
   fonts: BrandFont[];
   imageStyle: ImageStyle | null;
   references: StyleReference[];
+  storyReferences: StyleReference[];
   layouts: SavedLayout[];
   voiceValues: Record<string, number>;
   lovedWords: string[];
@@ -40,6 +43,7 @@ export type BrandKitData = {
   avoidedColors: AvoidedColor[];
   avoidedElements: string[];
   avoidedStyles: string[];
+  artRules: ArtRule[];
 };
 
 export const defaultVoiceValues = Object.fromEntries(
@@ -52,6 +56,7 @@ export const emptyBrandKitData: BrandKitData = {
   fonts: defaultBrandFonts,
   imageStyle: null,
   references: [],
+  storyReferences: [],
   layouts: [],
   voiceValues: defaultVoiceValues,
   lovedWords: [],
@@ -61,6 +66,7 @@ export const emptyBrandKitData: BrandKitData = {
   avoidedColors: [],
   avoidedElements: [],
   avoidedStyles: [],
+  artRules: [],
 };
 
 export const logoAssetKinds = {

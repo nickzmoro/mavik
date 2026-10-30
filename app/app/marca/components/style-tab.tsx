@@ -14,20 +14,103 @@ import {
 } from "@/lib/mocks/brand";
 import { cn } from "@/lib/utils";
 
+import type { ReferenceKind } from "../hooks/use-brand-kit";
 import { BrandCard, BrandSmallText } from "./brand-card";
 import { StylePreview } from "./style-preview";
 
 type StyleTabProps = {
   imageStyle: ImageStyle | null;
   references: StyleReference[];
+  storyReferences: StyleReference[];
   onImageStyleChange: (style: ImageStyle) => void;
-  onAddReference: (file: File) => void;
-  onRemoveReference: (referenceId: string) => void;
+  onAddReference: (file: File, kind: ReferenceKind) => void;
+  onRemoveReference: (referenceId: string, kind: ReferenceKind) => void;
 };
+
+type ReferencesCardProps = {
+  kind: ReferenceKind;
+  title: string;
+  hint: string;
+  emptyText: string;
+  references: StyleReference[];
+  onAddReference: StyleTabProps["onAddReference"];
+  onRemoveReference: StyleTabProps["onRemoveReference"];
+};
+
+function ReferencesCard({
+  kind,
+  title,
+  hint,
+  emptyText,
+  references,
+  onAddReference,
+  onRemoveReference,
+}: ReferencesCardProps) {
+  const isStory = kind === "story_bom";
+
+  return (
+    <BrandCard
+      titleId={`${kind}-references-title`}
+      title={title}
+      hint={hint}
+      action={
+        <FileUploadButton
+          accept="image/jpeg,image/png,image/webp"
+          variant="outline"
+          onFileSelected={(file) => onAddReference(file, kind)}
+        >
+          <Plus aria-hidden="true" className="size-4.5" />
+          Adicionar referência
+        </FileUploadButton>
+      }
+    >
+      {references.length > 0 ? (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(140px,100%),1fr))] gap-3.5">
+          {references.map((reference) => (
+            <div
+              key={reference.id}
+              className="flex min-w-0 flex-col gap-2 text-[13px] text-muted"
+            >
+              <div
+                className={cn(
+                  "relative overflow-hidden rounded-(--r-md)",
+                  isStory ? "aspect-9/16" : "h-37.5",
+                )}
+              >
+                <Image
+                  src={reference.imageUrl}
+                  alt={`Referência enviada: ${reference.caption}`}
+                  fill
+                  unoptimized
+                  sizes="200px"
+                  className="object-cover"
+                />
+              </div>
+              <span className="truncate">{reference.caption}</span>
+              <div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label={`Remover referência ${reference.caption}`}
+                  onClick={() => onRemoveReference(reference.id, kind)}
+                >
+                  Remover
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <BrandSmallText>{emptyText}</BrandSmallText>
+      )}
+    </BrandCard>
+  );
+}
 
 export function StyleTab({
   imageStyle,
   references,
+  storyReferences,
   onImageStyleChange,
   onAddReference,
   onRemoveReference,
@@ -74,58 +157,25 @@ export function StyleTab({
         </RadioGroup>
       </BrandCard>
 
-      <BrandCard
-        titleId="references-title"
+      <ReferencesCard
+        kind="post_bom"
         title="Exemplos aprovados"
         hint="Referências que mostram o seu estilo. A IA usa como guia, não copia."
-        action={
-          <FileUploadButton
-            accept="image/jpeg,image/png,image/webp"
-            variant="outline"
-            onFileSelected={onAddReference}
-          >
-            <Plus aria-hidden="true" className="size-4.5" />
-            Adicionar referência
-          </FileUploadButton>
-        }
-      >
-        {references.length > 0 ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(140px,100%),1fr))] gap-3.5">
-            {references.map((reference) => (
-              <div
-                key={reference.id}
-                className="flex min-w-0 flex-col gap-2 text-[13px] text-muted"
-              >
-                <div className="relative h-37.5 overflow-hidden rounded-(--r-md)">
-                  <Image
-                    src={reference.imageUrl}
-                    alt={`Referência enviada: ${reference.caption}`}
-                    fill
-                    unoptimized
-                    sizes="200px"
-                    className="object-cover"
-                  />
-                </div>
-                <span className="truncate">{reference.caption}</span>
-                <div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    aria-label={`Remover referência ${reference.caption}`}
-                    onClick={() => onRemoveReference(reference.id)}
-                  >
-                    Remover
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <BrandSmallText>
-            Nenhuma referência ainda. Adicione posts que mostram o seu estilo.
-          </BrandSmallText>
-        )}
-      </BrandCard>
+        emptyText="Nenhuma referência ainda. Adicione posts que mostram o seu estilo."
+        references={references}
+        onAddReference={onAddReference}
+        onRemoveReference={onRemoveReference}
+      />
+
+      <ReferencesCard
+        kind="story_bom"
+        title="Stories aprovados"
+        hint="Stories em 9:16 que mostram o seu estilo. A IA usa estes como modelo ao criar stories."
+        emptyText="Nenhum story ainda. Sem eles, a IA adapta os posts aprovados para a vertical."
+        references={storyReferences}
+        onAddReference={onAddReference}
+        onRemoveReference={onRemoveReference}
+      />
     </div>
   );
 }

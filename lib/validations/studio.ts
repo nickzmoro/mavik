@@ -45,4 +45,8 @@ export const scheduleArtFormSchema = z.object({
     .max(2200, "Use até 2.200 caracteres na legenda."),
 });
 
+export const scheduleStoryFormSchema = scheduleArtFormSchema.extend({
+  caption: z.string(),
+});
+
 export type ScheduleArtFormValues = z.infer<typeof scheduleArtFormSchema>;

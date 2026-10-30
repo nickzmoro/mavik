@@ -4,6 +4,7 @@ import { and, asc, eq, ne } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
+  brandArtRules,
   brandAssets,
   brandColors,
   brandFonts,
@@ -70,6 +71,7 @@ export async function getBrandKitData(): Promise<BrandKitData> {
     rules,
     layouts,
     assets,
+    artRules,
   ] = await Promise.all([
     db
       .select()
@@ -103,6 +105,15 @@ export async function getBrandKitData(): Promise<BrandKitData> {
       .from(brandAssets)
       .where(eq(brandAssets.brandKitId, brandKit.id))
       .orderBy(asc(brandAssets.createdAt)),
+    db
+      .select({
+        id: brandArtRules.id,
+        rule: brandArtRules.rule,
+        isActive: brandArtRules.isActive,
+      })
+      .from(brandArtRules)
+      .where(eq(brandArtRules.brandKitId, brandKit.id))
+      .orderBy(asc(brandArtRules.createdAt)),
   ]);
 
   const signedUrls = await signStoragePaths(
@@ -118,6 +129,11 @@ export async function getBrandKitData(): Promise<BrandKitData> {
     url: urlByPath.get(asset.storagePath) ?? "",
     fileName: asset.label ?? "arquivo",
     isSvg: asset.mimeType === "image/svg+xml",
+  });
+  const toStyleReference = (asset: (typeof assets)[number]) => ({
+    id: asset.id,
+    caption: (asset.label ?? "Referência").replace(/\.[^.]+$/, ""),
+    imageUrl: urlByPath.get(asset.storagePath) ?? "",
   });
   const findAsset = (assetId: string | null) =>
     assets.find((asset) => asset.id === assetId);
@@ -193,11 +209,10 @@ export async function getBrandKitData(): Promise<BrandKitData> {
       : null,
     references: assets
       .filter((asset) => asset.kind === "post_bom")
-      .map((asset) => ({
-        id: asset.id,
-        caption: (asset.label ?? "Referência").replace(/\.[^.]+$/, ""),
-        imageUrl: urlByPath.get(asset.storagePath) ?? "",
-      })),
+      .map(toStyleReference),
+    storyReferences: assets
+      .filter((asset) => asset.kind === "story_bom")
+      .map(toStyleReference),
     layouts: layouts.map((layout) => {
       const sourceAsset = findAsset(layout.sourceAssetId);
       const structure = layout.structure as { layoutModes?: LayoutModes };
@@ -205,6 +220,8 @@ export async function getBrandKitData(): Promise<BrandKitData> {
       return {
         id: layout.id,
         name: layout.name,
+        format:
+          layout.format === "story" ? ("story" as const) : ("post" as const),
         layoutModes: { ...emptyLayoutModes, ...structure.layoutModes },
         postImageUrl: sourceAsset
           ? urlByPath.get(sourceAsset.storagePath)
@@ -254,5 +271,6 @@ export async function getBrandKitData(): Promise<BrandKitData> {
     avoidedStyles: restrictions
       .filter((restriction) => restriction.kind === "estilo")
       .map((restriction) => restriction.value),
+    artRules,
   };
 }

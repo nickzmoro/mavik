@@ -58,6 +58,23 @@ export function StudioWorkspace({ initialArtwork }: StudioWorkspaceProps) {
     }
   };
 
+  const handlePublishNow = async (caption: string) => {
+    const isStory = studio.resultFormat.id === "story";
+
+    if (!isStory && !caption.trim()) {
+      showToast("Gere ou escreva a legenda antes de publicar.");
+      return;
+    }
+
+    if (await studio.publishArtNow(isStory ? "" : caption)) {
+      showToast(
+        isStory
+          ? "Story publicado no Instagram."
+          : "Post publicado no Instagram.",
+      );
+    }
+  };
+
   return (
     <>
       <StudioHeader usedArts={studio.usedArts} artLimit={studio.artLimit} />
@@ -67,6 +84,7 @@ export function StudioWorkspace({ initialArtwork }: StudioWorkspaceProps) {
           studio={studio}
           onDownload={handleDownload}
           onCopyCaption={handleCopyCaption}
+          onPublishNow={() => handlePublishNow(studio.caption)}
         />
       </div>
       <AiEditorDialog
@@ -76,7 +94,7 @@ export function StudioWorkspace({ initialArtwork }: StudioWorkspaceProps) {
         variationIndex={studio.selectedVariation}
         imageUrl={studio.imageUrls[studio.selectedVariation]}
         isAdjusting={studio.isAdjusting}
-        format={studio.format}
+        format={studio.resultFormat}
         onAdjust={studio.adjustVariation}
         onDiscard={studio.discardAdjustments}
         onApprove={studio.openSchedule}
@@ -87,10 +105,12 @@ export function StudioWorkspace({ initialArtwork }: StudioWorkspaceProps) {
         variationIndex={studio.selectedVariation}
         imageUrl={studio.imageUrls[studio.selectedVariation]}
         title={studio.postTitle}
-        format={studio.format}
+        format={studio.resultFormat}
         caption={studio.caption}
         isScheduling={studio.isScheduling}
+        isPublishing={studio.isPublishing}
         onScheduled={handleScheduled}
+        onPublishNow={handlePublishNow}
       />
       <TrialLimitDialog
         open={studio.dialog === "limit"}

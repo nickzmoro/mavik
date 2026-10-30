@@ -3,7 +3,7 @@
 import OpenAI from "openai";
 
 import { getBrandContext } from "@/lib/brand/get-brand-context";
-import { lintCaption } from "@/lib/caption/lint";
+import { findMentionedProducts, lintCaption } from "@/lib/caption/lint";
 import {
   CAPTION_WRITING_RULES,
   findForbiddenTerms,
@@ -35,7 +35,7 @@ const generateFailedMessage =
 const CAPTION_INSTRUCTIONS = `Você é social media de uma pequena empresa brasileira e escreve a legenda do post de Instagram descrito pelo pedido do cliente e mostrado na arte anexada.
 A legenda fala do produto ou serviço deste post: identifique-o no pedido e na arte e cite-o pelo nome, do jeito que as pessoas buscariam no Instagram. Nunca troque por outro produto da loja.
 Nunca invente preços, descontos, prazos ou características que não estejam no pedido ou na arte.
-Escreva em português do Brasil: o gancho, depois de 1 a 3 frases curtas e, no final, numa linha separada, de 3 a 5 hashtags específicas do produto e do segmento.
+Escreva em português do Brasil: o gancho, depois de 1 a 3 frases curtas e, no final, numa linha separada, exatamente 3 hashtags específicas do produto e do segmento.
 Siga o tom de voz, as palavras preferidas e os termos proibidos da marca. Ignore as regras visuais da marca (cores, fontes, logo, layout).
 ${CAPTION_WRITING_RULES}
 Responda apenas com a legenda, sem aspas.
@@ -106,6 +106,10 @@ export async function generatePostCaption(
     const openai = new OpenAI({ apiKey });
     const brandContext = await getBrandContext(userId, openai);
     const forbiddenTerms = brandContext?.forbiddenTerms ?? [];
+    const searchTerms = findMentionedProducts(
+      parsedInput.data.prompt,
+      brandContext?.productNames ?? [],
+    );
     const caption = await writeLintedCaption(
       openai,
       [
@@ -119,7 +123,7 @@ export async function generatePostCaption(
         const usedForbiddenTerms = findForbiddenTerms(caption, forbiddenTerms);
 
         return [
-          ...lintCaption(caption).issues,
+          ...lintCaption(caption, { searchTerms }).issues,
           usedForbiddenTerms.length > 0 &&
             `Termos proibidos usados: ${usedForbiddenTerms.join(", ")}.`,
         ].filter((issue): issue is string => Boolean(issue));

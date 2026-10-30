@@ -4,11 +4,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import type { BrandKitData } from "@/lib/brand/brand-kit-data";
 import { mockBrandRules } from "@/lib/mocks/brand";
 
+import { ArtRulesCard } from "./art-rules-card";
 import { BrandCard, BrandSmallText } from "./brand-card";
 
 type RulesTabProps = {
+  initialData: BrandKitData;
   activeRuleIds: string[];
   avoidedColors: { name: string; hex: string }[];
   avoidedElements: string[];
@@ -34,6 +37,7 @@ function AvoidList({
 }
 
 export function RulesTab({
+  initialData,
   activeRuleIds,
   avoidedColors,
   avoidedElements,
@@ -46,6 +50,8 @@ export function RulesTab({
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
+      <ArtRulesCard initialData={initialData} />
+
       <BrandCard
         titleId="rules-title"
         title="Regras que a IA segue"

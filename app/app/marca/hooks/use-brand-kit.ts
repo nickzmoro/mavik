@@ -25,6 +25,7 @@ import {
   type FontRole,
   type ImageStyle,
   type LayoutElementId,
+  type LayoutFormat,
   type LayoutModes,
   type LogoSlotId,
   type Persona,
@@ -48,6 +49,8 @@ const connectionErrorMessage =
   "Não conseguimos salvar agora. Confira sua internet e tente de novo.";
 
 type UploadResult = { isSuccess: true } | { isSuccess: false; error: string };
+
+export type ReferenceKind = Extract<BrandAssetKind, "post_bom" | "story_bom">;
 
 const getImageWidth = async (file: File) => {
   const imageBitmap = await createImageBitmap(file);
@@ -94,9 +97,10 @@ const buildSavePayload = (state: {
     })),
     imageStyle: state.imageStyle,
     layouts: state.savedLayouts.map(
-      ({ id, name, layoutModes, sourceAssetId }) => ({
+      ({ id, name, format, layoutModes, sourceAssetId }) => ({
         id,
         name,
+        format,
         layoutModes,
         sourceAssetId,
       }),
@@ -134,7 +138,15 @@ export function useBrandKit(initialData: BrandKitData) {
   const [references, setReferences] = useState<StyleReference[]>(
     initialData.references,
   );
+  const [storyReferences, setStoryReferences] = useState<StyleReference[]>(
+    initialData.storyReferences,
+  );
+  const referenceSetters = {
+    post_bom: setReferences,
+    story_bom: setStoryReferences,
+  } satisfies Record<ReferenceKind, unknown>;
   const [layoutModes, setLayoutModes] = useState<LayoutModes>(emptyLayoutModes);
+  const [layoutFormat, setLayoutFormat] = useState<LayoutFormat>("post");
   const [layoutPostImage, setLayoutPostImage] = useState<UploadedFile | null>(
     null,
   );
@@ -152,15 +164,11 @@ export function useBrandKit(initialData: BrandKitData) {
   const [bannedWords, setBannedWords] = useState(initialData.bannedWords);
   const [personas, setPersonas] = useState<Persona[]>(initialData.personas);
   const [activeRuleIds, setActiveRuleIds] = useState(initialData.activeRuleIds);
-  const [avoidedColors, setAvoidedColors] = useState(
-    initialData.avoidedColors,
-  );
+  const [avoidedColors, setAvoidedColors] = useState(initialData.avoidedColors);
   const [avoidedElements, setAvoidedElements] = useState(
     initialData.avoidedElements,
   );
-  const [avoidedStyles, setAvoidedStyles] = useState(
-    initialData.avoidedStyles,
-  );
+  const [avoidedStyles, setAvoidedStyles] = useState(initialData.avoidedStyles);
   const [currentVersionId, setCurrentVersionId] = useState(
     mockBrandVersions[0].id,
   );
@@ -327,20 +335,23 @@ export function useBrandKit(initialData: BrandKitData) {
     return { isSuccess: true };
   };
 
-  const addReference = async (file: File): Promise<UploadResult> => {
+  const addReference = async (
+    file: File,
+    kind: ReferenceKind = "post_bom",
+  ): Promise<UploadResult> => {
     const validation = validateImage(file);
 
     if (!validation.isSuccess) {
       return validation;
     }
 
-    const upload = await uploadAsset("post_bom", file);
+    const upload = await uploadAsset(kind, file);
 
     if ("error" in upload) {
       return { isSuccess: false, error: upload.error };
     }
 
-    setReferences((currentReferences) => [
+    referenceSetters[kind]((currentReferences) => [
       ...currentReferences,
       {
         id: upload.file.assetId,
@@ -352,9 +363,12 @@ export function useBrandKit(initialData: BrandKitData) {
     return { isSuccess: true };
   };
 
-  const removeReference = (referenceId: string) => {
+  const removeReference = (
+    referenceId: string,
+    kind: ReferenceKind = "post_bom",
+  ) => {
     deleteAsset(referenceId);
-    setReferences((currentReferences) =>
+    referenceSetters[kind]((currentReferences) =>
       currentReferences.filter((reference) => reference.id !== referenceId),
     );
   };
@@ -438,6 +452,18 @@ export function useBrandKit(initialData: BrandKitData) {
     }
   };
 
+  const changeLayoutFormat = (format: LayoutFormat) => {
+    setLayoutFormat(format);
+
+    if (editingLayoutId) {
+      setSavedLayouts((currentLayouts) =>
+        currentLayouts.map((layout) =>
+          layout.id === editingLayoutId ? { ...layout, format } : layout,
+        ),
+      );
+    }
+  };
+
   const resetLayoutEditor = () => {
     const isUnsavedPost =
       layoutPostImage &&
@@ -450,6 +476,7 @@ export function useBrandKit(initialData: BrandKitData) {
     }
 
     setLayoutModes(emptyLayoutModes);
+    setLayoutFormat("post");
     setLayoutPostImage(null);
     setEditingLayoutId(null);
   };
@@ -485,6 +512,7 @@ export function useBrandKit(initialData: BrandKitData) {
       {
         id: layoutId,
         name: `Layout ${currentLayouts.length + 1}`,
+        format: layoutFormat,
         layoutModes,
         postImageUrl: layoutPostImage?.url,
         sourceAssetId: layoutPostImage?.assetId,
@@ -496,6 +524,7 @@ export function useBrandKit(initialData: BrandKitData) {
   const openLayout = (layout: SavedLayout) => {
     setEditingLayoutId(layout.id);
     setLayoutModes(layout.layoutModes);
+    setLayoutFormat(layout.format);
     setLayoutPostImage(
       layout.postImageUrl && layout.sourceAssetId
         ? {
@@ -602,10 +631,13 @@ export function useBrandKit(initialData: BrandKitData) {
     imageStyle,
     setImageStyle,
     references,
+    storyReferences,
     addReference,
     removeReference,
     layoutModes,
     toggleLayoutMode,
+    layoutFormat,
+    changeLayoutFormat,
     layoutPostImage,
     uploadLayoutPost,
     resetLayoutEditor,

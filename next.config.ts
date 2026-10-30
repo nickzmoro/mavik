@@ -38,7 +38,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["192.168.2.107"],
+  allowedDevOrigins: ["192.168.2.107", "*.trycloudflare.com"],
   poweredByHeader: false,
   experimental: {
     agentFeedback: true,
@@ -48,7 +48,9 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   images: {
-    domains: ["lh3.googleusercontent.com"],
+    remotePatterns: [
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+    ],
   },
   partialPrefetching: true,
   turbopack: {

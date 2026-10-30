@@ -6,6 +6,7 @@ import type OpenAI from "openai";
 import { db } from "@/db";
 import {
   artworks,
+  brandArtRules,
   brandAssets,
   brandColors,
   brandFonts,
@@ -25,24 +26,30 @@ import {
 import { layoutElements } from "@/lib/mocks/brand";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+import { buildArtDirectionSection } from "./art-direction-rules";
 import { logoRules } from "./logo-rules";
 import { extractAndSaveManualRules } from "./manual-guidelines";
 
-type LogoAsset = { storagePath: string; kind: "logo_claro" | "logo_escuro" };
+type LogoAsset = {
+  storagePath: string;
+  kind: "logo_claro" | "logo_escuro" | "simbolo";
+};
 
 type StoredFile = { storagePath: string; mimeType: string; label: string };
 
 export type BrandContext = {
   brandName: string;
+  productNames: string[];
   guidelines: string;
   colorHexes: string[];
   restrictions: string[];
   forbiddenTerms: string[];
   primaryHex?: string;
-  artworkCount: number;
+  variationIndex: number;
   logos: LogoAsset[];
   manual?: StoredFile;
   goodExamples: StoredFile[];
+  hasStoryExamples: boolean;
   badExamples: StoredFile[];
 };
 
@@ -98,9 +105,15 @@ async function getManualRules(
   }
 }
 
+type GetBrandContextOptions = {
+  variationOffset?: number;
+  contentFormat?: "post" | "story";
+};
+
 export async function getBrandContext(
   userId: string,
   openai: OpenAI,
+  { variationOffset = 0, contentFormat = "post" }: GetBrandContextOptions = {},
 ): Promise<BrandContext | null> {
   const store = await getOwnedStore(userId);
   const brandKit = store ? await getCurrentBrandKit(store.id) : null;
@@ -120,6 +133,7 @@ export async function getBrandContext(
     assets,
     layouts,
     activeRules,
+    artDirectionRules,
     [artworkTotal],
   ] = await Promise.all([
     db
@@ -147,7 +161,12 @@ export async function getBrandContext(
     db
       .select({ structure: brandLayouts.structure })
       .from(brandLayouts)
-      .where(eq(brandLayouts.brandKitId, brandKit.id)),
+      .where(
+        and(
+          eq(brandLayouts.brandKitId, brandKit.id),
+          eq(brandLayouts.format, contentFormat),
+        ),
+      ),
     db
       .select({ rule: brandRules.rule })
       .from(brandRules)
@@ -159,6 +178,15 @@ export async function getBrandContext(
         ),
       ),
     db
+      .select({
+        brandKitId: brandArtRules.brandKitId,
+        rule: brandArtRules.rule,
+        isActive: brandArtRules.isActive,
+      })
+      .from(brandArtRules)
+      .where(eq(brandArtRules.brandKitId, brandKit.id))
+      .orderBy(asc(brandArtRules.createdAt)),
+    db
       .select({ total: count() })
       .from(artworks)
       .where(eq(artworks.storeId, store.id)),
@@ -166,6 +194,10 @@ export async function getBrandContext(
 
   const manual = assets.find(({ kind }) => kind === "manual");
   const manualRules = await getManualRules(openai, brandKit.id, manual);
+  const variationIndex = (artworkTotal?.total ?? 0) + variationOffset;
+  const storyExamples = assets.filter(({ kind }) => kind === "story_bom");
+  const hasStoryExamples =
+    contentFormat === "story" && storyExamples.length > 0;
   const lovedTerms = terms.filter(({ kind }) => kind === "amada");
   const forbiddenTerms = terms.filter(({ kind }) => kind === "proibida");
   const fixedLayoutElements = [
@@ -188,6 +220,7 @@ export async function getBrandContext(
       `Produtos e serviços: ${products.map(({ name }) => name).join(", ")}.`,
     manualRules.length > 0 &&
       `REGRAS DO MANUAL DA MARCA (prioridade máxima, seguir à risca):\n- ${manualRules.join("\n- ")}`,
+    buildArtDirectionSection(brandKit.id, artDirectionRules, variationIndex),
     colors.length > 0 &&
       `Paleta do Brand Kit: ${colors.map(({ name, role, hex }) => `${name ?? role} ${hex}`).join(", ")}.`,
     fonts.length > 0 &&
@@ -233,6 +266,7 @@ export async function getBrandContext(
 
   return {
     brandName: store.name,
+    productNames: products.map(({ name }) => name),
     guidelines,
     colorHexes: [
       ...new Set(
@@ -247,19 +281,23 @@ export async function getBrandContext(
     primaryHex: colors
       .find(({ role }) => role === "primaria")
       ?.hex.toUpperCase(),
-    artworkCount: artworkTotal?.total ?? 0,
+    variationIndex,
     manual:
       manual?.mimeType === "application/pdf" ? toStoredFile(manual) : undefined,
-    goodExamples: assets
-      .filter(({ kind }) => kind === "post_bom")
-      .map(toStoredFile),
+    goodExamples: (hasStoryExamples
+      ? storyExamples
+      : assets.filter(({ kind }) => kind === "post_bom")
+    ).map(toStoredFile),
+    hasStoryExamples,
     badExamples: assets
       .filter(({ kind }) => kind === "post_ruim")
       .map(toStoredFile),
     logos: assets
       .filter(
         (asset): asset is typeof asset & { kind: LogoAsset["kind"] } =>
-          asset.kind === "logo_claro" || asset.kind === "logo_escuro",
+          asset.kind === "logo_claro" ||
+          asset.kind === "logo_escuro" ||
+          asset.kind === "simbolo",
       )
       .map(({ storagePath, kind }) => ({ storagePath, kind })),
   };

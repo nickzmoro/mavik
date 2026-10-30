@@ -4,6 +4,7 @@ import {
   Download,
   PenLine,
   RefreshCw,
+  Send,
   ShieldCheck,
   Sparkles,
   WandSparkles,
@@ -25,12 +26,14 @@ type PreviewVariationsResultProps = {
   studio: StudioState;
   onDownload: (variationIndex: number) => void;
   onCopyCaption: () => void;
+  onPublishNow: () => void;
 };
 
 export function PreviewVariationsResult({
   studio,
   onDownload,
   onCopyCaption,
+  onPublishNow,
 }: PreviewVariationsResultProps) {
   return (
     <div className="flex flex-col gap-3.5">
@@ -63,7 +66,7 @@ export function PreviewVariationsResult({
                   height={1280}
                   unoptimized
                   className="block w-full rounded-2xl object-cover"
-                  style={{ aspectRatio: studio.format.aspectRatio }}
+                  style={{ aspectRatio: studio.resultFormat.aspectRatio }}
                 />
               </button>
               <div className="flex items-center justify-between gap-1">
@@ -89,66 +92,68 @@ export function PreviewVariationsResult({
           );
         })}
       </VariationGrid>
-      <div className="tile flex flex-col gap-2 rounded-2xl px-3.5 py-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs leading-[1.4] font-semibold text-primary">
-            Legenda sugerida
-          </span>
-          {studio.caption ? (
-            <span className="flex gap-0.5">
-              <button
-                type="button"
-                onClick={studio.generateCaption}
-                disabled={studio.isGeneratingCaption}
-                className={captionActionClassName}
-              >
-                <RefreshCw
-                  aria-hidden="true"
-                  className={cn(
-                    "size-3.5",
-                    studio.isGeneratingCaption &&
-                      "animate-spin motion-reduce:animate-none",
-                  )}
-                />
-                {studio.isGeneratingCaption ? "Gerando…" : "Gerar outra"}
-              </button>
-              <button
-                type="button"
-                onClick={onCopyCaption}
-                className={captionActionClassName}
-              >
-                <Copy aria-hidden="true" className="size-3.5" />
-                Copiar
-              </button>
+      {studio.resultFormat.id === "story" ? null : (
+        <div className="tile flex flex-col gap-2 rounded-2xl px-3.5 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs leading-[1.4] font-semibold text-primary">
+              Legenda sugerida
             </span>
-          ) : null}
-        </div>
-        {studio.caption ? (
-          <p
-            aria-live="polite"
-            className="m-0 text-sm leading-[1.55] whitespace-pre-line"
-          >
-            {studio.caption}
-          </p>
-        ) : (
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="m-0 text-sm leading-[1.55] text-muted">
-              Crie uma legenda sobre o produto deste post.
-            </p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={studio.generateCaption}
-              loading={studio.isGeneratingCaption}
-            >
-              {studio.isGeneratingCaption ? null : (
-                <Sparkles aria-hidden="true" className="size-4" />
-              )}
-              {studio.isGeneratingCaption ? "Gerando…" : "Gerar legenda"}
-            </Button>
+            {studio.caption ? (
+              <span className="flex gap-0.5">
+                <button
+                  type="button"
+                  onClick={studio.generateCaption}
+                  disabled={studio.isGeneratingCaption}
+                  className={captionActionClassName}
+                >
+                  <RefreshCw
+                    aria-hidden="true"
+                    className={cn(
+                      "size-3.5",
+                      studio.isGeneratingCaption &&
+                        "animate-spin motion-reduce:animate-none",
+                    )}
+                  />
+                  {studio.isGeneratingCaption ? "Gerando…" : "Gerar outra"}
+                </button>
+                <button
+                  type="button"
+                  onClick={onCopyCaption}
+                  className={captionActionClassName}
+                >
+                  <Copy aria-hidden="true" className="size-3.5" />
+                  Copiar
+                </button>
+              </span>
+            ) : null}
           </div>
-        )}
-      </div>
+          {studio.caption ? (
+            <p
+              aria-live="polite"
+              className="m-0 text-sm leading-[1.55] whitespace-pre-line"
+            >
+              {studio.caption}
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="m-0 text-sm leading-[1.55] text-muted">
+                Crie uma legenda sobre o produto deste post.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={studio.generateCaption}
+                loading={studio.isGeneratingCaption}
+              >
+                {studio.isGeneratingCaption ? null : (
+                  <Sparkles aria-hidden="true" className="size-4" />
+                )}
+                {studio.isGeneratingCaption ? "Gerando…" : "Gerar legenda"}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="inline-flex items-center gap-1.5 text-[13px] leading-[1.4] font-semibold">
           <ShieldCheck aria-hidden="true" className="size-4 text-success" />
@@ -167,6 +172,16 @@ export function PreviewVariationsResult({
         <Button onClick={studio.openSchedule}>
           <Calendar aria-hidden="true" className="size-4.5" />
           Aprovar e agendar
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onPublishNow}
+          loading={studio.isPublishing}
+        >
+          {studio.isPublishing ? null : (
+            <Send aria-hidden="true" className="size-4.5" />
+          )}
+          {studio.isPublishing ? "Publicando…" : "Publicar agora"}
         </Button>
         <Button variant="outline" onClick={() => studio.openEditor()}>
           <WandSparkles aria-hidden="true" className="size-4.5" />

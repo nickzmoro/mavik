@@ -6,6 +6,7 @@ export const brandTabs = [
   { value: "layouts", label: "Layouts" },
   { value: "voice", label: "Voz" },
   { value: "rules", label: "Regras" },
+  { value: "connections", label: "Conexões" },
 ] as const;
 
 export type BrandTab = (typeof brandTabs)[number]["value"];
@@ -234,9 +235,17 @@ export const emptyLayoutModes: LayoutModes = {
   photo: false,
 };
 
+export const layoutFormats = [
+  { id: "post", label: "Post" },
+  { id: "story", label: "Story" },
+] as const;
+
+export type LayoutFormat = (typeof layoutFormats)[number]["id"];
+
 export type SavedLayout = {
   id: string;
   name: string;
+  format: LayoutFormat;
   layoutModes: LayoutModes;
   postImageUrl?: string;
   sourceAssetId?: string;

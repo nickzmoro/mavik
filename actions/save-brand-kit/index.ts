@@ -98,7 +98,9 @@ export async function saveBrandKit(
         })
         .where(eq(brandKits.id, brandKitId));
 
-      await tx.delete(brandColors).where(eq(brandColors.brandKitId, brandKitId));
+      await tx
+        .delete(brandColors)
+        .where(eq(brandColors.brandKitId, brandKitId));
 
       if (brandKitValues.palette.length > 0) {
         await tx.insert(brandColors).values(
@@ -141,7 +143,7 @@ export async function saveBrandKit(
             id: layout.id,
             brandKitId,
             name: layout.name,
-            format: "post" as const,
+            format: layout.format,
             sourceAssetId: getOwnedAssetId(layout.sourceAssetId),
             structure: { layoutModes: layout.layoutModes },
           })),
@@ -160,7 +162,10 @@ export async function saveBrandKit(
       await tx
         .insert(brandVoice)
         .values({ brandKitId, ...voiceValues })
-        .onConflictDoUpdate({ target: brandVoice.brandKitId, set: voiceValues });
+        .onConflictDoUpdate({
+          target: brandVoice.brandKitId,
+          set: voiceValues,
+        });
 
       await tx.delete(brandTerms).where(eq(brandTerms.brandKitId, brandKitId));
 
