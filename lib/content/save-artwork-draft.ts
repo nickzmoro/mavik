@@ -14,12 +14,14 @@ type SaveArtworkDraftInput = {
   userId: string;
   image: Buffer;
   prompt: string;
+  format: "post" | "story";
 };
 
 export async function saveArtworkDraft({
   userId,
   image,
   prompt,
+  format,
 }: SaveArtworkDraftInput) {
   const store = await getOwnedStore(userId);
 
@@ -53,7 +55,7 @@ export async function saveArtworkDraft({
           storeId: store.id,
           brandKitId: brandKit.id,
           prompt,
-          format: "post",
+          format,
           status: "rascunho",
           createdBy: userId,
         })

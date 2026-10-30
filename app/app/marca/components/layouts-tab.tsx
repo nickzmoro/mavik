@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import {
   layoutElements,
   layoutFlowSteps,
+  layoutFormats,
   type BrandColor,
   type LayoutElementId,
+  type LayoutFormat,
   type LayoutModes,
   type SavedLayout,
 } from "@/lib/mocks/brand";
@@ -64,16 +66,21 @@ type LayoutPostPreviewProps = {
   postImage: UploadedFile | null;
   colors: LayoutColors;
   logoUrl?: string;
+  format: LayoutFormat;
 };
 
 function LayoutPostPreview({
   postImage,
   colors,
   logoUrl,
+  format,
 }: LayoutPostPreviewProps) {
   return (
     <div
-      className="relative aspect-4/5 overflow-hidden rounded-[18px]"
+      className={cn(
+        "relative overflow-hidden rounded-[18px]",
+        format === "story" ? "aspect-9/16" : "aspect-4/5",
+      )}
       style={{ backgroundColor: colors.base }}
     >
       {postImage ? (
@@ -129,10 +136,12 @@ type LayoutsTabProps = {
   palette: BrandColor[];
   logoUrl?: string;
   layoutModes: LayoutModes;
+  layoutFormat: LayoutFormat;
   postImage: UploadedFile | null;
   savedLayouts: SavedLayout[];
   editingLayoutId: string | null;
   onToggleMode: (elementId: LayoutElementId, isFixed: boolean) => void;
+  onChangeFormat: (format: LayoutFormat) => void;
   onUploadPost: (file: File) => void;
   onSave: () => void;
   onDiscard: () => void;
@@ -144,10 +153,12 @@ export function LayoutsTab({
   palette,
   logoUrl,
   layoutModes,
+  layoutFormat,
   postImage,
   savedLayouts,
   editingLayoutId,
   onToggleMode,
+  onChangeFormat,
   onUploadPost,
   onSave,
   onDiscard,
@@ -208,10 +219,31 @@ export function LayoutsTab({
               postImage={postImage}
               colors={colors}
               logoUrl={logoUrl}
+              format={layoutFormat}
             />
             <BrandSmallText>{getPreviewHint()}</BrandSmallText>
           </div>
           <div className="flex min-w-0 flex-col gap-3">
+            <div className="brand-tile flex flex-wrap items-center gap-3 rounded-[18px] py-2.5 pr-2.5 pl-4 text-sm">
+              <span className="min-w-0 flex-1">Formato do layout</span>
+              <div
+                role="group"
+                aria-label="Formato do layout"
+                className="inline-flex gap-1 rounded-full bg-brand-selected p-1"
+              >
+                {layoutFormats.map((format) => (
+                  <Button
+                    key={format.id}
+                    size="sm"
+                    variant={layoutFormat === format.id ? "default" : "ghost"}
+                    aria-pressed={layoutFormat === format.id}
+                    onClick={() => onChangeFormat(format.id)}
+                  >
+                    {format.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
             <b className="font-display text-base font-semibold">
               Como a IA lê este layout
             </b>
@@ -326,6 +358,7 @@ export function LayoutsTab({
                       {layout.name}
                     </b>
                     <small className="block text-xs text-muted">
+                      {layout.format === "story" ? "Story" : "Post"} ·{" "}
                       {summarizeFixedElements(layout.layoutModes)}
                     </small>
                   </span>

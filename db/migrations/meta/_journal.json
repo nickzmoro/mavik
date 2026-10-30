@@ -29,6 +29,34 @@
       "when": 1793232714892,
       "tag": "0003_font_source_nome",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793290435704,
+      "tag": "0004_instagram_connection",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793294223813,
+      "tag": "0005_facebook_login",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793311022447,
+      "tag": "0006_brand_art_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793315947903,
+      "tag": "0007_story_bom_asset_kind",
+      "breakpoints": true
     }
   ]
 }

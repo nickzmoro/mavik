@@ -3,15 +3,17 @@
 import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 
+import { useGeneratePostCaption } from "@/hooks/mutations/use-generate-post-caption";
 import { useGenerateImage } from "@/hooks/mutations/use-generate-image";
+import { usePublishArtworkNow } from "@/hooks/mutations/use-publish-artwork-now";
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
 import { useAttachments } from "@/hooks/use-attachments";
 import { compressImageDataUrl } from "@/lib/compress-image-data-url";
+import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import {
   artFormats,
   buildGuidedPrompt,
   maxVariationsPerGeneration,
-  mockSuggestedCaption,
   skippedAnswer,
   studioQuestions,
   type ArtFormatId,
@@ -36,23 +38,35 @@ export type StudioMode = "guided" | "free";
 export type StudioPhase = "idle" | "generating" | "done";
 export type StudioDialog = "none" | "editor" | "schedule" | "limit";
 
+type StudioImage = GenerateImageResult & { formatId: ArtFormatId };
+
+const findArtFormat = (formatId?: ArtFormatId) =>
+  artFormats.find((artFormat) => artFormat.id === formatId) ?? artFormats[1];
+
 export const formatArtCount = (count: number) =>
   count === 1 ? "1 arte" : `${count} artes`;
 
 export const formatVariationCount = (count: number) =>
   count === 1 ? "1 variação" : `${count} variações`;
 
-export function useStudio() {
+export function useStudio(initialArtwork: StudioArtwork | null) {
   const { showToast } = useToast();
   const pauta = useSearchParams().get(STUDIO_PAUTA_PARAM) ?? "";
+  const initialPrompt = initialArtwork?.prompt ?? pauta;
   const generateImageMutation = useGenerateImage();
+  const generatePostCaptionMutation = useGeneratePostCaption();
   const scheduleArtworkMutation = useScheduleArtwork();
+  const publishArtworkNowMutation = usePublishArtworkNow();
   const generationIdRef = useRef(0);
-  const [mode, setMode] = useState<StudioMode | null>(pauta ? "free" : null);
+  const [mode, setMode] = useState<StudioMode | null>(
+    initialPrompt || initialArtwork ? "free" : null,
+  );
   const [guidedStep, setGuidedStep] = useState(0);
   const [guidedAnswers, setGuidedAnswers] = useState<string[]>([]);
   const attachments = useAttachments();
-  const [formatId, setFormatId] = useState<ArtFormatId>("portrait");
+  const [formatId, setFormatId] = useState<ArtFormatId>(
+    initialArtwork?.isStory ? "story" : "portrait",
+  );
   const [usedArts, setUsedArts] = useState(mockTrialUsage.used);
   const [variationCount, setVariationCount] = useState(
     Math.max(
@@ -63,17 +77,27 @@ export function useStudio() {
       ),
     ),
   );
-  const [phase, setPhase] = useState<StudioPhase>("idle");
+  const [phase, setPhase] = useState<StudioPhase>(
+    initialArtwork ? "done" : "idle",
+  );
   const [selectedVariation, setSelectedVariation] = useState(0);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [dialog, setDialog] = useState<StudioDialog>("none");
-  const [caption, setCaption] = useState(mockSuggestedCaption);
-  const [generatedImages, setGeneratedImages] = useState<
-    GenerateImageResult[]
-  >([]);
-  const [lastPrompt, setLastPrompt] = useState(pauta);
+  const [caption, setCaption] = useState(initialArtwork?.caption ?? "");
+  const [generatedImages, setGeneratedImages] = useState<StudioImage[]>(
+    initialArtwork
+      ? [
+          {
+            imageUrl: initialArtwork.imageUrl,
+            artworkId: initialArtwork.artworkId,
+            formatId: initialArtwork.isStory ? "story" : "portrait",
+          },
+        ]
+      : [],
+  );
+  const [lastPrompt, setLastPrompt] = useState(initialPrompt);
   const [editorOriginalImage, setEditorOriginalImage] =
-    useState<GenerateImageResult | null>(null);
+    useState<StudioImage | null>(null);
   const [isAdjusting, setIsAdjusting] = useState(false);
 
   const imageUrls = generatedImages.map((image) => image.imageUrl);
@@ -81,8 +105,7 @@ export function useStudio() {
   const remainingArts = mockTrialUsage.isLimitEnabled
     ? Math.max(0, artLimit - usedArts)
     : Number.POSITIVE_INFINITY;
-  const format =
-    artFormats.find((artFormat) => artFormat.id === formatId) ?? artFormats[1];
+  const format = findArtFormat(formatId);
   const isGuidedComplete = guidedStep >= studioQuestions.length;
 
   const pickMode = (nextMode: StudioMode) => {
@@ -151,9 +174,17 @@ export function useStudio() {
     const referenceImage = referencePhoto
       ? await readFileAsDataUrl(referencePhoto).catch(() => undefined)
       : undefined;
+    const generationFormatId = format.id;
     const results = await Promise.allSettled(
-      Array.from({ length: variationCount }, () =>
-        generateImageMutation.mutateAsync({ prompt, referenceImage }),
+      Array.from({ length: variationCount }, (_, variationIndex) =>
+        generateImageMutation
+          .mutateAsync({
+            prompt,
+            referenceImage,
+            format: generationFormatId,
+            variationIndex,
+          })
+          .then((result) => ({ ...result, formatId: generationFormatId })),
       ),
     );
 
@@ -201,6 +232,9 @@ export function useStudio() {
     selectedVariation,
     Math.max(imageUrls.length, 1) - 1,
   );
+  const resultFormat = findArtFormat(
+    generatedImages[activeVariation]?.formatId,
+  );
 
   const openEditor = (variationIndex = activeVariation) => {
     setSelectedVariation(variationIndex);
@@ -208,10 +242,7 @@ export function useStudio() {
     setDialog("editor");
   };
 
-  const replaceImage = (
-    variationIndex: number,
-    generatedImage: GenerateImageResult,
-  ) =>
+  const replaceImage = (variationIndex: number, generatedImage: StudioImage) =>
     setGeneratedImages((currentImages) =>
       currentImages.map((currentImage, index) =>
         index === variationIndex ? generatedImage : currentImage,
@@ -239,9 +270,14 @@ export function useStudio() {
         prompt: lastPrompt,
         referenceImage,
         editInstruction,
+        format: resultFormat.id,
+        variationIndex: activeVariation,
       });
 
-      replaceImage(activeVariation, adjustedImage);
+      replaceImage(activeVariation, {
+        ...adjustedImage,
+        formatId: resultFormat.id,
+      });
       setUsedArts((currentUsed) => currentUsed + 1);
 
       return true;
@@ -260,7 +296,10 @@ export function useStudio() {
 
   const postTitle = lastPrompt.split("\n")[0].trim().slice(0, 120);
 
-  const scheduleArt = async ({ day, time, caption }: ScheduleArtFormValues) => {
+  const saveApprovedArt = async (
+    caption: string,
+    scheduledAt: string | null,
+  ) => {
     const currentImage = generatedImages[activeVariation];
 
     if (!currentImage) {
@@ -268,28 +307,37 @@ export function useStudio() {
       return false;
     }
 
+    const approvedArt = (imageDataUrl?: string) => ({
+      title: postTitle || "Post do Estúdio",
+      prompt: lastPrompt,
+      caption,
+      format:
+        currentImage.formatId === "story"
+          ? ("story" as const)
+          : ("post" as const),
+      artworkId: currentImage.artworkId,
+      contentId: initialArtwork?.contentId,
+      imageDataUrl,
+    });
     const result = await (
       currentImage.artworkId
         ? Promise.resolve(undefined)
         : compressImageDataUrl(currentImage.imageUrl)
     )
       .then((imageDataUrl) =>
-        scheduleArtworkMutation.mutateAsync({
-          title: postTitle || "Post do Estúdio",
-          prompt: lastPrompt,
-          caption,
-          format: format.id === "story" ? "story" : "post",
-          scheduledAt: toScheduledAt(day, time),
-          artworkId: currentImage.artworkId,
-          imageDataUrl,
-        }),
+        scheduledAt
+          ? scheduleArtworkMutation.mutateAsync({
+              ...approvedArt(imageDataUrl),
+              scheduledAt,
+            })
+          : publishArtworkNowMutation.mutateAsync(approvedArt(imageDataUrl)),
       )
       .catch(() => null);
 
     if (!result?.isSuccess) {
       showToast(
         result?.errorMessage ??
-          "Não conseguimos agendar agora. Confira sua internet e tente de novo.",
+          "Não conseguimos salvar agora. Confira sua internet e tente de novo.",
       );
       return false;
     }
@@ -298,6 +346,43 @@ export function useStudio() {
     setDialog("none");
 
     return true;
+  };
+
+  const scheduleArt = ({ day, time, caption }: ScheduleArtFormValues) =>
+    saveApprovedArt(caption, toScheduledAt(day, time));
+
+  const publishArtNow = (caption: string) => saveApprovedArt(caption, null);
+
+  const generateCaption = async () => {
+    const currentImageUrl = imageUrls[activeVariation];
+
+    if (!currentImageUrl) {
+      showToast("Gere uma arte antes de pedir a legenda.");
+      return;
+    }
+
+    const imageDataUrl = await compressImageDataUrl(
+      currentImageUrl,
+      512,
+      0.8,
+    ).catch(() => undefined);
+    const result = await generatePostCaptionMutation
+      .mutateAsync({
+        prompt: lastPrompt,
+        imageDataUrl,
+        previousCaption: caption,
+      })
+      .catch(() => null);
+
+    if (!result?.isSuccess) {
+      showToast(
+        result?.errorMessage ??
+          "Não conseguimos gerar a legenda agora. Tente de novo.",
+      );
+      return;
+    }
+
+    setCaption(result.data.caption);
   };
 
   const discardAdjustments = () => {
@@ -323,16 +408,19 @@ export function useStudio() {
     isGuidedComplete,
     attachments,
     format,
+    resultFormat,
     usedArts,
     artLimit,
     remainingArts,
     variationCount,
     phase,
     imageUrls,
-    defaultPrompt: pauta,
+    defaultPrompt: initialPrompt,
     selectedVariation: activeVariation,
     isAdjusting,
     isScheduling: scheduleArtworkMutation.isPending,
+    isPublishing: publishArtworkNowMutation.isPending,
+    isGeneratingCaption: generatePostCaptionMutation.isPending,
     postTitle,
     isOptionsOpen,
     dialog,
@@ -353,7 +441,9 @@ export function useStudio() {
     openEditor,
     adjustVariation,
     scheduleArt,
+    publishArtNow,
     discardAdjustments,
+    generateCaption,
     openSchedule: () => setDialog("schedule"),
     closeDialog,
     setCaption,

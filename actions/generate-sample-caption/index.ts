@@ -2,7 +2,12 @@
 
 import OpenAI from "openai";
 
-import { LUNA_MODEL } from "@/lib/ai/models";
+import { lintCaption } from "@/lib/caption/lint";
+import {
+  CAPTION_WRITING_RULES,
+  findForbiddenTerms,
+  writeLintedCaption,
+} from "@/lib/caption/write-linted-caption";
 import {
   authFailure,
   authSuccess,
@@ -30,14 +35,11 @@ const CAPTION_INSTRUCTIONS = `Você escreve a legenda de exemplo de um post de I
 Escreva em português do Brasil, em no máximo 2 frases curtas, seguindo o tom indicado.
 A legenda precisa funcionar para qualquer produto ou serviço do segmento: seja genérico e nunca prometa resultados, nunca cite preços, descontos, prazos ou números, sem hashtags e sem emojis.
 Use no máximo uma das palavras preferidas, se combinar naturalmente. Nunca use nenhum dos termos proibidos.
+${CAPTION_WRITING_RULES}
 Responda apenas com a legenda, sem aspas.`;
 
 const describeScale = (value: number, low: string, high: string) =>
-  value <= 35
-    ? low
-    : value >= 65
-      ? high
-      : `equilibrado entre ${low} e ${high}`;
+  value <= 35 ? low : value >= 65 ? high : `equilibrado entre ${low} e ${high}`;
 
 function buildUserPrompt({
   tone,
@@ -58,10 +60,17 @@ function buildUserPrompt({
     .join("\n");
 }
 
-const containsForbiddenTerm = (caption: string, forbiddenTerms: string[]) =>
-  forbiddenTerms.some((term) =>
-    caption.toLowerCase().includes(term.toLowerCase()),
-  );
+function getCaptionIssues(caption: string, forbiddenTerms: string[]) {
+  const usedForbiddenTerms = findForbiddenTerms(caption, forbiddenTerms);
+
+  return [
+    ...lintCaption(caption, { maxHashtags: 0 }).issues,
+    caption.length > MAX_CAPTION_LENGTH &&
+      `A legenda tem ${caption.length} caracteres, o máximo é ${MAX_CAPTION_LENGTH}.`,
+    usedForbiddenTerms.length > 0 &&
+      `Termos proibidos usados: ${usedForbiddenTerms.join(", ")}.`,
+  ].filter((issue): issue is string => Boolean(issue));
+}
 
 async function writeCaptionWithAi(input: GenerateSampleCaptionInput) {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -71,22 +80,14 @@ async function writeCaptionWithAi(input: GenerateSampleCaptionInput) {
   }
 
   try {
-    const completion = await new OpenAI({ apiKey }).chat.completions.create({
-      model: LUNA_MODEL,
-      messages: [
+    return await writeLintedCaption(
+      new OpenAI({ apiKey }),
+      [
         { role: "system", content: CAPTION_INSTRUCTIONS },
         { role: "user", content: buildUserPrompt(input) },
       ],
-    });
-    const caption = completion.choices[0]?.message.content
-      ?.trim()
-      .replace(/^["“]|["”]$/g, "");
-
-    return caption &&
-      caption.length <= MAX_CAPTION_LENGTH &&
-      !containsForbiddenTerm(caption, input.forbiddenTerms)
-      ? caption
-      : null;
+      (caption) => getCaptionIssues(caption, input.forbiddenTerms),
+    );
   } catch (error) {
     console.error("[onboarding] falha ao gerar a frase de exemplo", error);
     return null;

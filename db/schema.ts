@@ -60,6 +60,7 @@ export const brandAssetKindEnum = pgEnum("brand_asset_kind", [
   "layout_origem",
   "post_bom",
   "post_ruim",
+  "story_bom",
 ]);
 export const assetStatusEnum = pgEnum("asset_status", [
   "pendente",
@@ -756,6 +757,25 @@ export const brandRules = pgTable(
   ],
 );
 
+export const brandArtRules = pgTable(
+  "brand_art_rules",
+  {
+    id: id(),
+    brandKitId: brandKitId(),
+    rule: text("rule").notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    index("brand_art_rules_brand_kit_id_idx").on(table.brandKitId),
+    check(
+      "brand_art_rules_rule_check",
+      sql`char_length(${table.rule}) between 1 and 500`,
+    ),
+    ...brandKitOwnerPolicies(table.brandKitId),
+  ],
+);
+
 export const brandRestrictions = pgTable(
   "brand_restrictions",
   {
@@ -1239,11 +1259,19 @@ export const socialAccounts = pgTable(
     storeId: storeId(),
     provider: socialProviderEnum("provider").notNull(),
     externalId: text("external_id").notNull(),
+    providerUserId: text("provider_user_id"),
     handle: text("handle"),
     tokenSecretId: uuid("token_secret_id"),
     status: connectionStatusEnum("status").notNull().default("conectado"),
+    accountType: text("account_type"),
+    scopes: text("scopes").array().notNull().default([]),
+    lastError: text("last_error"),
+    connectedBy: optionalProfileId("connected_by"),
     lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
     createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     unique("social_accounts_store_id_provider_unique").on(
@@ -1254,6 +1282,24 @@ export const socialAccounts = pgTable(
     storeMembersReadPolicy(table.storeId),
   ],
 );
+
+export const socialAccountTokens = pgTable(
+  "social_account_tokens",
+  {
+    socialAccountId: uuid("social_account_id")
+      .primaryKey()
+      .references(() => socialAccounts.id, { onDelete: "cascade" }),
+    accessTokenEncrypted: text("access_token_encrypted").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    refreshedAt: timestamp("refreshed_at", { withTimezone: true }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("social_account_tokens_expires_at_idx").on(table.expiresAt),
+  ],
+).enableRLS();
 
 export const metricSnapshots = pgTable(
   "metric_snapshots",
@@ -1405,6 +1451,7 @@ export const brandKitsRelations = relations(brandKits, ({ one, many }) => ({
   terms: many(brandTerms),
   personas: many(personas),
   rules: many(brandRules),
+  artRules: many(brandArtRules),
   restrictions: many(brandRestrictions),
   artworks: many(artworks),
 }));
@@ -1476,6 +1523,13 @@ export const personasRelations = relations(personas, ({ one, many }) => ({
 export const brandRulesRelations = relations(brandRules, ({ one }) => ({
   brandKit: one(brandKits, {
     fields: [brandRules.brandKitId],
+    references: [brandKits.id],
+  }),
+}));
+
+export const brandArtRulesRelations = relations(brandArtRules, ({ one }) => ({
+  brandKit: one(brandKits, {
+    fields: [brandArtRules.brandKitId],
     references: [brandKits.id],
   }),
 }));

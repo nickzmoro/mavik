@@ -30,12 +30,14 @@ type StudioPreviewPanelProps = {
   studio: StudioState;
   onDownload: (variationIndex: number) => void;
   onCopyCaption: () => void;
+  onPublishNow: () => void;
 };
 
 export function StudioPreviewPanel({
   studio,
   onDownload,
   onCopyCaption,
+  onPublishNow,
 }: StudioPreviewPanelProps) {
   return (
     <section
@@ -52,7 +54,9 @@ export function StudioPreviewPanel({
             studio.phase === "done"
               ? studio.imageUrls.length
               : studio.variationCount,
-            studio.format.name,
+            studio.phase === "done"
+              ? studio.resultFormat.name
+              : studio.format.name,
           )}
         </h2>
         {studio.phase === "done" ? (
@@ -75,6 +79,7 @@ export function StudioPreviewPanel({
           studio={studio}
           onDownload={onDownload}
           onCopyCaption={onCopyCaption}
+          onPublishNow={onPublishNow}
         />
       ) : null}
     </section>

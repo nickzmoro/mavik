@@ -133,7 +133,8 @@ export function ColorsTab({
                       </span>
                     </td>
                     <td className="border-t border-brand-tile-border p-3 align-middle">
-                      {row.foreground.roleLabel} sobre {row.background.roleLabel}
+                      {row.foreground.roleLabel} sobre{" "}
+                      {row.background.roleLabel}
                     </td>
                     <td className="border-t border-brand-tile-border p-3 align-middle font-semibold tabular-nums">
                       {row.ratioLabel}

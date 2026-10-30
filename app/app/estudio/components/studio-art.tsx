@@ -1,9 +1,6 @@
 import { brandDisplayFont } from "@/lib/brand-display-font";
 import { mockBrandInitials } from "@/lib/mocks/brand";
-import {
-  studioArtStyles,
-  type StudioArtVariant,
-} from "@/lib/mocks/studio";
+import { studioArtStyles, type StudioArtVariant } from "@/lib/mocks/studio";
 import { cn } from "@/lib/utils";
 
 type ArtTextProps = {
@@ -138,11 +135,7 @@ export function StudioArt({
       )}
       style={{ aspectRatio, background: artStyle.background }}
     >
-      <Art
-        title={title}
-        subtitle={subtitle}
-        titleColor={artStyle.titleColor}
-      />
+      <Art title={title} subtitle={subtitle} titleColor={artStyle.titleColor} />
       <span
         aria-hidden="true"
         className="absolute right-[5%] bottom-[4%] flex size-[11cqw] items-center justify-center rounded-full font-display text-[3.6cqw] font-bold"

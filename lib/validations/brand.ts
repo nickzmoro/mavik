@@ -52,6 +52,16 @@ export const brandTagFormSchema = z.object({
 
 export type BrandTagFormValues = z.infer<typeof brandTagFormSchema>;
 
+export const artRuleFormSchema = z.object({
+  rule: z
+    .string()
+    .trim()
+    .min(1, "Escreva a regra.")
+    .max(500, "Use até 500 caracteres."),
+});
+
+export type ArtRuleFormValues = z.infer<typeof artRuleFormSchema>;
+
 export const personaFormSchema = z.object({
   name: z
     .string()

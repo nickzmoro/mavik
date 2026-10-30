@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getBrandSteps, type BrandKitData } from "@/lib/brand/brand-kit-data";
+import type { InstagramConnection } from "@/lib/instagram/accounts";
+import type { InstagramConnectResult } from "@/lib/routes";
 import {
   brandTabs,
   type BrandColor,
@@ -22,6 +24,7 @@ import { ColorDialog } from "./color-dialog";
 import { ColorsTab } from "./colors-tab";
 import { FontUploadDialog } from "./font-upload-dialog";
 import { FontsTab } from "./fonts-tab";
+import { InstagramConnectionCard } from "./instagram-connection-card";
 import { LayoutsTab } from "./layouts-tab";
 import { LogosTab } from "./logos-tab";
 import { PersonaDialog } from "./persona-dialog";
@@ -57,12 +60,20 @@ const saveStatusLabels: Record<SaveStatus, string> = {
 
 type BrandWorkspaceProps = {
   initialData: BrandKitData;
+  initialTab: BrandTab;
+  instagramConnection: InstagramConnection | null;
+  instagramResult?: InstagramConnectResult;
 };
 
-export function BrandWorkspace({ initialData }: BrandWorkspaceProps) {
+export function BrandWorkspace({
+  initialData,
+  initialTab,
+  instagramConnection,
+  instagramResult,
+}: BrandWorkspaceProps) {
   const { showToast } = useToast();
   const brandKit = useBrandKit(initialData);
-  const [activeTab, setActiveTab] = useState<BrandTab>("logos");
+  const [activeTab, setActiveTab] = useState<BrandTab>(initialTab);
   const [colorDialog, setColorDialog] = useState<{
     isOpen: boolean;
     color: BrandColor | null;
@@ -134,9 +145,7 @@ export function BrandWorkspace({ initialData }: BrandWorkspaceProps) {
 
   return (
     <>
-      <BrandHeader
-        versionLabel={saveStatusLabels[brandKit.saveStatus]}
-      />
+      <BrandHeader versionLabel={saveStatusLabels[brandKit.saveStatus]} />
 
       <Tabs
         value={activeTab}
@@ -192,15 +201,16 @@ export function BrandWorkspace({ initialData }: BrandWorkspaceProps) {
               <StyleTab
                 imageStyle={brandKit.imageStyle}
                 references={brandKit.references}
+                storyReferences={brandKit.storyReferences}
                 onImageStyleChange={brandKit.setImageStyle}
-                onAddReference={async (file) =>
+                onAddReference={async (file, kind) =>
                   showUploadResult(
-                    await brandKit.addReference(file),
+                    await brandKit.addReference(file, kind),
                     "Referência adicionada",
                   )
                 }
-                onRemoveReference={(referenceId) => {
-                  brandKit.removeReference(referenceId);
+                onRemoveReference={(referenceId, kind) => {
+                  brandKit.removeReference(referenceId, kind);
                   showToast("Referência removida");
                 }}
               />
@@ -210,6 +220,8 @@ export function BrandWorkspace({ initialData }: BrandWorkspaceProps) {
                 palette={brandKit.palette}
                 logoUrl={mainLogoUrl}
                 layoutModes={brandKit.layoutModes}
+                layoutFormat={brandKit.layoutFormat}
+                onChangeFormat={brandKit.changeLayoutFormat}
                 postImage={brandKit.layoutPostImage}
                 savedLayouts={brandKit.savedLayouts}
                 editingLayoutId={brandKit.editingLayoutId}
@@ -258,6 +270,7 @@ export function BrandWorkspace({ initialData }: BrandWorkspaceProps) {
             </TabsContent>
             <TabsContent value="rules">
               <RulesTab
+                initialData={initialData}
                 activeRuleIds={brandKit.activeRuleIds}
                 avoidedColors={brandKit.avoidedColors}
                 avoidedElements={brandKit.avoidedElements}
@@ -265,6 +278,12 @@ export function BrandWorkspace({ initialData }: BrandWorkspaceProps) {
                 bannedWords={brandKit.bannedWords}
                 onToggleRule={brandKit.toggleRule}
                 onAddRestriction={() => setIsRestrictionDialogOpen(true)}
+              />
+            </TabsContent>
+            <TabsContent value="connections">
+              <InstagramConnectionCard
+                connection={instagramConnection}
+                result={instagramResult}
               />
             </TabsContent>
           </div>

@@ -32,6 +32,18 @@ export function getStudioUrlForPauta(pauta: string) {
   return `${routes.studio}?${new URLSearchParams({ [STUDIO_PAUTA_PARAM]: pauta })}`;
 }
 
+export const STUDIO_ARTWORK_PARAM = "arte";
+
+export function getStudioUrlForArtwork(artworkId: string) {
+  return `${routes.studio}?${new URLSearchParams({ [STUDIO_ARTWORK_PARAM]: artworkId })}`;
+}
+
 export const authRoutes = [routes.login, routes.signUp, routes.recoverPassword];
 
 export const protectedRoutes = [routes.appRoot, routes.resetPassword];
+
+export const BRAND_TAB_PARAM = "aba";
+export const INSTAGRAM_RESULT_PARAM = "instagram";
+
+export type InstagramConnectResult =
+  "conectado" | "erro" | "negado" | "sem_conta";

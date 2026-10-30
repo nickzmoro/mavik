@@ -25,7 +25,10 @@ export function PreviewGeneratingState({
             key={step}
             className="flex items-center gap-2 text-sm leading-[1.4]"
           >
-            <Check aria-hidden="true" className="size-4 shrink-0 text-success" />
+            <Check
+              aria-hidden="true"
+              className="size-4 shrink-0 text-success"
+            />
             {step}
           </li>
         ))}

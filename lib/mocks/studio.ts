@@ -154,9 +154,6 @@ export const mockGeneratedArt = {
   subtitle: "Notas de caramelo e castanha. Passa aqui no sábado?",
 };
 
-export const mockSuggestedCaption =
-  "Chegou o blend de outono: notas de caramelo e castanha, passado na hora.\nVem provar no sábado de manhã?";
-
 export const brandRuleHighlights = [
   "Logo no canto inferior direito",
   "Só cores da paleta",

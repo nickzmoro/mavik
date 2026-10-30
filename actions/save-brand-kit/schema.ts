@@ -58,6 +58,7 @@ export const saveBrandKitSchema = z.object({
       z.object({
         id: z.uuid(),
         name: textSchema(60),
+        format: z.enum(["post", "story"]),
         layoutModes: z.record(z.enum(layoutElementIds), z.boolean()),
         sourceAssetId: z.uuid().optional(),
       }),

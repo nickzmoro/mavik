@@ -7,8 +7,13 @@ import {
   getUpcomingContents,
   type UpcomingContent,
 } from "@/lib/content/get-upcoming-contents";
-import { routes } from "@/lib/routes";
+import {
+  getStudioUrlForArtwork,
+  getStudioUrlForPauta,
+  routes,
+} from "@/lib/routes";
 
+import { postCardLinkClassName } from "./drafts-section";
 import { HomeSectionTitle } from "./home-section-title";
 
 const postStatusBadges: Record<
@@ -42,7 +47,15 @@ function UpcomingPostCard({ post }: { post: UpcomingContent }) {
   const statusBadge = postStatusBadges[post.status];
 
   return (
-    <article className="glass flex flex-col gap-3 rounded-[20px] p-2.5">
+    <Link
+      href={
+        post.artworkId
+          ? getStudioUrlForArtwork(post.artworkId)
+          : getStudioUrlForPauta(post.title)
+      }
+      aria-label={`Abrir post no Estúdio: ${post.title}`}
+      className={postCardLinkClassName}
+    >
       {post.imageUrl ? (
         <div className="relative aspect-4/5 overflow-hidden rounded-[14px]">
           <Image
@@ -68,7 +81,7 @@ function UpcomingPostCard({ post }: { post: UpcomingContent }) {
           <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 

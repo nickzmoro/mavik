@@ -2,7 +2,10 @@ import { ArrowUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-type RoundSendButtonProps = Omit<React.ComponentProps<"button">, "aria-label"> & {
+type RoundSendButtonProps = Omit<
+  React.ComponentProps<"button">,
+  "aria-label"
+> & {
   label: string;
 };
 

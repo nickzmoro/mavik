@@ -40,9 +40,13 @@ export function CreatePostCard() {
   const [isComposerActive, setIsComposerActive] = useState(false);
   const attachments = useAttachments();
   const recording = useSpeechRecognition((transcript) =>
-    form.setValue("prompt", `${form.getValues("prompt")} ${transcript}`.trim(), {
-      shouldValidate: form.formState.isSubmitted,
-    }),
+    form.setValue(
+      "prompt",
+      `${form.getValues("prompt")} ${transcript}`.trim(),
+      {
+        shouldValidate: form.formState.isSubmitted,
+      },
+    ),
   );
 
   const handleGenerateArt = () => {};

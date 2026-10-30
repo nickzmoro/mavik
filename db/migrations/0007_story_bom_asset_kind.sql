@@ -1,0 +1,1 @@
+ALTER TYPE "public"."brand_asset_kind" ADD VALUE 'story_bom';

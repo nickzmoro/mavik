@@ -14,6 +14,7 @@ export const brandAssetKinds = [
   "manual",
   "post_bom",
   "post_ruim",
+  "story_bom",
   "layout_origem",
   "fonte",
 ] as const;
@@ -28,8 +29,12 @@ export function isPostExampleKind(kind: string): kind is PostExampleKind {
   return postExampleKinds.some((postKind) => postKind === kind);
 }
 
+export const isExampleKind = (kind: string) =>
+  isPostExampleKind(kind) || kind === "story_bom";
+
 const multipleAssetKinds: BrandAssetKind[] = [
   ...postExampleKinds,
+  "story_bom",
   "layout_origem",
   "fonte",
 ];
@@ -80,7 +85,7 @@ export const uploadBrandAssetSchema = z
     }
 
     const isManual = kind === "manual";
-    const isPostExample = isPostExampleKind(kind) || kind === "layout_origem";
+    const isPostExample = isExampleKind(kind) || kind === "layout_origem";
     const allowedTypes = isManual
       ? manualMimeTypes
       : isPostExample
