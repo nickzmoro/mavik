@@ -1,24 +1,16 @@
 import { Calendar } from "lucide-react";
 
 import { contentFormatIcons } from "@/components/common/format-icons";
-import {
-  mockIdeaDates,
-  type IdeaDateKey,
-  type IdeaFormat,
-} from "@/lib/mocks/ideas";
+import { formatShortDate } from "@/lib/agenda-dates";
+import { formatLabels } from "@/lib/content/content-labels";
+import type { IdeaDateView } from "@/lib/ideas/idea-types";
+import type { ContentFormat } from "@/lib/onboarding/constants";
 import { cn } from "@/lib/utils";
 
-export const getIdeaDateLabel = (dateKey: IdeaDateKey) => {
-  const ideaDate = mockIdeaDates.find((date) => date.key === dateKey);
-
-  if (!ideaDate) {
-    return "";
-  }
-
-  return ideaDate.isTrend
+export const getIdeaDateLabel = (ideaDate: IdeaDateView) =>
+  ideaDate.isTrend
     ? "Tendência do setor"
-    : `${ideaDate.name} · ${ideaDate.day}`;
-};
+    : `${ideaDate.name} · ${formatShortDate(ideaDate.date)}`;
 
 export function IdeaTagChip({
   className,
@@ -35,28 +27,28 @@ export function IdeaTagChip({
   );
 }
 
-export function IdeaFormatChip({ format }: { format: IdeaFormat }) {
+export function IdeaFormatChip({ format }: { format: ContentFormat }) {
   const FormatIcon = contentFormatIcons[format];
 
   return (
     <IdeaTagChip className="font-semibold text-text">
       <FormatIcon aria-hidden="true" className="size-3.5" />
-      {format}
+      {formatLabels[format]}
     </IdeaTagChip>
   );
 }
 
 export function IdeaDateChip({
-  dateKey,
+  ideaDate,
   hasIcon = true,
 }: {
-  dateKey: IdeaDateKey;
+  ideaDate: IdeaDateView;
   hasIcon?: boolean;
 }) {
   return (
     <span className="date-chip inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.75 text-xs leading-[1.4] font-semibold">
       {hasIcon ? <Calendar aria-hidden="true" className="size-3" /> : null}
-      {getIdeaDateLabel(dateKey)}
+      {getIdeaDateLabel(ideaDate)}
     </span>
   );
 }

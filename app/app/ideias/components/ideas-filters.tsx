@@ -1,11 +1,12 @@
 import { FilterPill } from "@/components/common/filter-pill";
 
-import {
-  ideaFilterGroups,
-  type IdeaFilterKey,
+import type {
+  IdeaFilterGroup,
+  IdeaFilterKey,
 } from "../hooks/use-ideas-library";
 
 type IdeasFiltersProps = {
+  filterGroups: IdeaFilterGroup[];
   filters: Record<IdeaFilterKey, string[]>;
   hasActiveFilters: boolean;
   onToggleFilter: (filterKey: IdeaFilterKey, option: string) => void;
@@ -13,6 +14,7 @@ type IdeasFiltersProps = {
 };
 
 export function IdeasFilters({
+  filterGroups,
   filters,
   hasActiveFilters,
   onToggleFilter,
@@ -40,7 +42,7 @@ export function IdeasFilters({
           </button>
         ) : null}
       </div>
-      {ideaFilterGroups.map((group) => (
+      {filterGroups.map((group) => (
         <div
           key={group.key}
           role="group"
@@ -53,12 +55,12 @@ export function IdeasFilters({
           <div className="flex flex-wrap gap-1.5">
             {group.options.map((option) => (
               <FilterPill
-                key={option}
+                key={option.value}
                 size="sm"
-                isActive={filters[group.key].includes(option)}
-                onClick={() => onToggleFilter(group.key, option)}
+                isActive={filters[group.key].includes(option.value)}
+                onClick={() => onToggleFilter(group.key, option.value)}
               >
-                {option}
+                {option.label}
               </FilterPill>
             ))}
           </div>

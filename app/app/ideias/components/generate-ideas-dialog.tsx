@@ -44,7 +44,13 @@ type GenerateIdeasDialogProps = {
   initialTheme: string;
 };
 
-function GeneratingIdeasState({ quantity }: { quantity: number }) {
+export function GeneratingIdeasState({
+  quantity,
+  storeName,
+}: {
+  quantity: number;
+  storeName: string;
+}) {
   return (
     <div
       aria-live="polite"
@@ -57,11 +63,11 @@ function GeneratingIdeasState({ quantity }: { quantity: number }) {
         <Sparkles className="size-7" />
       </span>
       <p className="m-0 font-display text-[17px] leading-[1.4] font-semibold">
-        Criando {quantity} ideias para o {mockCurrentStore.name}
+        Criando {quantity} ideias para {storeName || "a sua marca"}
       </p>
       <p className="m-0 max-w-95 text-sm leading-normal text-muted">
-        Cruzando seu objetivo, o público e os resultados de setembro. Leva
-        alguns segundos.
+        Cruzando seu objetivo, seus produtos e o seu público. Leva alguns
+        segundos.
       </p>
       <div className="mt-1.5 flex w-full max-w-90 flex-col gap-2">
         {["w-full", "w-4/5", "w-3/5"].map((widthClassName) => (
@@ -115,7 +121,12 @@ function GenerateIdeasForm({
   }, [generatingQuantity]);
 
   if (generatingQuantity !== null) {
-    return <GeneratingIdeasState quantity={generatingQuantity} />;
+    return (
+      <GeneratingIdeasState
+        quantity={generatingQuantity}
+        storeName={mockCurrentStore.name}
+      />
+    );
   }
 
   const handleGenerateIdeas = (values: GenerateIdeasFormValues) =>

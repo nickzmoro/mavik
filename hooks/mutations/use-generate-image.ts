@@ -31,8 +31,7 @@ async function generateImage(
 
   return {
     imageUrl: body.imageUrl,
-    artworkId:
-      typeof body.artworkId === "string" ? body.artworkId : undefined,
+    artworkId: typeof body.artworkId === "string" ? body.artworkId : undefined,
   };
 }
 

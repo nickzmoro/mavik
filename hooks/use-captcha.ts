@@ -11,8 +11,7 @@ export function useCaptcha() {
   const getCaptchaToken = useCallback(async () => {
     try {
       return (
-        (await captchaRef.current?.getResponsePromise(CAPTCHA_TIMEOUT_MS)) ??
-        ""
+        (await captchaRef.current?.getResponsePromise(CAPTCHA_TIMEOUT_MS)) ?? ""
       );
     } catch {
       return "";
