@@ -59,7 +59,6 @@ async function resizeLogo(
 export async function applyLogo(
   imageBytes: Buffer,
   logos: BrandContext["logos"],
-  bottomInsetRatio = 0,
 ) {
   if (logos.length === 0) {
     return imageBytes;
@@ -69,7 +68,6 @@ export async function applyLogo(
   const maxLogoWidth = Math.round(width * LOGO_MAX_WIDTH_RATIO);
   const maxLogoHeight = Math.round(height * LOGO_MAX_HEIGHT_RATIO);
   const margin = Math.round(width * MARGIN_RATIO);
-  const bottomMargin = margin + Math.round(height * bottomInsetRatio);
   const findLogo = (kind: LogoKind) => logos.find((logo) => logo.kind === kind);
 
   const measuredLogo = await resizeLogo(
@@ -79,7 +77,7 @@ export async function applyLogo(
   );
   const placement = {
     left: width - measuredLogo.width - margin,
-    top: height - measuredLogo.height - bottomMargin,
+    top: height - measuredLogo.height - margin,
   };
   const backgroundLuminance = await getBackgroundLuminance(imageBytes, {
     ...placement,
@@ -98,7 +96,7 @@ export async function applyLogo(
       {
         input: logo.bytes,
         left: width - logo.width - margin,
-        top: height - logo.height - bottomMargin,
+        top: height - logo.height - margin,
       },
     ])
     .png()

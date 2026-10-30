@@ -33,23 +33,16 @@ const imageFormats = {
   square: {
     size: "1024x1024",
     contentFormat: "post",
-    logoBottomInset: 0,
-    logoArea: "the bottom-right corner (30% of the width, 15% of the height)",
     description: "a 1:1 square Instagram feed post",
   },
   portrait: {
     size: "1024x1280",
     contentFormat: "post",
-    logoBottomInset: 0,
-    logoArea: "the bottom-right corner (30% of the width, 15% of the height)",
     description: "a 4:5 Instagram feed post",
   },
   story: {
     size: "1152x2048",
     contentFormat: "story",
-    logoBottomInset: 0.2,
-    logoArea:
-      "the right corner just above the bottom 20% of the frame (30% of the width, from 68% to 80% of the height)",
     description:
       "a 9:16 vertical Instagram story. Keep the top 14% and the bottom 20% of the frame free of text and graphics",
   },
@@ -117,7 +110,7 @@ Write a detailed prompt that specifies: the layout copied from the approved post
 Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
 Only add a call to action, button, badge or seal if the approved posts have one, in the same position, size, shape and colors as in them. Never invent buttons or calls to action such as "Descubra mais", "Saiba mais" or "Compre agora", and never use accent colors that the approved posts do not use.
 When a product photo is attached, that exact product is the hero of the post: describe it precisely (shape, colors, labels, packaging) and never replace it with another product or with the products shown in the example posts.
-Never draw, describe or invent any logo, symbol, monogram, wordmark, and never write the brand name in the image or in your prompt: the official logo file is placed afterwards in the bottom-right corner (in stories, just above the bottom 20% of the frame), so keep that area clean.
+Never draw, describe or invent any logo, symbol, monogram, wordmark, and never write the brand name in the image or in your prompt: the official logo file is placed afterwards in the bottom-right corner, so keep that area clean.
 Output ONLY the final English prompt for GPT Image, in a single paragraph, with no preamble, quotes or explanations.
 
 BRAND GUIDELINES:
@@ -326,7 +319,7 @@ function buildImageGuardrails(
       `Use only the brand colors ${brandContext.colorHexes.join(", ")} for backgrounds, shapes and text. No other colors in graphic elements.`,
     brandContext.restrictions.length > 0 &&
       `Strictly forbidden in this image, even if present in the reference posts: ${brandContext.restrictions.join("; ")}.`,
-    `Never draw any logo, logotype, symbol, monogram, wordmark or brand name anywhere in the image. Keep ${imageFormats[format].logoArea} empty of text and graphics: the official logo is added there afterwards.`,
+    `Never draw any logo, logotype, symbol, monogram, wordmark or brand name anywhere in the image. Keep the bottom-right corner (30% of the width, 15% of the height) empty of text and graphics: the official logo is added there afterwards.`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -487,11 +480,7 @@ export async function POST(request: Request) {
 
     const generatedImage = Buffer.from(imageBase64, "base64");
     const finalImage = brandContext
-      ? await applyLogo(
-          generatedImage,
-          brandContext.logos,
-          imageFormats[format].logoBottomInset,
-        ).catch((error) => {
+      ? await applyLogo(generatedImage, brandContext.logos).catch((error) => {
           console.error("Logo overlay failed", error);
           return generatedImage;
         })
