@@ -6,14 +6,13 @@ import type { BrandContext } from "./get-brand-context";
 import { downloadBrandAsset } from "./get-brand-context";
 import { contrastScore } from "./logo-image";
 import {
+  LOGO_MARGIN_RATIO,
+  LOGO_MAX_HEIGHT_RATIO,
+  LOGO_MAX_WIDTH_RATIO,
   defaultLogoPlacement,
   getLogoOffset,
   type LogoPlacement,
 } from "./logo-placement";
-
-const LOGO_MAX_WIDTH_RATIO = 0.3;
-const LOGO_MAX_HEIGHT_RATIO = 0.12;
-const MARGIN_RATIO = 0.05;
 
 type ResizedLogo = Awaited<ReturnType<typeof resizeLogo>>;
 
@@ -56,7 +55,7 @@ export async function applyLogo(
   const { width = 1024, height = 1024 } = await sharp(imageBytes).metadata();
   const maxLogoWidth = Math.round(width * LOGO_MAX_WIDTH_RATIO);
   const maxLogoHeight = Math.round(height * LOGO_MAX_HEIGHT_RATIO);
-  const margin = Math.round(width * MARGIN_RATIO);
+  const margin = Math.round(width * LOGO_MARGIN_RATIO);
   const placeLogo = (logo: { width: number; height: number }) =>
     getLogoOffset({
       imageWidth: width,

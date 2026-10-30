@@ -76,3 +76,40 @@ test("esconder a logo do exemplo mantém a linha do rodapé até a borda", async
   assert.deepEqual(pixelAt(97, 93), [0, 0, 255]);
   assert.deepEqual(pixelAt(85, 85), [255, 255, 255]);
 });
+
+test("esconder a logo do exemplo não altera a onda acima do rodapé", async () => {
+  const width = 100;
+  const height = 100;
+  const image = await sharp({
+    create: {
+      width,
+      height,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .composite([
+      {
+        input: {
+          create: {
+            width: 4,
+            height: 4,
+            channels: 3,
+            background: { r: 0, g: 0, b: 120 },
+          },
+        },
+        left: 90,
+        top: 79,
+      },
+    ])
+    .png()
+    .toBuffer();
+
+  const { data } = await sharp(await hideLogoArea(image))
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const offset = (80 * width + 91) * 3;
+
+  assert.deepEqual(Array.from(data.subarray(offset, offset + 3)), [0, 0, 120]);
+});

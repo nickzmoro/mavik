@@ -1,7 +1,16 @@
 import sharp from "sharp";
 
+import {
+  LOGO_MARGIN_RATIO,
+  LOGO_MAX_HEIGHT_RATIO,
+  LOGO_MAX_WIDTH_RATIO,
+} from "./logo-placement.ts";
+
 const VISIBLE_ALPHA = 128;
-const EXAMPLE_LOGO_AREA = { left: 0.55, top: 0.78 };
+const EXAMPLE_LOGO_AREA = {
+  left: 1 - LOGO_MARGIN_RATIO - LOGO_MAX_WIDTH_RATIO,
+  top: 1 - LOGO_MARGIN_RATIO - LOGO_MAX_HEIGHT_RATIO,
+};
 
 const luminance = (red: number, green: number, blue: number) =>
   0.2126 * red + 0.7152 * green + 0.0722 * blue;

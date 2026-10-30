@@ -1,3 +1,7 @@
+export const LOGO_MAX_WIDTH_RATIO = 0.3;
+export const LOGO_MAX_HEIGHT_RATIO = 0.12;
+export const LOGO_MARGIN_RATIO = 0.05;
+
 export const logoPositions = [
   "top-left",
   "top-right",

@@ -119,6 +119,7 @@ Follow these sources in this order of priority. When two of them disagree, the o
 
 How to write the prompt:
 - Describe the layout of the approved posts precisely (grid, where the photo, headline, secondary text and call to action sit, proportions, margins, shapes, textures, typography weight, size and case, and the color of each element) and reproduce it as closely as possible, changing only the content. Avoid the style of the attached rejected posts.
+- Describe the signature graphic elements of the approved posts (waves, curves, dividers, bands and lines) with their exact geometry: where each one starts and ends as a percentage of the width and height, which way it rises or falls, how many crests it has, its thickness and color, and whether it runs from edge to edge. Reproduce their shape exactly as in the approved posts; never simplify a curve into a straight line or a different curve.
 - Name the exact brand colors by name and HEX for background, shapes and text. Use no color outside the brand palette.
 - Describe the look of the brand fonts (style, weight and case), since the image model cannot load font files.
 - Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
