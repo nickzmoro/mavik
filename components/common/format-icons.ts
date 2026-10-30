@@ -6,11 +6,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { IdeaFormat } from "@/lib/mocks/ideas";
+import type { ContentFormat } from "@/lib/onboarding/constants";
 
-export const contentFormatIcons: Record<IdeaFormat, LucideIcon> = {
-  Post: ImageIcon,
-  Story: Smartphone,
-  Reels: Video,
-  Carrossel: Layers,
+export const contentFormatIcons: Record<ContentFormat, LucideIcon> = {
+  post: ImageIcon,
+  story: Smartphone,
+  reels: Video,
+  carrossel: Layers,
 };

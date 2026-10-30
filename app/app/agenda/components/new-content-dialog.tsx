@@ -33,7 +33,8 @@ import {
   newContentCampaignOptions,
   type AgendaItem,
 } from "@/lib/mocks/agenda";
-import { ideaFormats, ideaGoals } from "@/lib/mocks/ideas";
+import { formatLabels, goalLabels } from "@/lib/content/content-labels";
+import { contentFormats, contentGoals } from "@/lib/onboarding/constants";
 import {
   newContentFormSchema,
   type NewContentFormValues,
@@ -106,8 +107,8 @@ function NewContentForm({
       origin: "library",
       libraryIdeaId: mockAgendaLibraryIdeas[0].id,
       title: "",
-      format: "Reels",
-      goal: "Engajar",
+      format: "reels",
+      goal: "engajar",
       slotId: mockNewContentSlots[0].id,
       campaign: "Nenhuma",
     },
@@ -192,7 +193,8 @@ function NewContentForm({
                   <PillGroup
                     id="new-content-format"
                     label="Formato"
-                    options={ideaFormats}
+                    options={contentFormats}
+                    getLabel={(option) => formatLabels[option]}
                     isSelected={(option) => option === field.value}
                     onToggle={field.onChange}
                   />
@@ -205,7 +207,8 @@ function NewContentForm({
                   <PillGroup
                     id="new-content-goal"
                     label="Objetivo"
-                    options={ideaGoals}
+                    options={contentGoals}
+                    getLabel={(option) => goalLabels[option]}
                     isSelected={(option) => option === field.value}
                     onToggle={field.onChange}
                   />

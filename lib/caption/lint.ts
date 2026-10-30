@@ -24,6 +24,11 @@ export const CAPTION_CLICHES = [
   "qualidade e excelência",
   "mais do que um",
   "não é apenas",
+  "você sabia",
+  "corre que",
+  "o melhor da cidade",
+  "não fique de fora",
+  "aproveite já",
 ];
 
 const callsToAction = [
@@ -65,11 +70,8 @@ const containsTerm = (foldedText: string, term: string) =>
     "u",
   ).test(foldedText);
 
-export const findMentionedProducts = (prompt: string, productNames: string[]) =>
-  productNames.filter(
-    (productName) =>
-      productName.trim() && containsTerm(fold(prompt), productName.trim()),
-  );
+export const findMentionedTerms = (text: string, terms: string[]) =>
+  terms.filter((term) => term.trim() && containsTerm(fold(text), term.trim()));
 
 export function humanizeCaption(caption: string) {
   const withoutInvisible = caption

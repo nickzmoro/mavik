@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { FilterPill } from "@/components/common/filter-pill";
-import { mockIdeas } from "@/lib/mocks/ideas";
+import { useGenerateIdeas } from "@/hooks/mutations/use-generate-ideas";
+import type { IdeasData } from "@/lib/ideas/idea-types";
 import { useToast } from "@/providers/toast-provider";
 
 import { useIdeasLibrary } from "../hooks/use-ideas-library";
-import { GenerateIdeasDialog } from "./generate-ideas-dialog";
+import {
+  GenerateIdeasDialog,
+  GeneratingIdeasState,
+} from "./generate-ideas-dialog";
 import { IdeaCard } from "./idea-card";
 import { IdeaDetailDialog } from "./idea-detail-dialog";
 import { IdeaVersionsDialog } from "./idea-versions-dialog";
@@ -20,16 +24,55 @@ import { ScheduleIdeaDialog } from "./schedule-idea-dialog";
 
 type IdeasDialog = "none" | "detail" | "versions" | "generate" | "schedule";
 
-export function IdeasLibrary() {
+const INITIAL_IDEAS_COUNT = 9;
+
+type IdeasLibraryProps = {
+  initialData: IdeasData;
+  datesWindowDays: number;
+};
+
+export function IdeasLibrary({
+  initialData,
+  datesWindowDays,
+}: IdeasLibraryProps) {
   const { showToast } = useToast();
-  const library = useIdeasLibrary();
+  const library = useIdeasLibrary(initialData);
+  const generateIdeasMutation = useGenerateIdeas();
+  const hasRequestedInitialIdeasRef = useRef(false);
   const [activeDialog, setActiveDialog] = useState<IdeasDialog>("none");
-  const [selectedIdeaId, setSelectedIdeaId] = useState(mockIdeas[0].id);
+  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
   const [generateInitialTheme, setGenerateInitialTheme] = useState("");
 
-  const selectedIdea =
-    mockIdeas.find((idea) => idea.id === selectedIdeaId) ?? mockIdeas[0];
+  const { data } = library;
+  const selectedIdea = data.ideas.find((idea) => idea.id === selectedIdeaId);
+  const findIdeaDate = (calendarDateId: string | null) =>
+    data.dates.find((date) => date.id === calendarDateId) ?? null;
   const ideasCount = library.visibleIdeas.length;
+  const isGeneratingInitialIdeas =
+    data.ideas.length === 0 &&
+    (data.isGenerating || generateIdeasMutation.isPending);
+  const shouldGenerateInitialIdeas =
+    data.ideas.length === 0 && !data.isGenerating;
+
+  useEffect(() => {
+    if (!shouldGenerateInitialIdeas || hasRequestedInitialIdeasRef.current) {
+      return;
+    }
+
+    hasRequestedInitialIdeasRef.current = true;
+    generateIdeasMutation.mutate(
+      { mode: "initial" },
+      {
+        onSuccess: (result) => {
+          if (!result.isSuccess) {
+            showToast(result.errorMessage);
+          }
+        },
+        onError: () =>
+          showToast("Não conseguimos gerar as ideias agora. Tente de novo."),
+      },
+    );
+  }, [generateIdeasMutation, shouldGenerateInitialIdeas, showToast]);
 
   const openIdeaDialog = (ideaId: string, dialog: IdeasDialog) => {
     setSelectedIdeaId(ideaId);
@@ -44,27 +87,35 @@ export function IdeasLibrary() {
   const handleDialogOpenChange = (dialog: IdeasDialog) => (isOpen: boolean) =>
     setActiveDialog(isOpen ? dialog : "none");
 
-  const handleToggleSave = (ideaId: string) => {
-    const isNowSaved = library.toggleSavedIdea(ideaId);
-
-    showToast(
-      isNowSaved
-        ? "Ideia salva na sua biblioteca"
-        : "Ideia removida dos salvos",
+  const handleToggleSave = (ideaId: string) =>
+    library.toggleSavedIdea(ideaId, ({ isSaved, errorMessage }) =>
+      showToast(
+        errorMessage ??
+          (isSaved
+            ? "Ideia salva na sua biblioteca"
+            : "Ideia removida dos salvos"),
+      ),
     );
-  };
 
   return (
     <>
       <IdeasHeader onGenerateIdeas={() => openGenerateDialog()} />
-      <IdeasSearchBar query={library.query} onQueryChange={library.setQuery} />
+      <IdeasSearchBar
+        query={library.query}
+        storeSegment={data.storeSegment}
+        businessGoal={data.businessGoal}
+        onQueryChange={library.setQuery}
+      />
       <IdeasDates
-        selectedDateKey={library.selectedDate?.key ?? null}
+        dates={data.dates}
+        windowDays={datesWindowDays}
+        selectedDateId={library.selectedDate?.id ?? null}
         onToggleDate={library.toggleDate}
       />
 
       <div className="flex flex-col gap-5 xl:flex-row xl:items-start">
         <IdeasFilters
+          filterGroups={library.filterGroups}
           filters={library.filters}
           hasActiveFilters={library.hasActiveFilters}
           onToggleFilter={library.toggleFilter}
@@ -95,12 +146,20 @@ export function IdeasLibrary() {
             </span>
           </div>
 
-          {ideasCount > 0 ? (
+          {isGeneratingInitialIdeas ? (
+            <div className="glass rounded-3xl">
+              <GeneratingIdeasState
+                quantity={INITIAL_IDEAS_COUNT}
+                storeName={data.storeName}
+              />
+            </div>
+          ) : ideasCount > 0 ? (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(min(340px,100%),1fr))] gap-4">
               {library.visibleIdeas.map((idea) => (
                 <IdeaCard
                   key={idea.id}
                   idea={idea}
+                  ideaDate={findIdeaDate(idea.calendarDateId)}
                   isSaved={library.savedIdeaIds.includes(idea.id)}
                   onToggleSave={() => handleToggleSave(idea.id)}
                   onOpenDetail={() => openIdeaDialog(idea.id, "detail")}
@@ -112,6 +171,8 @@ export function IdeasLibrary() {
           ) : (
             <IdeasEmptyState
               selectedDate={library.selectedDate}
+              storeName={data.storeName}
+              hasIdeas={data.ideas.length > 0}
               view={library.view}
               onGenerateIdeas={() =>
                 openGenerateDialog(library.selectedDate?.name ?? "")
@@ -122,28 +183,37 @@ export function IdeasLibrary() {
         </section>
       </div>
 
-      <IdeaDetailDialog
-        idea={selectedIdea}
-        open={activeDialog === "detail"}
-        onOpenChange={handleDialogOpenChange("detail")}
-        onOpenVersions={() => setActiveDialog("versions")}
-        onUse={() => setActiveDialog("schedule")}
-      />
-      <IdeaVersionsDialog
-        idea={selectedIdea}
-        open={activeDialog === "versions"}
-        onOpenChange={handleDialogOpenChange("versions")}
-        onUseVersion={() => setActiveDialog("schedule")}
-      />
+      {selectedIdea ? (
+        <>
+          <IdeaDetailDialog
+            idea={selectedIdea}
+            ideaDate={findIdeaDate(selectedIdea.calendarDateId)}
+            isSaved={library.savedIdeaIds.includes(selectedIdea.id)}
+            onToggleSave={() => handleToggleSave(selectedIdea.id)}
+            open={activeDialog === "detail"}
+            onOpenChange={handleDialogOpenChange("detail")}
+            onOpenVersions={() => setActiveDialog("versions")}
+            onUse={() => setActiveDialog("schedule")}
+          />
+          <IdeaVersionsDialog
+            idea={selectedIdea}
+            open={activeDialog === "versions"}
+            onOpenChange={handleDialogOpenChange("versions")}
+            onUseVersion={() => setActiveDialog("schedule")}
+          />
+          <ScheduleIdeaDialog
+            idea={selectedIdea}
+            open={activeDialog === "schedule"}
+            onOpenChange={handleDialogOpenChange("schedule")}
+          />
+        </>
+      ) : null}
       <GenerateIdeasDialog
         open={activeDialog === "generate"}
         onOpenChange={handleDialogOpenChange("generate")}
         initialTheme={generateInitialTheme}
-      />
-      <ScheduleIdeaDialog
-        idea={selectedIdea}
-        open={activeDialog === "schedule"}
-        onOpenChange={handleDialogOpenChange("schedule")}
+        dates={data.dates}
+        storeName={data.storeName}
       />
     </>
   );

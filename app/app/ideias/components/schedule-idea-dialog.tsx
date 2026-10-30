@@ -21,8 +21,13 @@ import {
   mockScheduleDays,
   mockScheduleTimes,
   schedulePreparationOptions,
-  type Idea,
 } from "@/lib/mocks/ideas";
+import {
+  formatLabels,
+  funnelStageLabels,
+  goalLabels,
+} from "@/lib/content/content-labels";
+import type { IdeaView } from "@/lib/ideas/idea-types";
 import {
   scheduleIdeaFormSchema,
   type ScheduleIdeaFormValues,
@@ -53,7 +58,7 @@ const scheduleFields = [
 ] as const;
 
 type ScheduleIdeaDialogProps = {
-  idea: Idea;
+  idea: IdeaView;
   open: boolean;
   onOpenChange: (isOpen: boolean) => void;
 };
@@ -62,7 +67,7 @@ function ScheduleIdeaForm({
   idea,
   onScheduled,
 }: {
-  idea: Idea;
+  idea: IdeaView;
   onScheduled: (values: ScheduleIdeaFormValues) => void;
 }) {
   const form = useForm<ScheduleIdeaFormValues>({
@@ -96,7 +101,8 @@ function ScheduleIdeaForm({
                 {idea.title}
               </span>
               <span className="text-[13px] leading-[1.4] text-muted">
-                {idea.format} · {idea.goal} · {idea.stage}
+                {formatLabels[idea.format]} · {goalLabels[idea.goal]} ·{" "}
+                {funnelStageLabels[idea.funnelStage]}
               </span>
             </span>
           </div>

@@ -1,6 +1,13 @@
 "use client";
 
-import { Bot, Calendar, Copy, Lightbulb, Sparkles } from "lucide-react";
+import {
+  Bookmark,
+  Bot,
+  Calendar,
+  Copy,
+  Lightbulb,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -13,15 +20,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { mockIdeaContextReasons, type Idea } from "@/lib/mocks/ideas";
-import { mockCurrentStore } from "@/lib/mocks/sidebar";
+import {
+  contentTypeLabels,
+  formatLabels,
+  funnelStageLabels,
+  goalLabels,
+} from "@/lib/content/content-labels";
+import type { IdeaDateView, IdeaView } from "@/lib/ideas/idea-types";
 import { routes } from "@/lib/routes";
 import { useToast } from "@/providers/toast-provider";
 
-import { IdeaDateChip, IdeaFormatChip, IdeaTagChip } from "./idea-chips";
+import { IdeaDateChip, IdeaFormatChip } from "./idea-chips";
 
 type IdeaDetailDialogProps = {
-  idea: Idea;
+  idea: IdeaView;
+  ideaDate: IdeaDateView | null;
+  isSaved: boolean;
+  onToggleSave: () => void;
   open: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onOpenVersions: () => void;
@@ -30,6 +45,9 @@ type IdeaDetailDialogProps = {
 
 export function IdeaDetailDialog({
   idea,
+  ideaDate,
+  isSaved,
+  onToggleSave,
   open,
   onOpenChange,
   onOpenVersions,
@@ -38,15 +56,15 @@ export function IdeaDetailDialog({
   const { showToast } = useToast();
 
   const ideaFacts = [
-    { label: "Objetivo", value: idea.goal },
-    { label: "Etapa de compra", value: idea.stage },
+    { label: "Objetivo", value: goalLabels[idea.goal] },
+    { label: "Etapa de compra", value: funnelStageLabels[idea.funnelStage] },
     { label: "Público", value: idea.audience },
-    { label: "Melhor momento", value: idea.bestMoment },
-  ];
+    { label: "Melhor momento", value: idea.bestTime },
+  ].filter((fact) => fact.value);
 
   const handleCopyCaption = async () => {
     try {
-      await navigator.clipboard.writeText(idea.caption);
+      await navigator.clipboard.writeText(idea.captionExample ?? "");
       showToast("Legenda copiada");
     } catch {
       showToast("Não consegui copiar. Selecione a legenda e copie.");
@@ -59,14 +77,22 @@ export function IdeaDetailDialog({
         <DialogHeader contentClassName="gap-1">
           <div className="mb-1 flex flex-wrap gap-1.5">
             <IdeaFormatChip format={idea.format} />
-            <Badge variant="secondary">{idea.type}</Badge>
-            {idea.dateKey ? (
-              <IdeaDateChip dateKey={idea.dateKey} hasIcon={false} />
+            <Badge variant="secondary">
+              {contentTypeLabels[idea.contentType]}
+            </Badge>
+            {ideaDate ? (
+              <IdeaDateChip ideaDate={ideaDate} hasIcon={false} />
             ) : null}
           </div>
           <DialogTitle>{idea.title}</DialogTitle>
           <DialogDescription>
-            {idea.format} · {idea.type} · Para {idea.audience.toLowerCase()}
+            {[
+              formatLabels[idea.format],
+              contentTypeLabels[idea.contentType],
+              idea.audience && `Para ${idea.audience}`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +120,7 @@ export function IdeaDetailDialog({
               <Lightbulb aria-hidden="true" className="size-3.5" />
               Recomendação de uso
             </h3>
-            <p className="m-0 text-sm leading-[1.55]">{idea.how}</p>
+            <p className="m-0 text-sm leading-[1.55]">{idea.howToUse}</p>
             <ol className="m-0 flex list-none flex-col gap-2 p-0">
               {idea.steps.map((step, stepIndex) => (
                 <li
@@ -113,33 +139,26 @@ export function IdeaDetailDialog({
             </ol>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="m-0 text-xs leading-[1.4] font-semibold text-primary">
-                Exemplo de legenda
-              </h3>
-              <button
-                type="button"
-                onClick={handleCopyCaption}
-                className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border-0 bg-transparent px-3 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-icon-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-              >
-                <Copy aria-hidden="true" className="size-4" />
-                Copiar
-              </button>
+          {idea.captionExample ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="m-0 text-xs leading-[1.4] font-semibold text-primary">
+                  Exemplo de legenda
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleCopyCaption}
+                  className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border-0 bg-transparent px-3 text-sm font-semibold text-primary transition-colors duration-150 hover:bg-icon-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+                >
+                  <Copy aria-hidden="true" className="size-4" />
+                  Copiar
+                </button>
+              </div>
+              <p className="composer m-0 rounded-(--r-lg) px-4 py-3.5 text-[15px] leading-[1.6] whitespace-pre-line">
+                {idea.captionExample}
+              </p>
             </div>
-            <p className="composer m-0 rounded-(--r-lg) px-4 py-3.5 text-[15px] leading-[1.6] whitespace-pre-line">
-              {idea.caption}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-0.5 text-xs leading-[1.4] font-medium text-muted">
-              Por que para o {mockCurrentStore.name}:
-            </span>
-            {mockIdeaContextReasons.map((reason) => (
-              <IdeaTagChip key={reason}>{reason}</IdeaTagChip>
-            ))}
-          </div>
+          ) : null}
         </div>
 
         <DialogFooter>
@@ -150,6 +169,14 @@ export function IdeaDetailDialog({
             <Bot aria-hidden="true" className="size-4" />
             Ajustar com o agente
           </Link>
+          <Button variant="ghost" aria-pressed={isSaved} onClick={onToggleSave}>
+            <Bookmark
+              aria-hidden="true"
+              className="size-4.5"
+              fill={isSaved ? "currentColor" : "none"}
+            />
+            {isSaved ? "Salva" : "Salvar"}
+          </Button>
           <Button variant="outline" onClick={onOpenVersions}>
             <Sparkles aria-hidden="true" className="size-4.5" />
             Gerar versões

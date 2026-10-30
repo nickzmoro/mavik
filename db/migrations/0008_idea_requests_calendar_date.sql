@@ -1,0 +1,3 @@
+ALTER TABLE "idea_requests" ADD COLUMN "calendar_date_id" uuid;--> statement-breakpoint
+ALTER TABLE "idea_requests" ADD CONSTRAINT "idea_requests_calendar_date_id_calendar_dates_id_fk" FOREIGN KEY ("calendar_date_id") REFERENCES "public"."calendar_dates"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "idea_requests_calendar_date_id_idx" ON "idea_requests" USING btree ("calendar_date_id");

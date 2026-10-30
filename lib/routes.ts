@@ -13,6 +13,7 @@ export const routes = {
   agent: "/app/agente",
   ideas: "/app/ideias",
   studio: "/app/estudio",
+  studioArtworks: "/app/estudio/criados",
   schedule: "/app/agenda",
   results: "/app/resultados",
   brand: "/app/marca",

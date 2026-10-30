@@ -3,7 +3,7 @@
 import OpenAI from "openai";
 
 import { getBrandContext } from "@/lib/brand/get-brand-context";
-import { findMentionedProducts, lintCaption } from "@/lib/caption/lint";
+import { findMentionedTerms, lintCaption } from "@/lib/caption/lint";
 import {
   CAPTION_WRITING_RULES,
   findForbiddenTerms,
@@ -106,7 +106,7 @@ export async function generatePostCaption(
     const openai = new OpenAI({ apiKey });
     const brandContext = await getBrandContext(userId, openai);
     const forbiddenTerms = brandContext?.forbiddenTerms ?? [];
-    const searchTerms = findMentionedProducts(
+    const searchTerms = findMentionedTerms(
       parsedInput.data.prompt,
       brandContext?.productNames ?? [],
     );

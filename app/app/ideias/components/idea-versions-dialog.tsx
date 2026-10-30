@@ -17,14 +17,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  ideaFormats,
+  formatLabels,
+  funnelStageLabels,
+  goalLabels,
+} from "@/lib/content/content-labels";
+import type { IdeaView } from "@/lib/ideas/idea-types";
+import {
   ideaVersionApproaches,
   ideaVersionTones,
-  type Idea,
-  type IdeaFormat,
   type IdeaVersionTone,
 } from "@/lib/mocks/ideas";
-import { mockCurrentStore } from "@/lib/mocks/sidebar";
+import { contentFormats, type ContentFormat } from "@/lib/onboarding/constants";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
@@ -37,7 +40,7 @@ const versionClosingNotes = [
 ];
 
 type IdeaVersionsDialogProps = {
-  idea: Idea;
+  idea: IdeaView;
   open: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onUseVersion: () => void;
@@ -48,7 +51,7 @@ function IdeaVersionsContent({
   onUseVersion,
 }: Pick<IdeaVersionsDialogProps, "idea" | "onUseVersion">) {
   const { showToast } = useToast();
-  const [format, setFormat] = useState<IdeaFormat>("Carrossel");
+  const [format, setFormat] = useState<ContentFormat>("carrossel");
   const [tone, setTone] = useState<IdeaVersionTone>("Mais direto");
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
@@ -74,7 +77,7 @@ function IdeaVersionsContent({
         key: `${format}-${tone}-${versionIndex}`,
         label: `V${versionIndex + 1}`,
         title: `${idea.title}, ${approach}`,
-        description: `Mantém o objetivo de ${idea.goal.toLowerCase()} na etapa de ${idea.stage.toLowerCase()}, agora ${approach}. ${versionClosingNotes[versionIndex]}`,
+        description: `Mantém o objetivo de ${goalLabels[idea.goal].toLowerCase()} na etapa de ${funnelStageLabels[idea.funnelStage].toLowerCase()}, agora ${approach}. ${versionClosingNotes[versionIndex]}`,
       }))
     : [];
 
@@ -104,7 +107,8 @@ function IdeaVersionsContent({
         <PillGroup
           id="versions-format"
           label="Formato"
-          options={ideaFormats}
+          options={contentFormats}
+          getLabel={(option) => formatLabels[option]}
           isSelected={(option) => option === format}
           onToggle={setFormat}
         />
@@ -135,7 +139,7 @@ function IdeaVersionsContent({
         {isGenerating ? (
           <div aria-live="polite" className="flex flex-col gap-2.5">
             <span className="text-[13px] leading-[1.4] text-muted">
-              Criando versões com o contexto do {mockCurrentStore.name}…
+              Criando versões com o contexto da sua marca…
             </span>
             {versionClosingNotes.map((note) => (
               <div

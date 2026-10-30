@@ -1,3 +1,4 @@
+import { formatLabels } from "@/lib/content/content-labels";
 import { contentFormatIcons } from "@/components/common/format-icons";
 import { mockTopContents } from "@/lib/mocks/results";
 
@@ -56,7 +57,8 @@ export function TopContentsCard({ onOpenContent }: TopContentsCardProps) {
                       aria-hidden="true"
                       className="size-3.25 shrink-0"
                     />
-                    {content.format} · {content.date} · {content.topic}
+                    {formatLabels[content.format]} · {content.date} ·{" "}
+                    {content.topic}
                   </span>
                 </span>
                 <span className="flex shrink-0 flex-col items-end gap-0.75 max-sm:ml-9">

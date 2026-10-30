@@ -1,5 +1,6 @@
 import { Flag } from "lucide-react";
 
+import { formatLabels, goalLabels } from "@/lib/content/content-labels";
 import { contentFormatIcons } from "@/components/common/format-icons";
 import { formatShortDate } from "@/lib/agenda-dates";
 import { agendaStatusLabels } from "@/lib/mocks/agenda";
@@ -15,7 +16,7 @@ type AgendaItemCardProps = Omit<React.ComponentProps<"button">, "children"> & {
 };
 
 export const getAgendaItemAriaLabel = (item: ResolvedAgendaItem) =>
-  `${item.title}, ${item.format}, ${formatShortDate(item.date)} às ${item.time}, ${agendaStatusLabels[item.status]}`;
+  `${item.title}, ${formatLabels[item.format]}, ${formatShortDate(item.date)} às ${item.time}, ${agendaStatusLabels[item.status]}`;
 
 export function AgendaItemCard({
   item,
@@ -57,7 +58,7 @@ export function AgendaItemCard({
           <span className="flex items-center justify-between gap-1.5 text-xs leading-[1.3] font-semibold">
             <span className="inline-flex items-center gap-1.25">
               <FormatIcon aria-hidden="true" className="size-3.25 shrink-0" />
-              {item.format}
+              {formatLabels[item.format]}
             </span>
             <span>{item.time}</span>
           </span>
@@ -68,7 +69,7 @@ export function AgendaItemCard({
             {detailedMeta === "status"
               ? statusLabel
               : formatShortDate(item.date)}{" "}
-            · {item.goal}
+            · {goalLabels[item.goal]}
           </span>
           {item.campaign ? (
             <span className="flex items-center gap-1.25 text-xs leading-[1.35] font-medium">

@@ -1,17 +1,29 @@
 import { Lightbulb, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { mockCurrentStore } from "@/lib/mocks/sidebar";
-import type { IdeaDate } from "@/lib/mocks/ideas";
+import type { IdeaDateView } from "@/lib/ideas/idea-types";
 
 import type { IdeasView } from "../hooks/use-ideas-library";
 
-const getEmptyStateCopy = (selectedDate: IdeaDate | null, view: IdeasView) => {
+const getEmptyStateCopy = (
+  selectedDate: IdeaDateView | null,
+  view: IdeasView,
+  storeName: string,
+  hasIdeas: boolean,
+) => {
   if (selectedDate) {
     return {
       title: `Ainda não há ideias para ${selectedDate.isTrend ? "esta tendência" : selectedDate.name}`,
-      help: `Posso criar ideias para ${selectedDate.name} com o tom do ${mockCurrentStore.name}, sem destacar descontos, como você prefere.`,
+      help: `Posso criar ideias para ${selectedDate.name} com o tom ${storeName ? `do ${storeName}` : "da sua marca"}.`,
       cta: `Gerar ideias para ${selectedDate.name}`,
+    };
+  }
+
+  if (!hasIdeas) {
+    return {
+      title: "Você ainda não tem ideias",
+      help: "Peça ao agente ideias feitas para os seus produtos e o seu público.",
+      cta: "Gerar ideias",
     };
   }
 
@@ -26,7 +38,9 @@ const getEmptyStateCopy = (selectedDate: IdeaDate | null, view: IdeasView) => {
 };
 
 type IdeasEmptyStateProps = {
-  selectedDate: IdeaDate | null;
+  selectedDate: IdeaDateView | null;
+  storeName: string;
+  hasIdeas: boolean;
   view: IdeasView;
   onGenerateIdeas: () => void;
   onClearAll: () => void;
@@ -34,11 +48,18 @@ type IdeasEmptyStateProps = {
 
 export function IdeasEmptyState({
   selectedDate,
+  storeName,
+  hasIdeas,
   view,
   onGenerateIdeas,
   onClearAll,
 }: IdeasEmptyStateProps) {
-  const emptyStateCopy = getEmptyStateCopy(selectedDate, view);
+  const emptyStateCopy = getEmptyStateCopy(
+    selectedDate,
+    view,
+    storeName,
+    hasIdeas,
+  );
 
   return (
     <div className="glass flex flex-col items-center gap-3 rounded-3xl px-6 py-12 text-center">

@@ -1,4 +1,4 @@
-import type { IdeaFormat } from "./ideas";
+import type { ContentFormat } from "@/lib/onboarding/constants";
 
 export const mockIsInstagramConnected = true;
 
@@ -125,7 +125,7 @@ export type TopContent = {
   id: string;
   rank: number;
   title: string;
-  format: IdeaFormat;
+  format: ContentFormat;
   date: string;
   topic: string;
   reach: string;
@@ -148,7 +148,7 @@ export const mockTopContents: TopContent[] = [
     id: "bastidores-do-forno",
     rank: 1,
     title: "Bastidores do forno",
-    format: "Reels",
+    format: "reels",
     date: "15 out",
     topic: "Bastidores",
     reach: "4.870",
@@ -191,7 +191,7 @@ export const mockTopContents: TopContent[] = [
     id: "feliz-dia-do-cafe",
     rank: 2,
     title: "Feliz Dia do Café",
-    format: "Reels",
+    format: "reels",
     date: "1 out",
     topic: "Datas",
     reach: "2.910",
@@ -234,7 +234,7 @@ export const mockTopContents: TopContent[] = [
     id: "como-nasce-o-seu-cafe",
     rank: 3,
     title: "Como nasce o seu café",
-    format: "Carrossel",
+    format: "carrossel",
     date: "9 out",
     topic: "Bastidores",
     reach: "2.240",
@@ -277,7 +277,7 @@ export const mockTopContents: TopContent[] = [
     id: "enquete-pedido-de-sabado",
     rank: 4,
     title: "Enquete: qual o seu pedido de sábado?",
-    format: "Story",
+    format: "story",
     date: "3 out",
     topic: "Conversa",
     reach: "1.120",

@@ -7,7 +7,7 @@ import {
   planLibraryUsageOptions,
   planMonthOptions,
 } from "@/lib/mocks/agenda";
-import { ideaFormats, ideaGoals } from "@/lib/mocks/ideas";
+import { contentFormats, contentGoals } from "@/lib/onboarding/constants";
 
 export const agendaAgentRequestSchema = z.object({
   request: z.string().trim().min(1).max(500),
@@ -19,8 +19,8 @@ export const newContentFormSchema = z.object({
   origin: z.enum(["library", "blank"]),
   libraryIdeaId: z.string(),
   title: z.string().trim().max(120, "Use até 120 caracteres."),
-  format: z.enum(ideaFormats),
-  goal: z.enum(ideaGoals),
+  format: z.enum(contentFormats),
+  goal: z.enum(contentGoals),
   slotId: z.string().min(1, "Escolha quando publicar."),
   campaign: z.enum(newContentCampaignOptions),
 });
@@ -37,9 +37,9 @@ export const newCampaignFormSchema = z
     startDate: z.iso.date("Escolha a data de início."),
     endDate: z.iso.date("Escolha a data de fim."),
     commercialDate: z.enum(campaignCommercialDates),
-    goal: z.enum(ideaGoals),
+    goal: z.enum(contentGoals),
     formats: z
-      .array(z.enum(ideaFormats))
+      .array(z.enum(contentFormats))
       .min(1, "Escolha pelo menos um formato."),
     isAutoDistributed: z.boolean(),
   })

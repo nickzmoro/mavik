@@ -3,13 +3,19 @@ import { Bookmark, Calendar, Lightbulb, Sparkles, Target } from "lucide-react";
 import { IconButton } from "@/components/common/icon-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Idea } from "@/lib/mocks/ideas";
+import {
+  contentTypeLabels,
+  funnelStageLabels,
+  goalLabels,
+} from "@/lib/content/content-labels";
+import type { IdeaDateView, IdeaView } from "@/lib/ideas/idea-types";
 import { cn } from "@/lib/utils";
 
 import { IdeaDateChip, IdeaFormatChip, IdeaTagChip } from "./idea-chips";
 
 type IdeaCardProps = {
-  idea: Idea;
+  idea: IdeaView;
+  ideaDate: IdeaDateView | null;
   isSaved: boolean;
   onToggleSave: () => void;
   onOpenDetail: () => void;
@@ -19,6 +25,7 @@ type IdeaCardProps = {
 
 export function IdeaCard({
   idea,
+  ideaDate,
   isSaved,
   onToggleSave,
   onOpenDetail,
@@ -33,8 +40,10 @@ export function IdeaCard({
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <IdeaFormatChip format={idea.format} />
-          <Badge variant="secondary">{idea.type}</Badge>
-          {idea.dateKey ? <IdeaDateChip dateKey={idea.dateKey} /> : null}
+          <Badge variant="secondary">
+            {contentTypeLabels[idea.contentType]}
+          </Badge>
+          {ideaDate ? <IdeaDateChip ideaDate={ideaDate} /> : null}
         </div>
         <IconButton
           label={`${isSaved ? "Remover dos salvos" : "Salvar ideia"}: ${idea.title}`}
@@ -77,13 +86,13 @@ export function IdeaCard({
           <Lightbulb aria-hidden="true" className="size-3.5" />
           Recomendação de uso
         </span>
-        <p className="m-0 text-sm leading-[1.55]">{idea.how}</p>
+        <p className="m-0 text-sm leading-[1.55]">{idea.howToUse}</p>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
-        <IdeaTagChip>{idea.goal}</IdeaTagChip>
-        <IdeaTagChip>{idea.stage}</IdeaTagChip>
-        <IdeaTagChip>{idea.audience}</IdeaTagChip>
+        <IdeaTagChip>{goalLabels[idea.goal]}</IdeaTagChip>
+        <IdeaTagChip>{funnelStageLabels[idea.funnelStage]}</IdeaTagChip>
+        {idea.audience ? <IdeaTagChip>{idea.audience}</IdeaTagChip> : null}
       </div>
 
       <div className="mt-auto flex flex-wrap items-center gap-2">

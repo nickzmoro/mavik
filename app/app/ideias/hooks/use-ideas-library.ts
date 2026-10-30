@@ -2,73 +2,96 @@
 
 import { useState } from "react";
 
+import { useToggleIdeaSave } from "@/hooks/mutations/use-toggle-idea-save";
+import { useIdeas } from "@/hooks/queries/use-ideas";
 import {
-  ideaAudiences,
-  ideaFormats,
-  ideaGoals,
-  ideaStages,
-  ideaTypes,
-  mockIdeaDates,
-  mockIdeas,
-  mockInitiallySavedIdeaIds,
-  type Idea,
-  type IdeaDateKey,
-} from "@/lib/mocks/ideas";
+  contentTypeLabels,
+  formatLabels,
+  funnelStageLabels,
+  goalLabels,
+} from "@/lib/content/content-labels";
+import type { IdeasData, IdeaView } from "@/lib/ideas/idea-types";
 
 export type IdeasView = "all" | "recommended" | "saved";
 
-export type IdeaFilterKey = "goal" | "format" | "type" | "audience" | "stage";
+export type IdeaFilterKey =
+  "goal" | "format" | "contentType" | "audience" | "funnelStage";
 
 type IdeaFilters = Record<IdeaFilterKey, string[]>;
 
-export const ideaFilterGroups: {
+export type IdeaFilterGroup = {
   key: IdeaFilterKey;
   label: string;
-  options: readonly string[];
-}[] = [
-  { key: "goal", label: "Objetivo", options: ideaGoals },
-  { key: "format", label: "Formato", options: ideaFormats },
-  { key: "type", label: "Tipo de conteúdo", options: ideaTypes },
-  { key: "audience", label: "Público", options: ideaAudiences },
-  { key: "stage", label: "Etapa de compra", options: ideaStages },
-];
+  options: { value: string; label: string }[];
+};
+
+const toOptions = (labels: Record<string, string>) =>
+  Object.entries(labels).map(([value, label]) => ({ value, label }));
 
 const emptyFilters: IdeaFilters = {
   goal: [],
   format: [],
-  type: [],
+  contentType: [],
   audience: [],
-  stage: [],
+  funnelStage: [],
 };
 
-const matchesFilters = (idea: Idea, filters: IdeaFilters) =>
+const matchesFilters = (idea: IdeaView, filters: IdeaFilters) =>
   (Object.keys(filters) as IdeaFilterKey[]).every(
     (filterKey) =>
       filters[filterKey].length === 0 ||
-      filters[filterKey].includes(idea[filterKey]),
+      filters[filterKey].includes(idea[filterKey] ?? ""),
   );
 
-const matchesQuery = (idea: Idea, query: string) =>
+const matchesQuery = (idea: IdeaView, query: string) =>
   !query ||
-  `${idea.title} ${idea.why} ${idea.how} ${idea.format} ${idea.type}`
+  `${idea.title} ${idea.why} ${idea.howToUse} ${formatLabels[idea.format]} ${contentTypeLabels[idea.contentType]}`
     .toLowerCase()
     .includes(query);
 
-export function useIdeasLibrary() {
+export function useIdeasLibrary(initialData: IdeasData) {
+  const { data = initialData } = useIdeas(initialData);
+  const toggleIdeaSaveMutation = useToggleIdeaSave();
   const [query, setQuery] = useState("");
-  const [selectedDateKey, setSelectedDateKey] = useState<IdeaDateKey | null>(
-    null,
-  );
+  const [selectedDateId, setSelectedDateId] = useState<string | null>(null);
   const [view, setView] = useState<IdeasView>("all");
   const [filters, setFilters] = useState<IdeaFilters>(emptyFilters);
-  const [savedIdeaIds, setSavedIdeaIds] = useState<string[]>(
-    mockInitiallySavedIdeaIds,
-  );
 
   const normalizedQuery = query.trim().toLowerCase();
+  const audiences = [
+    ...new Set(
+      data.ideas.flatMap((idea) => (idea.audience ? [idea.audience] : [])),
+    ),
+  ];
+  const filterGroups: IdeaFilterGroup[] = [
+    { key: "goal", label: "Objetivo", options: toOptions(goalLabels) },
+    { key: "format", label: "Formato", options: toOptions(formatLabels) },
+    {
+      key: "contentType",
+      label: "Tipo de conteúdo",
+      options: toOptions(contentTypeLabels),
+    },
+    ...(audiences.length > 0
+      ? [
+          {
+            key: "audience" as const,
+            label: "Público",
+            options: audiences.map((audience) => ({
+              value: audience,
+              label: audience,
+            })),
+          },
+        ]
+      : []),
+    {
+      key: "funnelStage",
+      label: "Etapa de compra",
+      options: toOptions(funnelStageLabels),
+    },
+  ];
 
-  const visibleIdeas = mockIdeas.filter((idea) => {
-    if (view === "saved" && !savedIdeaIds.includes(idea.id)) {
+  const visibleIdeas = data.ideas.filter((idea) => {
+    if (view === "saved" && !data.savedIdeaIds.includes(idea.id)) {
       return false;
     }
 
@@ -76,7 +99,7 @@ export function useIdeasLibrary() {
       return false;
     }
 
-    if (selectedDateKey && idea.dateKey !== selectedDateKey) {
+    if (selectedDateId && idea.calendarDateId !== selectedDateId) {
       return false;
     }
 
@@ -84,12 +107,12 @@ export function useIdeasLibrary() {
   });
 
   const viewOptions: { id: IdeasView; label: string }[] = [
-    { id: "all", label: `Todas · ${mockIdeas.length}` },
+    { id: "all", label: `Todas · ${data.ideas.length}` },
     {
       id: "recommended",
-      label: `Para você · ${mockIdeas.filter((idea) => idea.isRecommended).length}`,
+      label: `Para você · ${data.ideas.filter((idea) => idea.isRecommended).length}`,
     },
-    { id: "saved", label: `Salvas · ${savedIdeaIds.length}` },
+    { id: "saved", label: `Salvas · ${data.savedIdeaIds.length}` },
   ];
 
   const hasActiveFilters = Object.values(filters).some(
@@ -97,7 +120,7 @@ export function useIdeasLibrary() {
   );
 
   const selectedDate =
-    mockIdeaDates.find((date) => date.key === selectedDateKey) ?? null;
+    data.dates.find((date) => date.id === selectedDateId) ?? null;
 
   const toggleFilter = (filterKey: IdeaFilterKey, option: string) =>
     setFilters((currentFilters) => ({
@@ -109,38 +132,43 @@ export function useIdeasLibrary() {
         : [...currentFilters[filterKey], option],
     }));
 
-  const toggleDate = (dateKey: IdeaDateKey) =>
-    setSelectedDateKey((currentDateKey) =>
-      currentDateKey === dateKey ? null : dateKey,
+  const toggleDate = (dateId: string) =>
+    setSelectedDateId((currentDateId) =>
+      currentDateId === dateId ? null : dateId,
     );
 
-  const toggleSavedIdea = (ideaId: string) => {
-    const isSaved = savedIdeaIds.includes(ideaId);
+  const toggleSavedIdea = (
+    ideaId: string,
+    onDone: (result: { isSaved: boolean; errorMessage?: string }) => void,
+  ) => {
+    const isSaved = !data.savedIdeaIds.includes(ideaId);
 
-    setSavedIdeaIds((currentIds) =>
-      isSaved
-        ? currentIds.filter((currentId) => currentId !== ideaId)
-        : [...currentIds, ideaId],
+    toggleIdeaSaveMutation.mutate(
+      { ideaId, isSaved },
+      {
+        onSuccess: () => onDone({ isSaved }),
+        onError: (error) => onDone({ isSaved, errorMessage: error.message }),
+      },
     );
-
-    return !isSaved;
   };
 
   const clearFilters = () => setFilters(emptyFilters);
 
   const clearAll = () => {
     setFilters(emptyFilters);
-    setSelectedDateKey(null);
+    setSelectedDateId(null);
     setQuery("");
     setView("all");
   };
 
   return {
+    data,
     query,
     setQuery,
     view,
     setView,
     viewOptions,
+    filterGroups,
     filters,
     toggleFilter,
     hasActiveFilters,
@@ -148,7 +176,7 @@ export function useIdeasLibrary() {
     clearAll,
     selectedDate,
     toggleDate,
-    savedIdeaIds,
+    savedIdeaIds: data.savedIdeaIds,
     toggleSavedIdea,
     visibleIdeas,
   };

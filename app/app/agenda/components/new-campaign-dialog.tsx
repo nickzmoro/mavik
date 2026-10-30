@@ -26,7 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { campaignCommercialDates } from "@/lib/mocks/agenda";
-import { ideaFormats, ideaGoals } from "@/lib/mocks/ideas";
+import { formatLabels, goalLabels } from "@/lib/content/content-labels";
+import { contentFormats, contentGoals } from "@/lib/onboarding/constants";
 import { toggleArrayItem } from "@/lib/toggle-array-item";
 import {
   newCampaignFormSchema,
@@ -52,8 +53,8 @@ function NewCampaignForm({
       startDate: "2026-11-24",
       endDate: "2026-11-28",
       commercialDate: "Black Friday",
-      goal: "Vender",
-      formats: ["Reels", "Post", "Story"],
+      goal: "vender",
+      formats: ["reels", "post", "story"],
       isAutoDistributed: true,
     },
   });
@@ -121,7 +122,8 @@ function NewCampaignForm({
               <PillGroup
                 id="campaign-goal"
                 label="Objetivo"
-                options={ideaGoals}
+                options={contentGoals}
+                getLabel={(option) => goalLabels[option]}
                 isSelected={(option) => option === field.value}
                 onToggle={field.onChange}
               />
@@ -135,7 +137,8 @@ function NewCampaignForm({
                 id="campaign-formats"
                 label="Formatos"
                 hint="(um ou mais)"
-                options={ideaFormats}
+                options={contentFormats}
+                getLabel={(option) => formatLabels[option]}
                 isSelected={(option) => field.value.includes(option)}
                 onToggle={(option) =>
                   field.onChange(toggleArrayItem(field.value, option))
