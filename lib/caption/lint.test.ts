@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { findMentionedProducts, humanizeCaption, lintCaption } from "./lint.ts";
+import { findMentionedTerms, humanizeCaption, lintCaption } from "./lint.ts";
 
 test("humanizeCaption remove invisíveis, travessão e aspas curvas", () => {
   assert.equal(
@@ -72,14 +72,14 @@ test("lintCaption reprova quando nenhum termo de busca aparece", () => {
   assert.match(issues.join(), /Nenhum termo de busca/);
 });
 
-test("findMentionedProducts acha produtos do pedido sem acento e com parênteses", () => {
+test("findMentionedTerms acha produtos do pedido sem acento e com parênteses", () => {
   assert.deepEqual(
-    findMentionedProducts("Post do cafe gelado e do bolo (fatia)", [
+    findMentionedTerms("Post do cafe gelado e do bolo (fatia)", [
       "Café gelado",
       "Bolo (fatia)",
       "Pão de queijo",
     ]),
     ["Café gelado", "Bolo (fatia)"],
   );
-  assert.deepEqual(findMentionedProducts("Promoção de inverno", ["Café"]), []);
+  assert.deepEqual(findMentionedTerms("Promoção de inverno", ["Café"]), []);
 });
