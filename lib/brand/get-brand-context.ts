@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, eq, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, ne } from "drizzle-orm";
 import type OpenAI from "openai";
 
 import { db } from "@/db";
@@ -156,7 +156,8 @@ export async function getBrandContext(
     db
       .select()
       .from(brandAssets)
-      .where(eq(brandAssets.brandKitId, brandKit.id)),
+      .where(eq(brandAssets.brandKitId, brandKit.id))
+      .orderBy(desc(brandAssets.createdAt)),
     db
       .select({ structure: brandLayouts.structure })
       .from(brandLayouts)

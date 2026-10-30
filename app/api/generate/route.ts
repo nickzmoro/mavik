@@ -2,7 +2,7 @@ import OpenAI, { APIError, toFile } from "openai";
 import { NextResponse } from "next/server";
 
 import { IMAGE_PROMPT_MODEL } from "@/lib/ai/models";
-import { applyLogo, hideLogoArea } from "@/lib/brand/apply-logo";
+import { applyLogo } from "@/lib/brand/apply-logo";
 import {
   defaultLogoPlacement,
   describeLogoArea,
@@ -16,6 +16,7 @@ import {
   getBrandContext,
   type BrandContext,
 } from "@/lib/brand/get-brand-context";
+import { hideLogoArea } from "@/lib/brand/logo-image";
 import { saveArtworkDraft } from "@/lib/content/save-artwork-draft";
 import {
   formatRetryAfter,
@@ -78,7 +79,7 @@ function describeFormat(
 
 const describeVariation = (variationIndex: number) =>
   variationIndex > 0 &&
-  `This is variation ${variationIndex + 1} of the same request: keep the approved layout, colors and typography, and change only the headline wording and the framing of the product photo (a slightly different angle or crop, never a close-up that pushes the text out of place).`;
+  `This is variation ${variationIndex + 1} of the same request and must look clearly different from the first one while keeping the approved layout, typography and brand rules: write a different headline, show the product in a different scene and framing (never a close-up that pushes the text out of place), and apply the alternative chosen for this post in any ART DIRECTION RULE that lists alternatives.`;
 
 export const maxDuration = 180;
 
@@ -123,7 +124,7 @@ How to write the prompt:
 - Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
 - Add a call to action, button, badge, seal or contact line only if the approved posts have one (same position, size, shape and colors) or an ART DIRECTION RULE asks for it (with the position and text the rule gives). Never invent calls to action such as "Descubra mais", "Saiba mais" or "Compre agora".
 - When a product photo is attached, that exact product is the hero of the post: describe it precisely (shape, colors, labels, packaging) and never replace it with another product or with the products shown in the approved posts.
-- Never draw, describe or invent any logo, symbol, monogram or wordmark, and never write the brand name. The official logo file is placed afterwards by the system in the corner you choose in "logoPosition": tell the image model to keep that corner clean.
+- Never draw, describe or invent any logo, symbol, monogram or wordmark, and never write the brand name. The official logo file is placed afterwards by the system in the corner you choose in "logoPosition": tell the image model to keep that corner free of text, icons and other elements, while the background, the footer band and its lines still run all the way to the edges of the image under it.
 - Choose "logoPosition" and "logoVariant" for this post's format from the ART DIRECTION RULES or the brand manual. With no rule about it, use "bottom-right" and "logo".
 
 Put the final English prompt for GPT Image in "prompt", as a single paragraph with no preamble, quotes or explanations.
@@ -365,7 +366,7 @@ function buildImageGuardrails(
       `Use only the brand colors ${brandContext.colorHexes.join(", ")} for backgrounds, shapes and text. No other colors in graphic elements.`,
     brandContext.restrictions.length > 0 &&
       `Strictly forbidden in this image, even if present in the reference posts: ${brandContext.restrictions.join("; ")}.`,
-    `Never draw any logo, logotype, symbol, monogram, wordmark or brand name anywhere in the image. Keep ${describeLogoArea(logoPlacement)} empty of text and graphics: the official logo is added there afterwards.`,
+    `Never draw any logo, logotype, symbol, monogram, wordmark or brand name anywhere in the image. Keep ${describeLogoArea(logoPlacement)} free of text, icons and other elements, but let the background, the footer band and its lines continue to the edges of the image there: the official logo is added on top afterwards.`,
   ]
     .filter(Boolean)
     .join(" ");
