@@ -112,11 +112,7 @@ export function useSpeechRecognition(onTranscribed: (text: string) => void) {
     recognition.onresult = (event) => {
       let interimTranscript = "";
 
-      for (
-        let index = event.resultIndex;
-        index < event.results.length;
-        index++
-      ) {
+      for (let index = event.resultIndex; index < event.results.length; index++) {
         const result = event.results[index];
 
         if (result.isFinal) {
