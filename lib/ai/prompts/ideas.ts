@@ -1,3 +1,4 @@
+import { CAPTION_CLICHES } from "../../caption/lint.ts";
 import { calendarEventKeys } from "../../ideas/calendar-events.ts";
 import type { IdeaSlot } from "../../ideas/idea-slots.ts";
 
@@ -11,6 +12,7 @@ Specificity
 - Never use any forbidden term. Prefer the loved terms when they fit naturally.
 - Follow every active brand rule.
 - Do not repeat or paraphrase any title in "Current ideas".
+- Never use these clichés in any field: ${CAPTION_CLICHES.join(", ")}.
 
 title
 - Up to 60 characters. A concrete hook built like the hook formulas below. No greetings, no "Você sabia", no empty clickbait ("Você não vai acreditar", "Imperdível").

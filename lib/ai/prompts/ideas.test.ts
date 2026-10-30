@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { CAPTION_CLICHES } from "../../caption/lint.ts";
 import { buildInitialSlots } from "../../ideas/idea-slots.ts";
 import {
   IDEAS_SYSTEM_PROMPT,
@@ -80,4 +81,10 @@ test("retry lista só os slots reprovados com os motivos", () => {
 test("system prompt cita as datas que a IA pode reconhecer", () => {
   assert.match(IDEAS_SYSTEM_PROMPT, /black-friday/);
   assert.doesNotMatch(IDEAS_SYSTEM_PROMPT, /\{\{calendarEventKeys\}\}/);
+});
+
+test("system prompt proíbe todos os clichês que a validação reprova", () => {
+  for (const cliche of CAPTION_CLICHES) {
+    assert.ok(IDEAS_SYSTEM_PROMPT.includes(cliche), cliche);
+  }
 });
