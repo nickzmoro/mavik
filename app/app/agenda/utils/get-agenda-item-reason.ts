@@ -1,3 +1,4 @@
+import { formatLabels } from "@/lib/content/content-labels";
 import { getWeekday } from "@/lib/agenda-dates";
 
 import type { ResolvedAgendaItem } from "../hooks/use-agenda";
@@ -22,7 +23,7 @@ export function getAgendaItemReason(item: ResolvedAgendaItem) {
   }
 
   if (weekday === 4) {
-    return `Quinta é o dia de aquecer o fim de semana: o ${item.format} ganha alcance antes do sábado, que é o seu objetivo.`;
+    return `Quinta é o dia de aquecer o fim de semana: o ${formatLabels[item.format]} ganha alcance antes do sábado, que é o seu objetivo.`;
   }
 
   if (weekday === 5) {

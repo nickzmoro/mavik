@@ -48,7 +48,7 @@ function IdeaVersionsContent({
   onUseVersion,
 }: Pick<IdeaVersionsDialogProps, "idea" | "onUseVersion">) {
   const { showToast } = useToast();
-  const [format, setFormat] = useState<IdeaFormat>("Carrossel");
+  const [format, setFormat] = useState<IdeaFormat>("carrossel");
   const [tone, setTone] = useState<IdeaVersionTone>("Mais direto");
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);

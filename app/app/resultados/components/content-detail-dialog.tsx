@@ -3,6 +3,7 @@
 import { Calendar, Sparkles } from "lucide-react";
 import Link from "next/link";
 
+import { formatLabels } from "@/lib/content/content-labels";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,7 +40,7 @@ export function ContentDetailDialog({
         <DialogHeader contentClassName="gap-1">
           <DialogTitle>{content.title}</DialogTitle>
           <DialogDescription>
-            {content.format} · publicado em {content.date} · tema{" "}
+            {formatLabels[content.format]} · publicado em {content.date} · tema{" "}
             {content.topic}
           </DialogDescription>
         </DialogHeader>

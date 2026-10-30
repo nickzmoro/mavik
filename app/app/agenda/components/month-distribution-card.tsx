@@ -1,22 +1,27 @@
 import { PanelCard, PanelMeta } from "@/components/common/panel-card";
-import { ideaFormats, ideaGoals } from "@/lib/mocks/ideas";
+import { formatLabels, goalLabels } from "@/lib/content/content-labels";
+import {
+  contentGoals,
+  type ContentFormat,
+  type ContentGoal,
+} from "@/lib/onboarding/constants";
 
 import type { ResolvedAgendaItem } from "../hooks/use-agenda";
 
-const formatBarOrder = ["Reels", "Carrossel", "Post", "Story"] as const;
+const formatBarOrder: ContentFormat[] = ["reels", "carrossel", "post", "story"];
 
-const formatBarColors: Record<(typeof ideaFormats)[number], string> = {
-  Reels: "bg-primary",
-  Carrossel: "bg-accent",
-  Post: "bg-[#c9a27e]",
-  Story: "bg-success",
+const formatBarColors: Record<ContentFormat, string> = {
+  reels: "bg-primary",
+  carrossel: "bg-accent",
+  post: "bg-[#c9a27e]",
+  story: "bg-success",
 };
 
-const goalBarColors: Record<(typeof ideaGoals)[number], string> = {
-  Atrair: "bg-accent",
-  Engajar: "bg-primary",
-  Vender: "bg-success",
-  Fidelizar: "bg-[#c9a27e]",
+const goalBarColors: Record<ContentGoal, string> = {
+  atrair: "bg-accent",
+  engajar: "bg-primary",
+  vender: "bg-success",
+  fidelizar: "bg-[#c9a27e]",
 };
 
 type DistributionBarsProps = {
@@ -82,15 +87,15 @@ export function MonthDistributionCard({
       <DistributionBars
         title="Por formato"
         rows={formatBarOrder.map((format) => ({
-          label: format,
+          label: formatLabels[format],
           count: countBy("format", format),
           colorClassName: formatBarColors[format],
         }))}
       />
       <DistributionBars
         title="Por objetivo"
-        rows={ideaGoals.map((goal) => ({
-          label: goal,
+        rows={contentGoals.map((goal) => ({
+          label: goalLabels[goal],
           count: countBy("goal", goal),
           colorClassName: goalBarColors[goal],
         }))}

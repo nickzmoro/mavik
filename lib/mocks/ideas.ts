@@ -1,26 +1,28 @@
 import type { OptionTile } from "@/components/common/option-tile-group";
+import {
+  contentTypes,
+  funnelStages,
+  type ContentType,
+  type FunnelStage,
+} from "@/lib/content/content-labels";
+import {
+  contentFormats,
+  contentGoals,
+  type ContentFormat,
+  type ContentGoal,
+} from "@/lib/onboarding/constants";
 
-export const ideaGoals = ["Atrair", "Engajar", "Vender", "Fidelizar"] as const;
-export const ideaFormats = ["Post", "Story", "Reels", "Carrossel"] as const;
-export const ideaTypes = [
-  "Educativo",
-  "Comercial",
-  "Institucional",
-  "Autoridade",
-] as const;
+export const ideaGoals = contentGoals;
+export const ideaFormats = contentFormats;
+export const ideaTypes = contentTypes;
 export const ideaAudiences = ["Moradores", "Quem trabalha perto"] as const;
-export const ideaStages = [
-  "Descoberta",
-  "Consideração",
-  "Decisão",
-  "Fidelização",
-] as const;
+export const ideaStages = funnelStages;
 
-export type IdeaGoal = (typeof ideaGoals)[number];
-export type IdeaFormat = (typeof ideaFormats)[number];
-export type IdeaType = (typeof ideaTypes)[number];
+export type IdeaGoal = ContentGoal;
+export type IdeaFormat = ContentFormat;
+export type IdeaType = ContentType;
 export type IdeaAudience = (typeof ideaAudiences)[number];
-export type IdeaStage = (typeof ideaStages)[number];
+export type IdeaStage = FunnelStage;
 
 export type IdeaDateKey =
   "halloween" | "black-friday" | "summer" | "christmas" | "cold-drinks-trend";
@@ -92,10 +94,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "do-grao-a-xicara",
     title: "Do grão à xícara em 15 segundos",
-    format: "Reels",
-    type: "Educativo",
-    goal: "Engajar",
-    stage: "Descoberta",
+    format: "reels",
+    type: "educativo",
+    goal: "engajar",
+    stage: "descoberta",
     audience: "Moradores",
     dateKey: null,
     isRecommended: true,
@@ -113,10 +115,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "sinais-cafe-fresco",
     title: "3 sinais de que o seu café é fresco",
-    format: "Carrossel",
-    type: "Autoridade",
-    goal: "Atrair",
-    stage: "Consideração",
+    format: "carrossel",
+    type: "autoridade",
+    goal: "atrair",
+    stage: "consideracao",
     audience: "Moradores",
     dateKey: null,
     isRecommended: false,
@@ -134,10 +136,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "enquete-doce-ou-salgado",
     title: "Enquete: doce ou salgado amanhã?",
-    format: "Story",
-    type: "Comercial",
-    goal: "Vender",
-    stage: "Decisão",
+    format: "story",
+    type: "comercial",
+    goal: "vender",
+    stage: "decisao",
     audience: "Quem trabalha perto",
     dateKey: null,
     isRecommended: true,
@@ -154,10 +156,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "quem-faz-o-seu-cafe",
     title: "Quem faz o seu café",
-    format: "Post",
-    type: "Institucional",
-    goal: "Fidelizar",
-    stage: "Fidelização",
+    format: "post",
+    type: "institucional",
+    goal: "fidelizar",
+    stage: "fidelizacao",
     audience: "Moradores",
     dateKey: null,
     isRecommended: false,
@@ -175,10 +177,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "cardapio-halloween",
     title: "Cardápio de Halloween em 10 segundos",
-    format: "Reels",
-    type: "Comercial",
-    goal: "Vender",
-    stage: "Decisão",
+    format: "reels",
+    type: "comercial",
+    goal: "vender",
+    stage: "decisao",
     audience: "Moradores",
     dateKey: "halloween",
     isRecommended: true,
@@ -195,10 +197,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "cafe-com-cada-doce",
     title: "Qual café combina com cada doce",
-    format: "Carrossel",
-    type: "Autoridade",
-    goal: "Engajar",
-    stage: "Consideração",
+    format: "carrossel",
+    type: "autoridade",
+    goal: "engajar",
+    stage: "consideracao",
     audience: "Moradores",
     dateKey: null,
     isRecommended: false,
@@ -216,10 +218,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "cardapio-de-verao",
     title: "O que você quer no cardápio de verão?",
-    format: "Story",
-    type: "Institucional",
-    goal: "Engajar",
-    stage: "Fidelização",
+    format: "story",
+    type: "institucional",
+    goal: "engajar",
+    stage: "fidelizacao",
     audience: "Moradores",
     dateKey: "summer",
     isRecommended: false,
@@ -236,10 +238,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "cafe-de-reuniao",
     title: "Seu café de reunião é aqui",
-    format: "Post",
-    type: "Comercial",
-    goal: "Atrair",
-    stage: "Descoberta",
+    format: "post",
+    type: "comercial",
+    goal: "atrair",
+    stage: "descoberta",
     audience: "Quem trabalha perto",
     dateKey: null,
     isRecommended: true,
@@ -256,10 +258,10 @@ export const mockIdeas: Idea[] = [
   {
     id: "cold-brew-da-casa",
     title: "Cold brew da casa: o primeiro gole",
-    format: "Reels",
-    type: "Comercial",
-    goal: "Vender",
-    stage: "Consideração",
+    format: "reels",
+    type: "comercial",
+    goal: "vender",
+    stage: "consideracao",
     audience: "Quem trabalha perto",
     dateKey: "cold-drinks-trend",
     isRecommended: true,

@@ -89,9 +89,9 @@ function GenerateIdeasForm({
     resolver: zodResolver(generateIdeasFormSchema),
     defaultValues: {
       theme: initialTheme,
-      goal: "Vender",
-      formats: ["Reels", "Carrossel"],
-      types: ["Educativo", "Comercial"],
+      goal: "vender",
+      formats: ["reels", "carrossel"],
+      types: ["educativo", "comercial"],
       quantity: 6,
     },
   });

@@ -3,6 +3,7 @@
 import { Bot, Check, Flag, Target } from "lucide-react";
 import Link from "next/link";
 
+import { formatLabels } from "@/lib/content/content-labels";
 import { FilterPill } from "@/components/common/filter-pill";
 import { Button } from "@/components/ui/button";
 import {
@@ -95,7 +96,7 @@ export function AgendaItemSheet({
             {item.title}
           </SheetTitle>
           <SheetDescription className="m-0 leading-normal">
-            {longDate} às {item.time} · {item.format}
+            {longDate} às {item.time} · {formatLabels[item.format]}
           </SheetDescription>
         </div>
 

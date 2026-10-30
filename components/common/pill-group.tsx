@@ -7,6 +7,7 @@ type PillGroupProps<TOption extends string | number> = {
   options: readonly TOption[];
   isSelected: (option: TOption) => boolean;
   onToggle: (option: TOption) => void;
+  getLabel?: (option: TOption) => string;
   errorMessage?: string;
 };
 
@@ -17,6 +18,7 @@ export function PillGroup<TOption extends string | number>({
   options,
   isSelected,
   onToggle,
+  getLabel = String,
   errorMessage,
 }: PillGroupProps<TOption>) {
   return (
@@ -39,7 +41,7 @@ export function PillGroup<TOption extends string | number>({
             isActive={isSelected(option)}
             onClick={() => onToggle(option)}
           >
-            {option}
+            {getLabel(option)}
           </FilterPill>
         ))}
       </div>
