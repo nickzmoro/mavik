@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, ne } from "drizzle-orm";
+import { and, asc, count, eq, ne } from "drizzle-orm";
 import type OpenAI from "openai";
 
 import { db } from "@/db";
@@ -27,12 +27,10 @@ import { layoutElements } from "@/lib/mocks/brand";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { buildArtDirectionSection } from "./art-direction-rules";
+import { logoRules } from "./logo-rules";
 import { extractAndSaveManualRules } from "./manual-guidelines";
 
-type LogoAsset = {
-  storagePath: string;
-  kind: "logo_claro" | "logo_escuro" | "simbolo";
-};
+type LogoAsset = { storagePath: string; kind: "logo_claro" | "logo_escuro" };
 
 type StoredFile = { storagePath: string; mimeType: string; label: string };
 
@@ -40,10 +38,10 @@ export type BrandContext = {
   brandName: string;
   productNames: string[];
   guidelines: string;
-  imageGuidelines: string;
   colorHexes: string[];
   restrictions: string[];
   forbiddenTerms: string[];
+  primaryHex?: string;
   variationIndex: number;
   logos: LogoAsset[];
   manual?: StoredFile;
@@ -156,8 +154,7 @@ export async function getBrandContext(
     db
       .select()
       .from(brandAssets)
-      .where(eq(brandAssets.brandKitId, brandKit.id))
-      .orderBy(desc(brandAssets.createdAt)),
+      .where(eq(brandAssets.brandKitId, brandKit.id)),
     db
       .select({ structure: brandLayouts.structure })
       .from(brandLayouts)
@@ -214,71 +211,38 @@ export async function getBrandContext(
     ),
   ];
 
-  const brandLine = `Marca: ${store.name} (segmento: ${store.segment}).`;
-  const manualSection =
-    manualRules.length > 0 &&
-    `REGRAS DO MANUAL DA MARCA:\n- ${manualRules.join("\n- ")}`;
-  const artDirectionSection = buildArtDirectionSection(
-    brandKit.id,
-    artDirectionRules,
-    variationIndex,
-  );
-  const paletteSection =
-    colors.length > 0 &&
-    `Paleta do Brand Kit: ${colors.map(({ name, role, hex }) => `${name ?? role} ${hex}`).join(", ")}.`;
-  const fontsSection =
-    fonts.length > 0 &&
-    `Fontes do Brand Kit: ${fonts.map(({ role, family }) => `${role} ${family}`).join(", ")}.`;
-  const imageStyleSection =
-    brandKit.imageStyle && `Estilo de imagem: ${brandKit.imageStyle}.`;
-  const forbiddenTermsSection =
-    forbiddenTerms.length > 0 &&
-    `Termos proibidos (nunca usar): ${forbiddenTerms.map(({ term }) => term).join(", ")}.`;
-  const restrictionsSection =
-    restrictions.length > 0 &&
-    `PROIBIDO NA ARTE (nunca usar, mesmo que apareça nos posts aprovados):\n- ${restrictions.map(({ value }) => value).join("\n- ")}`;
-  const regulatedSection =
-    store.isRegulated &&
-    "Setor regulado: nunca prometa resultados nem use antes e depois.";
-  const joinSections = (sections: (string | false | null | undefined)[]) =>
-    sections
-      .filter((section): section is string => Boolean(section))
-      .join("\n");
-
-  const guidelines = joinSections([
-    brandLine,
+  const sections = [
+    `Marca: ${store.name} (segmento: ${store.segment}).`,
     products.length > 0 &&
       `Produtos e serviços: ${products.map(({ name }) => name).join(", ")}.`,
-    manualSection,
-    artDirectionSection,
-    paletteSection,
-    fontsSection,
-    imageStyleSection,
+    manualRules.length > 0 &&
+      `REGRAS DO MANUAL DA MARCA (prioridade máxima, seguir à risca):\n- ${manualRules.join("\n- ")}`,
+    buildArtDirectionSection(brandKit.id, artDirectionRules, variationIndex),
+    colors.length > 0 &&
+      `Paleta do Brand Kit: ${colors.map(({ name, role, hex }) => `${name ?? role} ${hex}`).join(", ")}.`,
+    fonts.length > 0 &&
+      `Fontes do Brand Kit: ${fonts.map(({ role, family }) => `${role} ${family}`).join(", ")}.`,
+    brandKit.imageStyle && `Estilo de imagem: ${brandKit.imageStyle}.`,
     voice &&
       `Tom de voz: ${describeScale(voice.formalCasual, "formal", "descontraído")}, ${describeScale(voice.seriousFun, "sério", "divertido")}, ${describeScale(voice.technicalSimple, "técnico", "simples")}, ${describeScale(voice.educationalSales, "educativo", "vendedor")}.`,
     lovedTerms.length > 0 &&
       `Palavras que a marca ama: ${lovedTerms.map(({ term }) => term).join(", ")}.`,
-    forbiddenTermsSection,
+    forbiddenTerms.length > 0 &&
+      `Termos proibidos (nunca usar): ${forbiddenTerms.map(({ term }) => term).join(", ")}.`,
     activeRules.length > 0 &&
       `Regras ativas do Brand Kit:\n- ${activeRules.map(({ rule }) => rule).join("\n- ")}`,
-    restrictionsSection,
-    storePersonas.length > 0 &&
-      `Público: ${storePersonas.map(({ name, age, description }) => `${name}, ${age ?? "?"} anos${description ? ` (${description})` : ""}`).join("; ")}.`,
-    regulatedSection,
-  ]);
-  const imageGuidelines = joinSections([
-    brandLine,
-    restrictionsSection,
-    artDirectionSection,
-    manualSection,
-    paletteSection,
-    fontsSection,
-    imageStyleSection,
     fixedLayoutElements.length > 0 &&
       `Elementos fixos do layout da marca: ${fixedLayoutElements.join(", ")}.`,
-    forbiddenTermsSection,
-    regulatedSection,
-  ]);
+    restrictions.length > 0 &&
+      `PROIBIDO NA ARTE (prioridade máxima, nunca usar, mesmo que apareça nos posts aprovados):\n- ${restrictions.map(({ value }) => value).join("\n- ")}`,
+    storePersonas.length > 0 &&
+      `Público: ${storePersonas.map(({ name, age, description }) => `${name}, ${age ?? "?"} anos${description ? ` (${description})` : ""}`).join("; ")}.`,
+    store.isRegulated &&
+      "Setor regulado: nunca prometa resultados nem use antes e depois.",
+    `Regras da logo:\n- ${logoRules.join("\n- ")}`,
+  ].filter((section): section is string => Boolean(section));
+
+  const guidelines = sections.join("\n");
   const avoidedHexes = new Set(
     restrictions
       .filter(({ kind }) => kind === "cor")
@@ -301,7 +265,6 @@ export async function getBrandContext(
     brandName: store.name,
     productNames: products.map(({ name }) => name),
     guidelines,
-    imageGuidelines,
     colorHexes: [
       ...new Set(
         allowedHexText
@@ -312,6 +275,9 @@ export async function getBrandContext(
     ],
     restrictions: restrictions.map(({ value }) => value),
     forbiddenTerms: forbiddenTerms.map(({ term }) => term),
+    primaryHex: colors
+      .find(({ role }) => role === "primaria")
+      ?.hex.toUpperCase(),
     variationIndex,
     manual:
       manual?.mimeType === "application/pdf" ? toStoredFile(manual) : undefined,
@@ -326,9 +292,7 @@ export async function getBrandContext(
     logos: assets
       .filter(
         (asset): asset is typeof asset & { kind: LogoAsset["kind"] } =>
-          asset.kind === "logo_claro" ||
-          asset.kind === "logo_escuro" ||
-          asset.kind === "simbolo",
+          asset.kind === "logo_claro" || asset.kind === "logo_escuro",
       )
       .map(({ storagePath, kind }) => ({ storagePath, kind })),
   };
