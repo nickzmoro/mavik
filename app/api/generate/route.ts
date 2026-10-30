@@ -4,14 +4,6 @@ import { NextResponse } from "next/server";
 import { IMAGE_PROMPT_MODEL } from "@/lib/ai/models";
 import { applyLogo, hideLogoArea } from "@/lib/brand/apply-logo";
 import {
-  defaultLogoPlacement,
-  describeLogoArea,
-  logoPositions,
-  logoVariants,
-  parseLogoPlacement,
-  type LogoPlacement,
-} from "@/lib/brand/logo-placement";
-import {
   downloadBrandAsset,
   getBrandContext,
   type BrandContext,
@@ -52,7 +44,7 @@ const imageFormats = {
     size: "1152x2048",
     contentFormat: "story",
     description:
-      "a 9:16 vertical Instagram story that fills the whole frame from top to bottom",
+      "a 9:16 vertical Instagram story. Keep the top 14% and the bottom 20% of the frame free of text and graphics",
   },
 } as const;
 
@@ -76,9 +68,11 @@ function describeFormat(
     .join(" ");
 }
 
-const describeVariation = (variationIndex: number) =>
-  variationIndex > 0 &&
-  `This is variation ${variationIndex + 1} of the same request: keep the approved layout, colors and typography, and change only the headline wording and the framing of the product photo (a slightly different angle or crop, never a close-up that pushes the text out of place).`;
+const photoAngles = [
+  "straight-on at eye level",
+  "three-quarter view from about 45 degrees",
+  "close-up that fills the photo area with the product details",
+];
 
 export const maxDuration = 180;
 
@@ -107,26 +101,17 @@ function errorResponse(errorMessage: string, status: number) {
   return NextResponse.json({ errorMessage }, { status });
 }
 
-const BRAND_POST_INSTRUCTIONS = `You are the senior art director of the brand described below, writing the prompt for GPT Image to create one Instagram post in the format given below.
-
-Follow these sources in this order of priority. When two of them disagree, the one higher in the list wins:
-1. "PROIBIDO NA ARTE": never use these colors, elements, texts or styles, even if an approved post has them.
-2. "ART DIRECTION RULES": rules written by this brand's owner, only for this brand.
-3. The brand manual (the attached PDF and "REGRAS DO MANUAL DA MARCA"): colors, typography, graphic elements and image style.
-4. The attached approved posts: the layout template for this post.
-5. The user's request: it defines only the subject, the product and the message. It overrides a rule above only when it explicitly asks for that change in this post.
-
-How to write the prompt:
-- Describe the layout of the approved posts precisely (grid, where the photo, headline, secondary text and call to action sit, proportions, margins, shapes, textures, typography weight, size and case, and the color of each element) and reproduce it as closely as possible, changing only the content. Avoid the style of the attached rejected posts.
-- Name the exact brand colors by name and HEX for background, shapes and text. Use no color outside the brand palette.
-- Describe the look of the brand fonts (style, weight and case), since the image model cannot load font files.
-- Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
-- Add a call to action, button, badge, seal or contact line only if the approved posts have one (same position, size, shape and colors) or an ART DIRECTION RULE asks for it (with the position and text the rule gives). Never invent calls to action such as "Descubra mais", "Saiba mais" or "Compre agora".
-- When a product photo is attached, that exact product is the hero of the post: describe it precisely (shape, colors, labels, packaging) and never replace it with another product or with the products shown in the approved posts.
-- Never draw, describe or invent any logo, symbol, monogram or wordmark, and never write the brand name. The official logo file is placed afterwards by the system in the corner you choose in "logoPosition": tell the image model to keep that corner clean.
-- Choose "logoPosition" and "logoVariant" for this post's format from the ART DIRECTION RULES or the brand manual. With no rule about it, use "bottom-right" and "logo".
-
-Put the final English prompt for GPT Image in "prompt", as a single paragraph with no preamble, quotes or explanations.
+const BRAND_POST_INSTRUCTIONS = `You are the senior art director of the brand described below, writing the prompt for GPT Image to create an Instagram post in the format given below.
+The attached brand manual (PDF) is the governing principle of every post: its colors, typography, layout, graphic elements and image style are mandatory, even when the user's request suggests otherwise. The user's request only defines the subject and the message.
+The attached approved posts are the template for this post: describe their layout precisely (grid, where the photo, headline, secondary text and call to action sit, proportions, margins, shapes, textures, typography weight, size and case, color of each element) and reproduce it as closely as possible, changing only the content. Avoid the style of the attached rejected posts.
+Everything listed under "PROIBIDO NA ARTE" is forbidden and overrides the approved posts: if an approved post contains a forbidden color, element, text or style, leave it out or replace it with an allowed brand color.
+The "ART DIRECTION RULES" section, when present, was written by this brand's owner and applies only to this brand: follow every rule in it, above the generic style guidance and the approved posts. Only an explicit request from the user for this specific post (or a "PROIBIDO NA ARTE" item) overrides one of these rules.
+Write a detailed prompt that specifies: the layout copied from the approved posts and the manual; the exact brand colors by name and HEX for background, shapes and text (no colors outside the brand palette); the look of the typography (describe the brand fonts' style, weight and case, since the image model cannot load font files); the image style; and the mood of the brand's tone of voice.
+Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
+Only add a call to action, button, badge or seal if the approved posts have one, in the same position, size, shape and colors as in them. Never invent buttons or calls to action such as "Descubra mais", "Saiba mais" or "Compre agora", and never use accent colors that the approved posts do not use.
+When a product photo is attached, that exact product is the hero of the post: describe it precisely (shape, colors, labels, packaging) and never replace it with another product or with the products shown in the example posts.
+Never draw, describe or invent any logo, symbol, monogram, wordmark, and never write the brand name in the image or in your prompt: the official logo file is placed afterwards in the bottom-right corner, so keep that area clean.
+Output ONLY the final English prompt for GPT Image, in a single paragraph, with no preamble, quotes or explanations.
 
 BRAND GUIDELINES:
 `;
@@ -197,9 +182,11 @@ async function writeImagePrompt(
 ) {
   const systemPrompt = brandContext
     ? [
-        `${BRAND_POST_INSTRUCTIONS}${brandContext.imageGuidelines}`,
+        `${BRAND_POST_INSTRUCTIONS}${brandContext.guidelines}`,
         describeFormat(format, brandContext),
-        !editInstruction && describeVariation(variationIndex),
+        !editInstruction &&
+          `Photo for this variation: show the product ${photoAngles[variationIndex % photoAngles.length]}, keeping the approved layout.`,
+        brandFiles.goodExamples.length > 0 && buildColorVariation(brandContext),
       ]
         .filter(Boolean)
         .join("\n")
@@ -208,7 +195,6 @@ async function writeImagePrompt(
   const completion = await openai.chat.completions.create({
     model: IMAGE_PROMPT_MODEL,
     temperature: 0.4,
-    ...(brandContext ? { response_format: writtenPromptFormat } : {}),
     messages: [
       {
         role: "system",
@@ -280,52 +266,17 @@ async function writeImagePrompt(
     ],
   });
 
-  const content = completion.choices[0]?.message.content?.trim();
-
-  if (!content || !brandContext) {
-    return content
-      ? { prompt: content, logoPlacement: defaultLogoPlacement }
-      : null;
-  }
-
-  try {
-    const written = JSON.parse(content) as {
-      prompt?: unknown;
-    } & LogoPlacementOutput;
-
-    return typeof written.prompt === "string" && written.prompt.trim()
-      ? {
-          prompt: written.prompt.trim(),
-          logoPlacement: parseLogoPlacement({
-            position: written.logoPosition,
-            variant: written.logoVariant,
-          }),
-        }
-      : null;
-  } catch {
-    return null;
-  }
+  return completion.choices[0]?.message.content?.trim();
 }
 
-type LogoPlacementOutput = { logoPosition?: unknown; logoVariant?: unknown };
+function buildColorVariation(brandContext: BrandContext) {
+  const isAlternateVariation =
+    brandContext.primaryHex && brandContext.variationIndex % 2 === 1;
 
-const writtenPromptFormat = {
-  type: "json_schema" as const,
-  json_schema: {
-    name: "image_prompt",
-    strict: true,
-    schema: {
-      type: "object",
-      additionalProperties: false,
-      required: ["prompt", "logoPosition", "logoVariant"],
-      properties: {
-        prompt: { type: "string" },
-        logoPosition: { type: "string", enum: [...logoPositions] },
-        logoVariant: { type: "string", enum: [...logoVariants] },
-      },
-    },
-  },
-};
+  return isAlternateVariation
+    ? `Color variation for this post: keep exactly the same layout as the approved posts, but the sections that are white or light in them (such as the lower panel) must use the brand primary color ${brandContext.primaryHex}, with text and details in white or another contrasting brand color.`
+    : "Color variation for this post: keep exactly the same color distribution as the approved posts, including the white or light sections (such as the lower panel).";
+}
 
 function buildEditGuardrail(editInstruction: string) {
   return `Reference image 1 is the previous version of this post. Recreate it as faithfully as possible, with the same layout, composition, photo, colors, typography, text and graphic elements, applying only this change: ${editInstruction}`;
@@ -336,7 +287,6 @@ function buildImageGuardrails(
   exampleCount: number,
   hasReferenceImage: boolean,
   format: GenerateImageInput["format"],
-  logoPlacement: LogoPlacement,
   editInstruction?: string,
 ) {
   const formatGuardrail = describeFormat(format, brandContext);
@@ -360,12 +310,16 @@ function buildImageGuardrails(
       !editInstruction &&
       "Reference image 1 is the product photo: this exact product must be the main subject of the post, reproduced faithfully (same shape, colors, labels and packaging). Do not replace it with any other product.",
     exampleCount > 0 &&
-      `Reference images ${firstExampleIndex} to ${lastExampleIndex} are approved posts of this brand: use them only as the layout and style template. Do not copy their products, photos, texts or logos.${hasReferenceImage && !editInstruction ? " The only product in this post is the one from reference image 1." : ""}`,
+      `Reference images ${firstExampleIndex} to ${lastExampleIndex} are approved posts of this brand and the template for this post: closely replicate their layout, element placement, proportions, typography style, graphic elements and color usage, changing only the products, photos and text. Do not copy their logos. ${buildColorVariation(brandContext)}`,
+    hasReferenceImage &&
+      !editInstruction &&
+      exampleCount > 0 &&
+      `The products, food, packaging and photos inside reference images ${firstExampleIndex} to ${lastExampleIndex} must not appear in this post: those images only show the layout. The only product in this post is the one from reference image 1.`,
     brandContext.colorHexes.length > 0 &&
       `Use only the brand colors ${brandContext.colorHexes.join(", ")} for backgrounds, shapes and text. No other colors in graphic elements.`,
     brandContext.restrictions.length > 0 &&
       `Strictly forbidden in this image, even if present in the reference posts: ${brandContext.restrictions.join("; ")}.`,
-    `Never draw any logo, logotype, symbol, monogram, wordmark or brand name anywhere in the image. Keep ${describeLogoArea(logoPlacement)} empty of text and graphics: the official logo is added there afterwards.`,
+    `Never draw any logo, logotype, symbol, monogram, wordmark or brand name anywhere in the image. Keep the bottom-right corner (30% of the width, 15% of the height) empty of text and graphics: the official logo is added there afterwards.`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -474,14 +428,14 @@ export async function POST(request: Request) {
     const brandFiles = editInstruction
       ? { ...downloadedBrandFiles, goodExamples: [], badExamples: [] }
       : downloadedBrandFiles;
-    const written = await writeImagePrompt(
+    const writtenPrompt = await writeImagePrompt(
       openai,
       parsedInput.data,
       brandContext,
       brandFiles,
     );
 
-    if (!written) {
+    if (!writtenPrompt) {
       return errorResponse(errorMessages.emptyResult, 502);
     }
 
@@ -501,14 +455,13 @@ export async function POST(request: Request) {
     ]);
     const imagePrompt = [
       brandContext
-        ? removeBrandName(written.prompt, brandContext.brandName)
-        : written.prompt,
+        ? removeBrandName(writtenPrompt, brandContext.brandName)
+        : writtenPrompt,
       buildImageGuardrails(
         brandContext,
         brandFiles.goodExamples.length,
         Boolean(referenceImage),
         format,
-        written.logoPlacement,
         editInstruction,
       ),
     ]
@@ -527,11 +480,7 @@ export async function POST(request: Request) {
 
     const generatedImage = Buffer.from(imageBase64, "base64");
     const finalImage = brandContext
-      ? await applyLogo(
-          generatedImage,
-          brandContext.logos,
-          written.logoPlacement,
-        ).catch((error) => {
+      ? await applyLogo(generatedImage, brandContext.logos).catch((error) => {
           console.error("Logo overlay failed", error);
           return generatedImage;
         })

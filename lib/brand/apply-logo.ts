@@ -4,11 +4,6 @@ import sharp from "sharp";
 
 import type { BrandContext } from "./get-brand-context";
 import { downloadBrandAsset } from "./get-brand-context";
-import {
-  defaultLogoPlacement,
-  getLogoOffset,
-  type LogoPlacement,
-} from "./logo-placement";
 
 const LOGO_MAX_WIDTH_RATIO = 0.3;
 const LOGO_MAX_HEIGHT_RATIO = 0.12;
@@ -38,9 +33,7 @@ export async function getBackgroundLuminance(
   return luminanceSum / (pixels.length / 3);
 }
 
-export function pickLogoKind(
-  backgroundLuminance: number,
-): Exclude<LogoKind, "simbolo"> {
+export function pickLogoKind(backgroundLuminance: number): LogoKind {
   return backgroundLuminance >= LIGHT_BACKGROUND_LUMINANCE
     ? "logo_claro"
     : "logo_escuro";
@@ -66,13 +59,8 @@ async function resizeLogo(
 export async function applyLogo(
   imageBytes: Buffer,
   logos: BrandContext["logos"],
-  placement: LogoPlacement = defaultLogoPlacement,
 ) {
-  const findLogo = (kind: LogoKind) => logos.find((logo) => logo.kind === kind);
-  const symbol = placement.variant === "simbolo" ? findLogo("simbolo") : null;
-  const fullLogos = logos.filter((logo) => logo.kind !== "simbolo");
-
-  if (!symbol && fullLogos.length === 0) {
+  if (logos.length === 0) {
     return imageBytes;
   }
 
@@ -80,44 +68,37 @@ export async function applyLogo(
   const maxLogoWidth = Math.round(width * LOGO_MAX_WIDTH_RATIO);
   const maxLogoHeight = Math.round(height * LOGO_MAX_HEIGHT_RATIO);
   const margin = Math.round(width * MARGIN_RATIO);
-  const placeLogo = (logo: { width: number; height: number }) =>
-    getLogoOffset({
-      imageWidth: width,
-      imageHeight: height,
-      logoWidth: logo.width,
-      logoHeight: logo.height,
-      margin,
-      position: placement.position,
-    });
+  const findLogo = (kind: LogoKind) => logos.find((logo) => logo.kind === kind);
 
-  const resizedLogo = async () => {
-    if (symbol) {
-      return resizeLogo(symbol.storagePath, maxLogoWidth, maxLogoHeight);
-    }
-
-    const measuredLogo = await resizeLogo(
-      (findLogo("logo_claro") ?? fullLogos[0]).storagePath,
-      maxLogoWidth,
-      maxLogoHeight,
-    );
-    const chosenKind = pickLogoKind(
-      await getBackgroundLuminance(imageBytes, {
-        ...placeLogo(measuredLogo),
-        width: measuredLogo.width,
-        height: measuredLogo.height,
-      }),
-    );
-    const chosenLogo = findLogo(chosenKind);
-
-    return chosenLogo && chosenKind !== "logo_claro"
-      ? resizeLogo(chosenLogo.storagePath, maxLogoWidth, maxLogoHeight)
-      : measuredLogo;
+  const measuredLogo = await resizeLogo(
+    (findLogo("logo_claro") ?? logos[0]).storagePath,
+    maxLogoWidth,
+    maxLogoHeight,
+  );
+  const placement = {
+    left: width - measuredLogo.width - margin,
+    top: height - measuredLogo.height - margin,
   };
-
-  const logo = await resizedLogo();
+  const backgroundLuminance = await getBackgroundLuminance(imageBytes, {
+    ...placement,
+    width: measuredLogo.width,
+    height: measuredLogo.height,
+  });
+  const chosenKind = pickLogoKind(backgroundLuminance);
+  const chosenLogo = findLogo(chosenKind);
+  const logo =
+    chosenLogo && chosenKind !== "logo_claro"
+      ? await resizeLogo(chosenLogo.storagePath, maxLogoWidth, maxLogoHeight)
+      : measuredLogo;
 
   return sharp(imageBytes)
-    .composite([{ input: logo.bytes, ...placeLogo(logo) }])
+    .composite([
+      {
+        input: logo.bytes,
+        left: width - logo.width - margin,
+        top: height - logo.height - margin,
+      },
+    ])
     .png()
     .toBuffer();
 }
