@@ -980,6 +980,10 @@ export const ideaRequests = pgTable(
     storeId: storeId(),
     requestedBy: profileId("requested_by"),
     theme: text("theme"),
+    calendarDateId: uuid("calendar_date_id").references(
+      () => calendarDates.id,
+      { onDelete: "set null" },
+    ),
     goal: contentGoalEnum("goal"),
     formats: contentFormatEnum("formats")
       .array()
@@ -995,6 +999,7 @@ export const ideaRequests = pgTable(
   },
   (table) => [
     index("idea_requests_store_id_idx").on(table.storeId),
+    index("idea_requests_calendar_date_id_idx").on(table.calendarDateId),
     index("idea_requests_requested_by_idx").on(table.requestedBy),
     check(
       "idea_requests_quantity_check",

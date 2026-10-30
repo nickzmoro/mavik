@@ -1,0 +1,18 @@
+INSERT INTO "calendar_dates" ("name", "date", "kind") VALUES
+  ('Black Friday', '2026-11-27', 'data_comercial'),
+  ('Cyber Monday', '2026-11-30', 'data_comercial'),
+  ('Natal', '2026-12-25', 'feriado'),
+  ('Ano Novo', '2027-01-01', 'feriado'),
+  ('Carnaval', '2027-02-09', 'feriado'),
+  ('Dia da Mulher', '2027-03-08', 'data_comercial'),
+  ('Dia do Consumidor', '2027-03-15', 'data_comercial'),
+  ('Páscoa', '2027-03-28', 'feriado'),
+  ('Dia das Mães', '2027-05-09', 'data_comercial'),
+  ('Dia dos Namorados', '2027-06-12', 'data_comercial'),
+  ('Dia dos Pais', '2027-08-08', 'data_comercial'),
+  ('Dia do Cliente', '2027-09-15', 'data_comercial'),
+  ('Dia das Crianças', '2027-10-12', 'data_comercial'),
+  ('Halloween', '2027-10-31', 'data_comercial'),
+  ('Black Friday', '2027-11-26', 'data_comercial'),
+  ('Cyber Monday', '2027-11-29', 'data_comercial'),
+  ('Natal', '2027-12-25', 'feriado');
