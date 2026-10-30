@@ -2,6 +2,7 @@ import { ChevronRight, Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { postCardLinkClassName } from "@/components/common/artwork-card";
 import { Badge } from "@/components/ui/badge";
 import {
   getUpcomingContents,
@@ -13,7 +14,6 @@ import {
   routes,
 } from "@/lib/routes";
 
-import { postCardLinkClassName } from "./drafts-section";
 import { HomeSectionTitle } from "./home-section-title";
 
 const postStatusBadges: Record<

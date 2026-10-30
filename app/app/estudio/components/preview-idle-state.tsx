@@ -2,8 +2,10 @@
 
 import { Sparkles } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 import { useRecentArtworks } from "@/hooks/queries/use-recent-artworks";
+import { getStudioUrlForArtwork, routes } from "@/lib/routes";
 
 import { BrandKitSummaryCard } from "./brand-kit-summary-card";
 
@@ -30,26 +32,39 @@ export function PreviewIdleState() {
       <BrandKitSummaryCard />
       {recentArtworks.length > 0 ? (
         <div className="flex flex-col gap-2.5">
-          <span className="text-xs leading-[1.4] font-semibold text-muted">
-            Criadas recentemente
-          </span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs leading-[1.4] font-semibold text-muted">
+              Criadas recentemente
+            </span>
+            <Link
+              href={routes.studioArtworks}
+              className="rounded-(--r-sm) text-xs leading-[1.4] font-semibold text-primary no-underline transition-colors duration-150 hover:text-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+            >
+              Ver todas
+            </Link>
+          </div>
           <div className="grid grid-cols-3 gap-2.5">
             {recentArtworks.map((artwork) => (
-              <div key={artwork.id} className="flex min-w-0 flex-col gap-1.5">
-                <div className="relative aspect-4/5 overflow-hidden rounded-(--r-md)">
+              <Link
+                key={artwork.id}
+                href={getStudioUrlForArtwork(artwork.id)}
+                aria-label={`Abrir no Estúdio: ${artwork.title}`}
+                className="group flex min-w-0 flex-col gap-1.5 rounded-(--r-md) text-inherit no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                <div className="relative aspect-4/5 overflow-hidden rounded-(--r-md) transition-transform duration-150 group-hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0">
                   <Image
                     src={artwork.imageUrl}
-                    alt={`Arte recente: ${artwork.title}`}
+                    alt=""
                     fill
                     unoptimized
                     sizes="160px"
                     className="object-cover"
                   />
                 </div>
-                <span className="truncate text-xs leading-[1.4] text-muted">
+                <span className="truncate text-xs leading-[1.4] text-muted group-hover:text-text">
                   {artwork.title}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
