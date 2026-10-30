@@ -46,4 +46,7 @@ export const BRAND_TAB_PARAM = "aba";
 export const INSTAGRAM_RESULT_PARAM = "instagram";
 
 export type InstagramConnectResult =
-  "conectado" | "erro" | "negado" | "sem_conta";
+  | "conectado"
+  | "erro"
+  | "negado"
+  | "sem_conta";
