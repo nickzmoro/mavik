@@ -51,7 +51,6 @@ export const ideasErrorMessages = {
   invalidDate: "Essa data não está mais disponível. Escolha outra.",
 };
 
-const INITIAL_IDEAS_COUNT = 9;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const toSaoPauloIsoDate = (date: Date) =>
