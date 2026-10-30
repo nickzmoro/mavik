@@ -29,6 +29,8 @@ export type IdeaDateView = {
 
 export type IdeasData = {
   storeName: string;
+  storeSegment: string;
+  businessGoal: string | null;
   ideas: IdeaView[];
   dates: IdeaDateView[];
   savedIdeaIds: string[];
@@ -37,6 +39,8 @@ export type IdeasData = {
 
 export const emptyIdeasData: IdeasData = {
   storeName: "",
+  storeSegment: "",
+  businessGoal: null,
   ideas: [],
   dates: [],
   savedIdeaIds: [],

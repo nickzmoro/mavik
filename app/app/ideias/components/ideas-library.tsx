@@ -100,7 +100,12 @@ export function IdeasLibrary({
   return (
     <>
       <IdeasHeader onGenerateIdeas={() => openGenerateDialog()} />
-      <IdeasSearchBar query={library.query} onQueryChange={library.setQuery} />
+      <IdeasSearchBar
+        query={library.query}
+        storeSegment={data.storeSegment}
+        businessGoal={data.businessGoal}
+        onQueryChange={library.setQuery}
+      />
       <IdeasDates
         dates={data.dates}
         windowDays={datesWindowDays}

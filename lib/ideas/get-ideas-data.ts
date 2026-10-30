@@ -4,6 +4,7 @@ import { and, asc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { calendarDates, ideaSaves } from "@/db/schema";
+import { businessGoals } from "@/lib/onboarding/constants";
 import { getCurrentUserId, getOwnedStore } from "@/lib/onboarding/store-access";
 
 import { selectRequestInProgress, selectStoreIdeas } from "./idea-queries";
@@ -61,6 +62,10 @@ export async function getIdeasData(): Promise<IdeasData> {
 
   return {
     storeName: store.name,
+    storeSegment: store.segment,
+    businessGoal:
+      businessGoals.find(({ value }) => value === store.mainGoal)?.label ??
+      null,
     ideas: storeIdeas.map((idea) => ({
       id: idea.id,
       title: idea.title,
