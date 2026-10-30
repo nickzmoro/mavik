@@ -207,6 +207,8 @@ export function IdeasLibrary({
         open={activeDialog === "generate"}
         onOpenChange={handleDialogOpenChange("generate")}
         initialTheme={generateInitialTheme}
+        dates={data.dates}
+        storeName={data.storeName}
       />
     </>
   );

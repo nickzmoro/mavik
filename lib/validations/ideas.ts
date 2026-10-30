@@ -1,19 +1,24 @@
 import { z } from "zod";
 
-import { ideaFormats, ideaGoals, ideaTypes } from "@/lib/mocks/ideas";
-
-export const ideaQuantityOptions = [3, 6, 9] as const;
+import { MAX_REQUESTED_IDEAS } from "@/actions/generate-ideas/schema";
+import { contentTypes } from "@/lib/content/content-labels";
+import { contentFormats, contentGoals } from "@/lib/onboarding/constants";
 
 export const generateIdeasFormSchema = z.object({
   theme: z.string().trim().max(80, "Use até 80 caracteres."),
-  goal: z.enum(ideaGoals),
+  calendarDateId: z.string().nullable(),
+  goal: z.enum(contentGoals),
   formats: z
-    .array(z.enum(ideaFormats))
+    .array(z.enum(contentFormats))
     .min(1, "Escolha pelo menos um formato."),
-  types: z
-    .array(z.enum(ideaTypes))
+  contentTypes: z
+    .array(z.enum(contentTypes))
     .min(1, "Escolha pelo menos um tipo de conteúdo."),
-  quantity: z.union([z.literal(3), z.literal(6), z.literal(9)]),
+  quantity: z
+    .number({ error: "Diga quantas ideias você quer." })
+    .int("Use um número inteiro.")
+    .min(1, "Peça pelo menos 1 ideia.")
+    .max(MAX_REQUESTED_IDEAS, `Peça até ${MAX_REQUESTED_IDEAS} ideias.`),
 });
 
 export type GenerateIdeasFormValues = z.infer<typeof generateIdeasFormSchema>;

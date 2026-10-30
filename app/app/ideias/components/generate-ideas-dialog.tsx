@@ -1,8 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Sparkles } from "lucide-react";
-import { useEffect, useEffectEvent, useState } from "react";
+import { Info, Sparkles } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { PillGroup } from "@/components/common/pill-group";
@@ -25,24 +24,29 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ideaFormats, ideaGoals, ideaTypes } from "@/lib/mocks/ideas";
-import { mockCurrentStore } from "@/lib/mocks/sidebar";
+import { useGenerateIdeas } from "@/hooks/mutations/use-generate-ideas";
+import { formatShortDate } from "@/lib/agenda-dates";
+import {
+  contentTypeLabels,
+  contentTypes,
+  formatLabels,
+  goalLabels,
+} from "@/lib/content/content-labels";
+import type { IdeaDateView } from "@/lib/ideas/idea-types";
+import { contentFormats, contentGoals } from "@/lib/onboarding/constants";
 import { toggleArrayItem } from "@/lib/toggle-array-item";
 import {
   generateIdeasFormSchema,
-  ideaQuantityOptions,
   type GenerateIdeasFormValues,
 } from "@/lib/validations/ideas";
 import { useToast } from "@/providers/toast-provider";
 
 const generateIdeasFormId = "generate-ideas-form";
-const ideasGenerationDelayInMs = 1800;
 
-type GenerateIdeasDialogProps = {
-  open: boolean;
-  onOpenChange: (isOpen: boolean) => void;
-  initialTheme: string;
-};
+const replaceWarning =
+  "As novas ideias vão substituir as atuais. Suas ideias salvas nos favoritos continuam guardadas.";
+
+const failedMessage = "Não conseguimos gerar as ideias agora. Tente de novo.";
 
 export function GeneratingIdeasState({
   quantity,
@@ -63,7 +67,8 @@ export function GeneratingIdeasState({
         <Sparkles className="size-7" />
       </span>
       <p className="m-0 font-display text-[17px] leading-[1.4] font-semibold">
-        Criando {quantity} ideias para {storeName || "a sua marca"}
+        Criando {quantity === 1 ? "1 ideia" : `${quantity} ideias`} para{" "}
+        {storeName || "a sua marca"}
       </p>
       <p className="m-0 max-w-95 text-sm leading-normal text-muted">
         Cruzando seu objetivo, seus produtos e o seu público. Leva alguns
@@ -81,56 +86,50 @@ export function GeneratingIdeasState({
   );
 }
 
+type GenerateIdeasFormProps = {
+  initialTheme: string;
+  dates: IdeaDateView[];
+  storeName: string;
+  onGenerated: (created: number, missing: number) => void;
+};
+
 function GenerateIdeasForm({
   initialTheme,
+  dates,
+  storeName,
   onGenerated,
-}: {
-  initialTheme: string;
-  onGenerated: (quantity: number) => void;
-}) {
-  const [generatingQuantity, setGeneratingQuantity] = useState<number | null>(
-    null,
-  );
+}: GenerateIdeasFormProps) {
+  const { showToast } = useToast();
+  const generateIdeasMutation = useGenerateIdeas();
+  const initialDate = dates.find((date) => date.name === initialTheme);
   const form = useForm<GenerateIdeasFormValues>({
     resolver: zodResolver(generateIdeasFormSchema),
     defaultValues: {
-      theme: initialTheme,
+      theme: initialDate ? "" : initialTheme,
+      calendarDateId: initialDate?.id ?? null,
       goal: "vender",
       formats: ["reels", "carrossel"],
-      types: ["educativo", "comercial"],
+      contentTypes: ["educativo", "comercial"],
       quantity: 6,
     },
   });
-
   const quantity = useWatch({ control: form.control, name: "quantity" });
-  const finishGeneration = useEffectEvent((generatedQuantity: number) =>
-    onGenerated(generatedQuantity),
-  );
 
-  useEffect(() => {
-    if (generatingQuantity === null) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(
-      () => finishGeneration(generatingQuantity),
-      ideasGenerationDelayInMs,
-    );
-
-    return () => window.clearTimeout(timeoutId);
-  }, [generatingQuantity]);
-
-  if (generatingQuantity !== null) {
-    return (
-      <GeneratingIdeasState
-        quantity={generatingQuantity}
-        storeName={mockCurrentStore.name}
-      />
-    );
+  if (generateIdeasMutation.isPending) {
+    return <GeneratingIdeasState quantity={quantity} storeName={storeName} />;
   }
 
   const handleGenerateIdeas = (values: GenerateIdeasFormValues) =>
-    setGeneratingQuantity(values.quantity);
+    generateIdeasMutation.mutate(
+      { mode: "request", ...values },
+      {
+        onSuccess: (result) =>
+          result.isSuccess
+            ? onGenerated(result.data.created, result.data.missing)
+            : showToast(result.errorMessage),
+        onError: () => showToast(failedMessage),
+      },
+    );
 
   return (
     <>
@@ -147,7 +146,7 @@ function GenerateIdeasForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-semibold">
-                  Tema ou data{" "}
+                  Tema{" "}
                   <span className="font-normal text-muted">(opcional)</span>
                 </FormLabel>
                 <FormControl>
@@ -155,12 +154,41 @@ function GenerateIdeasForm({
                     placeholder="Ex.: Black Friday, cardápio de verão, novo bolo"
                     autoComplete="off"
                     {...field}
+                    onChange={(event) => {
+                      field.onChange(event);
+                      form.setValue("calendarDateId", null);
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+          {dates.length > 0 ? (
+            <FormField
+              control={form.control}
+              name="calendarDateId"
+              render={({ field }) => (
+                <PillGroup
+                  id="generate-date"
+                  label="Ou uma data do calendário"
+                  options={dates.map((date) => date.id)}
+                  getLabel={(dateId) => {
+                    const date = dates.find(({ id }) => id === dateId);
+
+                    return date
+                      ? `${date.name} · ${formatShortDate(date.date)}`
+                      : "";
+                  }}
+                  isSelected={(dateId) => dateId === field.value}
+                  onToggle={(dateId) => {
+                    field.onChange(dateId === field.value ? null : dateId);
+                    form.setValue("theme", "");
+                  }}
+                />
+              )}
+            />
+          ) : null}
           <FormField
             control={form.control}
             name="goal"
@@ -168,8 +196,9 @@ function GenerateIdeasForm({
               <PillGroup
                 id="generate-goal"
                 label="Objetivo"
-                options={ideaGoals}
-                isSelected={(option) => option === field.value}
+                options={contentGoals}
+                getLabel={(goal) => goalLabels[goal]}
+                isSelected={(goal) => goal === field.value}
                 onToggle={field.onChange}
               />
             )}
@@ -182,10 +211,11 @@ function GenerateIdeasForm({
                 id="generate-formats"
                 label="Formatos"
                 hint="(um ou mais)"
-                options={ideaFormats}
-                isSelected={(option) => field.value.includes(option)}
-                onToggle={(option) =>
-                  field.onChange(toggleArrayItem(field.value, option))
+                options={contentFormats}
+                getLabel={(format) => formatLabels[format]}
+                isSelected={(format) => field.value.includes(format)}
+                onToggle={(format) =>
+                  field.onChange(toggleArrayItem(field.value, format))
                 }
                 errorMessage={fieldState.error?.message}
               />
@@ -193,15 +223,17 @@ function GenerateIdeasForm({
           />
           <FormField
             control={form.control}
-            name="types"
+            name="contentTypes"
             render={({ field, fieldState }) => (
               <PillGroup
                 id="generate-types"
                 label="Tipo de conteúdo"
-                options={ideaTypes}
-                isSelected={(option) => field.value.includes(option)}
-                onToggle={(option) =>
-                  field.onChange(toggleArrayItem(field.value, option))
+                hint="(um ou mais)"
+                options={contentTypes}
+                getLabel={(contentType) => contentTypeLabels[contentType]}
+                isSelected={(contentType) => field.value.includes(contentType)}
+                onToggle={(contentType) =>
+                  field.onChange(toggleArrayItem(field.value, contentType))
                 }
                 errorMessage={fieldState.error?.message}
               />
@@ -211,22 +243,34 @@ function GenerateIdeasForm({
             control={form.control}
             name="quantity"
             render={({ field }) => (
-              <PillGroup
-                id="generate-quantity"
-                label="Quantas ideias"
-                options={ideaQuantityOptions}
-                isSelected={(option) => option === field.value}
-                onToggle={field.onChange}
-              />
+              <FormItem className="max-w-40">
+                <FormLabel className="font-semibold">Quantas ideias</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={12}
+                    {...field}
+                    value={Number.isNaN(field.value) ? "" : field.value}
+                    onChange={(event) =>
+                      field.onChange(event.target.valueAsNumber)
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
-          <p className="tile m-0 flex items-start gap-2.5 rounded-[14px] px-3.5 py-3 text-[13px] leading-normal text-muted">
-            <Check
+          <p
+            role="note"
+            className="tile m-0 flex items-start gap-2.5 rounded-[14px] px-3.5 py-3 text-[13px] leading-normal text-muted"
+          >
+            <Info
               aria-hidden="true"
-              className="mt-px size-4 shrink-0 text-success"
+              className="mt-px size-4 shrink-0 text-primary"
             />
-            Vou respeitar suas preferências: tom acolhedor, fotos reais e sem
-            destacar descontos.
+            {replaceWarning}
           </p>
         </form>
       </Form>
@@ -236,23 +280,39 @@ function GenerateIdeasForm({
         </DialogClose>
         <Button type="submit" form={generateIdeasFormId}>
           <Sparkles aria-hidden="true" className="size-4.5" />
-          Gerar {quantity} ideias
+          {Number.isInteger(quantity) && quantity > 0
+            ? `Gerar ${quantity === 1 ? "1 ideia" : `${quantity} ideias`}`
+            : "Gerar ideias"}
         </Button>
       </DialogFooter>
     </>
   );
 }
 
+type GenerateIdeasDialogProps = {
+  open: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  initialTheme: string;
+  dates: IdeaDateView[];
+  storeName: string;
+};
+
 export function GenerateIdeasDialog({
   open,
   onOpenChange,
   initialTheme,
+  dates,
+  storeName,
 }: GenerateIdeasDialogProps) {
   const { showToast } = useToast();
 
-  const handleGenerated = (quantity: number) => {
+  const handleGenerated = (created: number, missing: number) => {
     onOpenChange(false);
-    showToast(`${quantity} novas ideias na sua biblioteca`);
+    showToast(
+      missing > 0
+        ? `${created} novas ideias na sua biblioteca. Faltaram ${missing}, tente gerar de novo.`
+        : `${created === 1 ? "1 nova ideia" : `${created} novas ideias`} na sua biblioteca`,
+    );
   };
 
   return (
@@ -261,14 +321,18 @@ export function GenerateIdeasDialog({
         <DialogHeader contentClassName="gap-1">
           <DialogTitle>Gerar novas ideias</DialogTitle>
           <DialogDescription>
-            O agente usa o que sabe do {mockCurrentStore.name}. Escolha só o que
-            importa agora.
+            {`O agente usa o que sabe ${storeName ? `do ${storeName}` : "da sua marca"}. Escolha só o que importa agora.`}
           </DialogDescription>
         </DialogHeader>
-        <GenerateIdeasForm
-          initialTheme={initialTheme}
-          onGenerated={handleGenerated}
-        />
+        {open ? (
+          <GenerateIdeasForm
+            key={initialTheme}
+            initialTheme={initialTheme}
+            dates={dates}
+            storeName={storeName}
+            onGenerated={handleGenerated}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
   );
