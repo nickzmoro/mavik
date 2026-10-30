@@ -76,11 +76,9 @@ function describeFormat(
     .join(" ");
 }
 
-const photoAngles = [
-  "straight-on at eye level",
-  "three-quarter view from about 45 degrees",
-  "close-up that fills the photo area with the product details",
-];
+const describeVariation = (variationIndex: number) =>
+  variationIndex > 0 &&
+  `This is variation ${variationIndex + 1} of the same request: keep the approved layout, colors and typography, and change only the headline wording and the framing of the product photo (a slightly different angle or crop, never a close-up that pushes the text out of place).`;
 
 export const maxDuration = 180;
 
@@ -109,17 +107,25 @@ function errorResponse(errorMessage: string, status: number) {
   return NextResponse.json({ errorMessage }, { status });
 }
 
-const BRAND_POST_INSTRUCTIONS = `You are the senior art director of the brand described below, writing the prompt for GPT Image to create an Instagram post in the format given below.
-The attached brand manual (PDF) is the governing principle of every post: its colors, typography, layout, graphic elements and image style are mandatory, even when the user's request suggests otherwise. The user's request only defines the subject and the message.
-The attached approved posts are the template for this post: describe their layout precisely (grid, where the photo, headline, secondary text and call to action sit, proportions, margins, shapes, textures, typography weight, size and case, color of each element) and reproduce it as closely as possible, changing only the content. Avoid the style of the attached rejected posts.
-Everything listed under "PROIBIDO NA ARTE" is forbidden and overrides the approved posts: if an approved post contains a forbidden color, element, text or style, leave it out or replace it with an allowed brand color.
-The "ART DIRECTION RULES" section, when present, was written by this brand's owner and applies only to this brand: follow every rule in it, above the generic style guidance and the approved posts. Only an explicit request from the user for this specific post (or a "PROIBIDO NA ARTE" item) overrides one of these rules.
-Write a detailed prompt that specifies: the layout copied from the approved posts and the manual; the exact brand colors by name and HEX for background, shapes and text (no colors outside the brand palette); the look of the typography (describe the brand fonts' style, weight and case, since the image model cannot load font files); the image style; and the mood of the brand's tone of voice.
-Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
-Only add a call to action, button, badge, seal or contact line if the approved posts have one (in the same position, size, shape and colors as in them) or if an ART DIRECTION RULE asks for it (in the position and with the text the rule gives). Otherwise never invent buttons or calls to action such as "Descubra mais", "Saiba mais" or "Compre agora", and never use accent colors that the approved posts do not use.
-When a product photo is attached, that exact product is the hero of the post: describe it precisely (shape, colors, labels, packaging) and never replace it with another product or with the products shown in the example posts.
-Never draw, describe or invent any logo, symbol, monogram, wordmark, and never write the brand name in the image or in your prompt: the official logo file is placed afterwards by the system in the corner you choose in "logoPosition", so tell the image model to keep that corner clean.
-Choose "logoPosition" and "logoVariant" for this post's format: follow any ART DIRECTION RULE about the logo for this format (for example a different corner, or the symbol/icon instead of the full logo). With no such rule, use "bottom-right" and "logo".
+const BRAND_POST_INSTRUCTIONS = `You are the senior art director of the brand described below, writing the prompt for GPT Image to create one Instagram post in the format given below.
+
+Follow these sources in this order of priority. When two of them disagree, the one higher in the list wins:
+1. "PROIBIDO NA ARTE": never use these colors, elements, texts or styles, even if an approved post has them.
+2. "ART DIRECTION RULES": rules written by this brand's owner, only for this brand.
+3. The brand manual (the attached PDF and "REGRAS DO MANUAL DA MARCA"): colors, typography, graphic elements and image style.
+4. The attached approved posts: the layout template for this post.
+5. The user's request: it defines only the subject, the product and the message. It overrides a rule above only when it explicitly asks for that change in this post.
+
+How to write the prompt:
+- Describe the layout of the approved posts precisely (grid, where the photo, headline, secondary text and call to action sit, proportions, margins, shapes, textures, typography weight, size and case, and the color of each element) and reproduce it as closely as possible, changing only the content. Avoid the style of the attached rejected posts.
+- Name the exact brand colors by name and HEX for background, shapes and text. Use no color outside the brand palette.
+- Describe the look of the brand fonts (style, weight and case), since the image model cannot load font files.
+- Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
+- Add a call to action, button, badge, seal or contact line only if the approved posts have one (same position, size, shape and colors) or an ART DIRECTION RULE asks for it (with the position and text the rule gives). Never invent calls to action such as "Descubra mais", "Saiba mais" or "Compre agora".
+- When a product photo is attached, that exact product is the hero of the post: describe it precisely (shape, colors, labels, packaging) and never replace it with another product or with the products shown in the approved posts.
+- Never draw, describe or invent any logo, symbol, monogram or wordmark, and never write the brand name. The official logo file is placed afterwards by the system in the corner you choose in "logoPosition": tell the image model to keep that corner clean.
+- Choose "logoPosition" and "logoVariant" for this post's format from the ART DIRECTION RULES or the brand manual. With no rule about it, use "bottom-right" and "logo".
+
 Put the final English prompt for GPT Image in "prompt", as a single paragraph with no preamble, quotes or explanations.
 
 BRAND GUIDELINES:
@@ -191,11 +197,9 @@ async function writeImagePrompt(
 ) {
   const systemPrompt = brandContext
     ? [
-        `${BRAND_POST_INSTRUCTIONS}${brandContext.guidelines}`,
+        `${BRAND_POST_INSTRUCTIONS}${brandContext.imageGuidelines}`,
         describeFormat(format, brandContext),
-        !editInstruction &&
-          `Photo for this variation: show the product ${photoAngles[variationIndex % photoAngles.length]}, keeping the approved layout.`,
-        brandFiles.goodExamples.length > 0 && buildColorVariation(brandContext),
+        !editInstruction && describeVariation(variationIndex),
       ]
         .filter(Boolean)
         .join("\n")
@@ -323,15 +327,6 @@ const writtenPromptFormat = {
   },
 };
 
-function buildColorVariation(brandContext: BrandContext) {
-  const isAlternateVariation =
-    brandContext.primaryHex && brandContext.variationIndex % 2 === 1;
-
-  return isAlternateVariation
-    ? `Color variation for this post: keep exactly the same layout as the approved posts, but the sections that are white or light in them (such as the lower panel) must use the brand primary color ${brandContext.primaryHex}, with text and details in white or another contrasting brand color.`
-    : "Color variation for this post: keep exactly the same color distribution as the approved posts, including the white or light sections (such as the lower panel).";
-}
-
 function buildEditGuardrail(editInstruction: string) {
   return `Reference image 1 is the previous version of this post. Recreate it as faithfully as possible, with the same layout, composition, photo, colors, typography, text and graphic elements, applying only this change: ${editInstruction}`;
 }
@@ -365,11 +360,7 @@ function buildImageGuardrails(
       !editInstruction &&
       "Reference image 1 is the product photo: this exact product must be the main subject of the post, reproduced faithfully (same shape, colors, labels and packaging). Do not replace it with any other product.",
     exampleCount > 0 &&
-      `Reference images ${firstExampleIndex} to ${lastExampleIndex} are approved posts of this brand and the template for this post: closely replicate their layout, element placement, proportions, typography style, graphic elements and color usage, changing only the products, photos and text. Do not copy their logos. ${buildColorVariation(brandContext)}`,
-    hasReferenceImage &&
-      !editInstruction &&
-      exampleCount > 0 &&
-      `The products, food, packaging and photos inside reference images ${firstExampleIndex} to ${lastExampleIndex} must not appear in this post: those images only show the layout. The only product in this post is the one from reference image 1.`,
+      `Reference images ${firstExampleIndex} to ${lastExampleIndex} are approved posts of this brand: use them only as the layout and style template. Do not copy their products, photos, texts or logos.${hasReferenceImage && !editInstruction ? " The only product in this post is the one from reference image 1." : ""}`,
     brandContext.colorHexes.length > 0 &&
       `Use only the brand colors ${brandContext.colorHexes.join(", ")} for backgrounds, shapes and text. No other colors in graphic elements.`,
     brandContext.restrictions.length > 0 &&

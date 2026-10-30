@@ -27,7 +27,6 @@ import { layoutElements } from "@/lib/mocks/brand";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { buildArtDirectionSection } from "./art-direction-rules";
-import { logoRules } from "./logo-rules";
 import { extractAndSaveManualRules } from "./manual-guidelines";
 
 type LogoAsset = {
@@ -41,10 +40,10 @@ export type BrandContext = {
   brandName: string;
   productNames: string[];
   guidelines: string;
+  imageGuidelines: string;
   colorHexes: string[];
   restrictions: string[];
   forbiddenTerms: string[];
-  primaryHex?: string;
   variationIndex: number;
   logos: LogoAsset[];
   manual?: StoredFile;
@@ -214,38 +213,71 @@ export async function getBrandContext(
     ),
   ];
 
-  const sections = [
-    `Marca: ${store.name} (segmento: ${store.segment}).`,
+  const brandLine = `Marca: ${store.name} (segmento: ${store.segment}).`;
+  const manualSection =
+    manualRules.length > 0 &&
+    `REGRAS DO MANUAL DA MARCA:\n- ${manualRules.join("\n- ")}`;
+  const artDirectionSection = buildArtDirectionSection(
+    brandKit.id,
+    artDirectionRules,
+    variationIndex,
+  );
+  const paletteSection =
+    colors.length > 0 &&
+    `Paleta do Brand Kit: ${colors.map(({ name, role, hex }) => `${name ?? role} ${hex}`).join(", ")}.`;
+  const fontsSection =
+    fonts.length > 0 &&
+    `Fontes do Brand Kit: ${fonts.map(({ role, family }) => `${role} ${family}`).join(", ")}.`;
+  const imageStyleSection =
+    brandKit.imageStyle && `Estilo de imagem: ${brandKit.imageStyle}.`;
+  const forbiddenTermsSection =
+    forbiddenTerms.length > 0 &&
+    `Termos proibidos (nunca usar): ${forbiddenTerms.map(({ term }) => term).join(", ")}.`;
+  const restrictionsSection =
+    restrictions.length > 0 &&
+    `PROIBIDO NA ARTE (nunca usar, mesmo que apareça nos posts aprovados):\n- ${restrictions.map(({ value }) => value).join("\n- ")}`;
+  const regulatedSection =
+    store.isRegulated &&
+    "Setor regulado: nunca prometa resultados nem use antes e depois.";
+  const joinSections = (sections: (string | false | null | undefined)[]) =>
+    sections
+      .filter((section): section is string => Boolean(section))
+      .join("\n");
+
+  const guidelines = joinSections([
+    brandLine,
     products.length > 0 &&
       `Produtos e serviços: ${products.map(({ name }) => name).join(", ")}.`,
-    manualRules.length > 0 &&
-      `REGRAS DO MANUAL DA MARCA (prioridade máxima, seguir à risca):\n- ${manualRules.join("\n- ")}`,
-    buildArtDirectionSection(brandKit.id, artDirectionRules, variationIndex),
-    colors.length > 0 &&
-      `Paleta do Brand Kit: ${colors.map(({ name, role, hex }) => `${name ?? role} ${hex}`).join(", ")}.`,
-    fonts.length > 0 &&
-      `Fontes do Brand Kit: ${fonts.map(({ role, family }) => `${role} ${family}`).join(", ")}.`,
-    brandKit.imageStyle && `Estilo de imagem: ${brandKit.imageStyle}.`,
+    manualSection,
+    artDirectionSection,
+    paletteSection,
+    fontsSection,
+    imageStyleSection,
     voice &&
       `Tom de voz: ${describeScale(voice.formalCasual, "formal", "descontraído")}, ${describeScale(voice.seriousFun, "sério", "divertido")}, ${describeScale(voice.technicalSimple, "técnico", "simples")}, ${describeScale(voice.educationalSales, "educativo", "vendedor")}.`,
     lovedTerms.length > 0 &&
       `Palavras que a marca ama: ${lovedTerms.map(({ term }) => term).join(", ")}.`,
-    forbiddenTerms.length > 0 &&
-      `Termos proibidos (nunca usar): ${forbiddenTerms.map(({ term }) => term).join(", ")}.`,
+    forbiddenTermsSection,
     activeRules.length > 0 &&
       `Regras ativas do Brand Kit:\n- ${activeRules.map(({ rule }) => rule).join("\n- ")}`,
-    fixedLayoutElements.length > 0 &&
-      `Elementos fixos do layout da marca: ${fixedLayoutElements.join(", ")}.`,
-    restrictions.length > 0 &&
-      `PROIBIDO NA ARTE (prioridade máxima, nunca usar, mesmo que apareça nos posts aprovados):\n- ${restrictions.map(({ value }) => value).join("\n- ")}`,
+    restrictionsSection,
     storePersonas.length > 0 &&
       `Público: ${storePersonas.map(({ name, age, description }) => `${name}, ${age ?? "?"} anos${description ? ` (${description})` : ""}`).join("; ")}.`,
-    store.isRegulated &&
-      "Setor regulado: nunca prometa resultados nem use antes e depois.",
-    `Regras da logo:\n- ${logoRules.join("\n- ")}`,
-  ].filter((section): section is string => Boolean(section));
-
-  const guidelines = sections.join("\n");
+    regulatedSection,
+  ]);
+  const imageGuidelines = joinSections([
+    brandLine,
+    restrictionsSection,
+    artDirectionSection,
+    manualSection,
+    paletteSection,
+    fontsSection,
+    imageStyleSection,
+    fixedLayoutElements.length > 0 &&
+      `Elementos fixos do layout da marca: ${fixedLayoutElements.join(", ")}.`,
+    forbiddenTermsSection,
+    regulatedSection,
+  ]);
   const avoidedHexes = new Set(
     restrictions
       .filter(({ kind }) => kind === "cor")
@@ -268,6 +300,7 @@ export async function getBrandContext(
     brandName: store.name,
     productNames: products.map(({ name }) => name),
     guidelines,
+    imageGuidelines,
     colorHexes: [
       ...new Set(
         allowedHexText
@@ -278,9 +311,6 @@ export async function getBrandContext(
     ],
     restrictions: restrictions.map(({ value }) => value),
     forbiddenTerms: forbiddenTerms.map(({ term }) => term),
-    primaryHex: colors
-      .find(({ role }) => role === "primaria")
-      ?.hex.toUpperCase(),
     variationIndex,
     manual:
       manual?.mimeType === "application/pdf" ? toStoredFile(manual) : undefined,
