@@ -13,7 +13,7 @@ import {
   type ArtworkStatusFilter,
 } from "./artwork-status";
 
-export type ArtworkListFormat = "post" | "story";
+export type ArtworkListFormat = "post" | "story" | "banner";
 
 export type RecentArtwork = {
   id: string;

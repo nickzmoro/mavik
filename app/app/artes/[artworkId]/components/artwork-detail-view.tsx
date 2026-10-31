@@ -15,7 +15,7 @@ import { usePublishArtworkNow } from "@/hooks/mutations/use-publish-artwork-now"
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
 import { useArtQuota } from "@/hooks/use-art-quota";
 import { useArtworkAdjustment } from "@/hooks/use-artwork-adjustment";
-import { findArtFormat } from "@/lib/art-options";
+import { findArtFormat, isInstagramFormat } from "@/lib/art-options";
 import { getArtFormatIdFromSize } from "@/lib/content/artwork-format";
 import { artworkDisplayStatusLabels } from "@/lib/content/artwork-status";
 import type { ArtworkDetail } from "@/lib/content/get-artwork-detail";
@@ -43,7 +43,11 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
   const publishArtworkNowMutation = usePublishArtworkNow();
   const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
   const [formatId, setFormatId] = useState<ArtFormatId>(
-    artwork.format === "story" ? "story" : "portrait",
+    artwork.format === "story"
+      ? "story"
+      : artwork.format === "banner"
+        ? "banner-site"
+        : "portrait",
   );
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isLimitOpen, setIsLimitOpen] = useState(false);
@@ -186,7 +190,12 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
 
   const handleApprove = () => {
     setIsEditorOpen(false);
-    setIsScheduleOpen(true);
+
+    if (isInstagramFormat(format)) {
+      setIsScheduleOpen(true);
+    } else {
+      handleDownload();
+    }
   };
 
   return (
@@ -251,10 +260,12 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
               <Sparkles aria-hidden="true" className="size-4.5" />
               Ajustar com IA
             </Button>
-            <Button variant="outline" onClick={() => setIsScheduleOpen(true)}>
-              <Calendar aria-hidden="true" className="size-4.5" />
-              Agendar
-            </Button>
+            {isInstagramFormat(format) ? (
+              <Button variant="outline" onClick={() => setIsScheduleOpen(true)}>
+                <Calendar aria-hidden="true" className="size-4.5" />
+                Agendar
+              </Button>
+            ) : null}
             <Button variant="ghost" onClick={handleDownload}>
               <Download aria-hidden="true" className="size-4.5" />
               Baixar

@@ -3,6 +3,7 @@
 import OpenAI from "openai";
 
 import { LUNA_MODEL } from "@/lib/ai/models";
+import { findArtFormat, hasCaption } from "@/lib/art-options";
 import {
   authFailure,
   authSuccess,
@@ -15,6 +16,7 @@ import {
   VISIBLE_WINDOW,
   humanizeCaption,
 } from "@/lib/caption/lint";
+import type { ArtFormat } from "@/lib/mocks/studio";
 import { onboardingErrorMessages } from "@/lib/onboarding/action-messages";
 import { getCurrentUserId } from "@/lib/onboarding/store-access";
 import {
@@ -52,15 +54,22 @@ const fieldLabels = {
   caption: "a legenda",
 } as const;
 
+const describeChannel = (format: ArtFormat) =>
+  format.kind === "banner"
+    ? `um ${format.label.toLowerCase()} (arte horizontal, sem legenda)`
+    : format.kind === "story"
+      ? "um Story de Instagram"
+      : "um post de Instagram";
+
 const buildInstructions = (
-  isStory: boolean,
-) => `Você é social media de uma pequena empresa brasileira e escreve os textos de um post de Instagram a partir do pedido do cliente.
+  format: ArtFormat,
+) => `Você é social media de uma pequena empresa brasileira e escreve os textos de ${describeChannel(format)} a partir do pedido do cliente.
 Responda apenas com um objeto JSON neste formato:
-{"title":{"regular":"parte fina do título","highlight":"parte do título em destaque"},"subtitle":"...","topics":[{"title":"...","sentence":"..."}],"cta":"..."${isStory ? "" : ',"caption":"..."'}}
+{"title":{"regular":"parte fina do título","highlight":"parte do título em destaque"},"subtitle":"...","topics":[{"title":"...","sentence":"..."}],"cta":"..."${hasCaption(format) ? ',"caption":"..."' : ""}}
 Limites: title.regular e title.highlight até 30 caracteres cada; subtitle até 90; até ${MAX_POST_COPY_TOPICS} tópicos, cada um com title até 30 e sentence (uma frase) até 110; cta até 30 e com uma única chamada para ação.
 ${
-  isStory
-    ? "É um Story: não escreva legenda e não inclua o campo caption."
+  !hasCaption(format)
+    ? "Este formato não tem legenda: não escreva legenda e não inclua o campo caption."
     : `A caption é a legenda: a primeira frase é o gancho e tem no máximo ${VISIBLE_WINDOW} caracteres; depois 1 a 3 frases curtas, uma única chamada para ação e, no final, numa linha separada, até ${MAX_CAPTION_HASHTAGS} hashtags específicas.`
 }
 Nunca invente números, preços, descontos, prazos ou datas que não estejam no pedido. Quando o texto precisar de um deles, escreva um marcador como {{preço}}, {{desconto}} ou {{data}}.
@@ -99,7 +108,7 @@ const humanizePostCopy = (copy: PostCopy): PostCopy => ({
   caption: copy.caption ? humanizeCaption(copy.caption) : undefined,
 });
 
-function parseGeneratedCopy(rawContent: string, isStory: boolean) {
+function parseGeneratedCopy(rawContent: string, withCaption: boolean) {
   try {
     const parsedCopy = postCopySchema.safeParse(JSON.parse(rawContent));
 
@@ -113,7 +122,7 @@ function parseGeneratedCopy(rawContent: string, isStory: boolean) {
 
     const copy = humanizePostCopy(parsedCopy.data);
 
-    return { copy: isStory ? { ...copy, caption: undefined } : copy };
+    return { copy: withCaption ? copy : { ...copy, caption: undefined } };
   } catch {
     return { issues: ["A resposta não é um JSON válido."] };
   }
@@ -124,15 +133,16 @@ async function writePostCopy(
   input: GeneratePostCopyInput,
   userId: string,
 ) {
-  const isStory = input.formatId === "story";
+  const format = findArtFormat(input.formatId);
+  const withCaption = hasCaption(format);
   const brandContext = await getBrandContext(userId, openai, {
-    contentFormat: isStory ? "story" : "post",
+    contentFormat: format.kind === "story" ? "story" : "post",
   });
   const forbiddenTerms = brandContext?.forbiddenTerms ?? [];
   const conversation: OpenAI.ChatCompletionMessageParam[] = [
     {
       role: "system",
-      content: `${buildInstructions(isStory)}${brandContext?.guidelines ?? ""}`,
+      content: `${buildInstructions(format)}${brandContext?.guidelines ?? ""}`,
     },
     { role: "user", content: buildUserPrompt(input) },
   ];
@@ -144,9 +154,9 @@ async function writePostCopy(
       messages: conversation,
     });
     const rawContent = completion.choices[0]?.message.content ?? "";
-    const { copy, issues } = parseGeneratedCopy(rawContent, isStory);
+    const { copy, issues } = parseGeneratedCopy(rawContent, withCaption);
     const copyIssues = copy
-      ? getPostCopyIssues(copy, { forbiddenTerms, isStory })
+      ? getPostCopyIssues(copy, { forbiddenTerms, hasCaption: withCaption })
       : issues;
 
     if (copy && copyIssues.length === 0) {

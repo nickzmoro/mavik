@@ -29,6 +29,7 @@ const STATUS_PARAM = "status";
 const formatFilters: { value: ArtworkListFormat; label: string }[] = [
   { value: "post", label: "Post" },
   { value: "story", label: "Story" },
+  { value: "banner", label: "Banner" },
 ];
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

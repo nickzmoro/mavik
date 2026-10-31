@@ -1,8 +1,10 @@
 import OpenAI, { APIError, toFile } from "openai";
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 
 import { IMAGE_PROMPT_MODEL } from "@/lib/ai/models";
 import { findArtFormat } from "@/lib/art-options";
+import { getArtFormatIdFromSize } from "@/lib/content/artwork-format";
 import { applyLogo, hideLogoArea } from "@/lib/brand/apply-logo";
 import {
   downloadBrandAsset,
@@ -491,10 +493,20 @@ export async function POST(request: Request) {
       return errorResponse(errorMessages.artworkNotFound, 404);
     }
 
+    const storedRenderSize = storedRender
+      ? await sharp(storedRender).metadata()
+      : null;
     const imageInput = storedRender
       ? {
           ...parsedInput.data,
           referenceImage: `data:image/png;base64,${storedRender.toString("base64")}`,
+          format:
+            storedRenderSize?.width && storedRenderSize.height
+              ? getArtFormatIdFromSize(
+                  storedRenderSize.width,
+                  storedRenderSize.height,
+                )
+              : parsedInput.data.format,
         }
       : parsedInput.data;
     const {

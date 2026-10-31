@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   artFormats,
   maxVariationsPerGeneration,
+  type ArtFormat,
   type ArtFormatId,
 } from "./mocks/studio.ts";
 
@@ -28,3 +29,8 @@ export const formatArtCount = (count: number) =>
 
 export const formatVariationCount = (count: number) =>
   count === 1 ? "1 variação" : `${count} variações`;
+
+export const hasCaption = (format: ArtFormat) => format.kind === "post";
+
+export const isInstagramFormat = (format: ArtFormat) =>
+  format.kind !== "banner";

@@ -13,6 +13,7 @@ import Image from "next/image";
 
 import { IconButton } from "@/components/common/icon-button";
 import { Button } from "@/components/ui/button";
+import { hasCaption, isInstagramFormat } from "@/lib/art-options";
 import { brandRuleHighlights } from "@/lib/mocks/studio";
 import { cn } from "@/lib/utils";
 
@@ -92,7 +93,7 @@ export function PreviewVariationsResult({
           );
         })}
       </VariationGrid>
-      {studio.resultFormat.id === "story" ? null : (
+      {hasCaption(studio.resultFormat) ? (
         <div className="tile flex flex-col gap-2 rounded-2xl px-3.5 py-3">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs leading-[1.4] font-semibold text-primary">
@@ -153,7 +154,7 @@ export function PreviewVariationsResult({
             </div>
           )}
         </div>
-      )}
+      ) : null}
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="inline-flex items-center gap-1.5 text-[13px] leading-[1.4] font-semibold">
           <ShieldCheck aria-hidden="true" className="size-4 text-success" />
@@ -169,20 +170,29 @@ export function PreviewVariationsResult({
         ))}
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button onClick={studio.openSchedule}>
-          <Calendar aria-hidden="true" className="size-4.5" />
-          Aprovar e agendar
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onPublishNow}
-          loading={studio.isPublishing}
-        >
-          {studio.isPublishing ? null : (
-            <Send aria-hidden="true" className="size-4.5" />
-          )}
-          {studio.isPublishing ? "Publicando…" : "Publicar agora"}
-        </Button>
+        {isInstagramFormat(studio.resultFormat) ? (
+          <>
+            <Button onClick={studio.openSchedule}>
+              <Calendar aria-hidden="true" className="size-4.5" />
+              Aprovar e agendar
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onPublishNow}
+              loading={studio.isPublishing}
+            >
+              {studio.isPublishing ? null : (
+                <Send aria-hidden="true" className="size-4.5" />
+              )}
+              {studio.isPublishing ? "Publicando…" : "Publicar agora"}
+            </Button>
+          </>
+        ) : (
+          <Button onClick={() => onDownload(studio.selectedVariation)}>
+            <Download aria-hidden="true" className="size-4.5" />
+            Baixar banner
+          </Button>
+        )}
         <Button variant="outline" onClick={() => studio.openEditor()}>
           <WandSparkles aria-hidden="true" className="size-4.5" />
           Pedir ajuste à IA

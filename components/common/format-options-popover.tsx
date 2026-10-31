@@ -30,6 +30,17 @@ type FormatOptionsPopoverProps = {
   remainingArts: number;
 };
 
+const formatGroups = [
+  {
+    label: "Instagram",
+    formats: artFormats.filter(({ kind }) => kind !== "banner"),
+  },
+  {
+    label: "Banner",
+    formats: artFormats.filter(({ kind }) => kind === "banner"),
+  },
+];
+
 const getVariationHint = (remainingArts: number) =>
   remainingArts > 0 && remainingArts < maxVariationsPerGeneration
     ? `Restam ${formatArtCount(remainingArts)} no teste`
@@ -82,7 +93,7 @@ export function FormatOptionsPopover({
         align="start"
         sideOffset={14}
         aria-label="Formato e variações"
-        className="flex w-85 max-w-[calc(100vw-2rem)] flex-col gap-0.5"
+        className="scrollbar-subtle flex max-h-[min(36rem,80vh)] w-85 max-w-[calc(100vw-2rem)] flex-col gap-0.5 overflow-y-auto"
       >
         <span
           id={formatLabelId}
@@ -95,46 +106,61 @@ export function FormatOptionsPopover({
           aria-labelledby={formatLabelId}
           className="flex flex-col gap-0.5"
         >
-          {artFormats.map((artFormat) => {
-            const isSelected = artFormat.id === format.id;
-
-            return (
-              <button
-                key={artFormat.id}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                onClick={() => onFormatChange(artFormat.id)}
-                className="flex min-h-13 w-full cursor-pointer items-center gap-3 rounded-[14px] border-0 bg-transparent px-3 py-1.5 text-left text-text transition-colors duration-150 hover:bg-hover-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+          {formatGroups.map((formatGroup) => (
+            <div
+              key={formatGroup.label}
+              role="group"
+              aria-label={formatGroup.label}
+              className="flex flex-col gap-0.5"
+            >
+              <span
+                aria-hidden="true"
+                className="px-3 pt-1.5 pb-0.5 text-[11px] leading-[1.4] font-semibold tracking-wide text-muted uppercase"
               >
-                <span
-                  aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-(--r-md) bg-surface-2 text-primary"
-                >
-                  <span
-                    className={cn(
-                      "block rounded-sm border-2 border-current",
-                      artFormat.iconClassName,
-                    )}
-                  />
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-sm leading-[1.4] font-semibold">
-                    {artFormat.label}
-                  </span>
-                  <span className="text-xs leading-[1.4] text-muted">
-                    {artFormat.description}
-                  </span>
-                </span>
-                {isSelected ? (
-                  <Check
-                    aria-hidden="true"
-                    className="size-4.5 shrink-0 text-primary"
-                  />
-                ) : null}
-              </button>
-            );
-          })}
+                {formatGroup.label}
+              </span>
+              {formatGroup.formats.map((artFormat) => {
+                const isSelected = artFormat.id === format.id;
+
+                return (
+                  <button
+                    key={artFormat.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => onFormatChange(artFormat.id)}
+                    className="flex min-h-13 w-full cursor-pointer items-center gap-3 rounded-[14px] border-0 bg-transparent px-3 py-1.5 text-left text-text transition-colors duration-150 hover:bg-hover-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="flex size-9 shrink-0 items-center justify-center rounded-(--r-md) bg-surface-2 text-primary"
+                    >
+                      <span
+                        className={cn(
+                          "block rounded-sm border-2 border-current",
+                          artFormat.iconClassName,
+                        )}
+                      />
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="text-sm leading-[1.4] font-semibold">
+                        {artFormat.label}
+                      </span>
+                      <span className="text-xs leading-[1.4] text-muted">
+                        {artFormat.description}
+                      </span>
+                    </span>
+                    {isSelected ? (
+                      <Check
+                        aria-hidden="true"
+                        className="size-4.5 shrink-0 text-primary"
+                      />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
         <div aria-hidden="true" className="mx-3 my-1.5 h-px bg-border" />
         <div className="flex flex-col gap-2 px-3 pt-1 pb-2">

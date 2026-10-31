@@ -9,7 +9,7 @@ export const MAX_CAPTION_HASHTAGS = 5;
 
 type PostCopyIssuesOptions = {
   forbiddenTerms: string[];
-  isStory: boolean;
+  hasCaption: boolean;
 };
 
 export const findPlaceholders = (text: string) =>
@@ -31,11 +31,11 @@ const getFieldTexts = (copy: PostCopy, field: PostCopyField) => {
 export function getBlockingPlaceholders(
   copy: PostCopy,
   artFields: PostCopyField[],
-  isStory: boolean,
+  hasCaption: boolean,
 ) {
-  const blockingFields: PostCopyField[] = isStory
-    ? artFields
-    : [...artFields, "caption"];
+  const blockingFields: PostCopyField[] = hasCaption
+    ? [...artFields, "caption"]
+    : artFields;
 
   return postCopyFieldSchema.options
     .filter((field) => blockingFields.includes(field))
@@ -49,8 +49,8 @@ export function getBlockingPlaceholders(
 export const getPostCopyTexts = (copy: PostCopy) =>
   postCopyFieldSchema.options.flatMap((field) => getFieldTexts(copy, field));
 
-function getCaptionIssues(caption: string | undefined, isStory: boolean) {
-  if (isStory) {
+function getCaptionIssues(caption: string | undefined, hasCaption: boolean) {
+  if (!hasCaption) {
     return [];
   }
 
@@ -61,7 +61,7 @@ function getCaptionIssues(caption: string | undefined, isStory: boolean) {
 
 export function getPostCopyIssues(
   copy: PostCopy,
-  { forbiddenTerms, isStory }: PostCopyIssuesOptions,
+  { forbiddenTerms, hasCaption }: PostCopyIssuesOptions,
 ) {
   const usedForbiddenTerms = findMentionedTerms(
     getPostCopyTexts(copy).join("\n"),
@@ -69,7 +69,7 @@ export function getPostCopyIssues(
   );
 
   return [
-    ...getCaptionIssues(copy.caption, isStory),
+    ...getCaptionIssues(copy.caption, hasCaption),
     ...(usedForbiddenTerms.length > 0
       ? [`Termos proibidos usados: ${usedForbiddenTerms.join(", ")}.`]
       : []),

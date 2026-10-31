@@ -94,7 +94,7 @@ test("findPlaceholders lista cada {{placeholder}} na ordem", () => {
   assert.deepEqual(findPlaceholders("Sem nada aqui { nem } {{}}"), []);
 });
 
-const postOptions = { forbiddenTerms: [], isStory: false };
+const postOptions = { forbiddenTerms: [], hasCaption: true };
 
 test("getPostCopyIssues aceita texto limpo", () => {
   assert.deepEqual(getPostCopyIssues(validCopy, postOptions), []);
@@ -140,7 +140,7 @@ test("getPostCopyIssues aponta primeira frase com 126 caracteres", () => {
 test("getPostCopyIssues aponta termo proibido em qualquer campo", () => {
   const issues = getPostCopyIssues(
     { ...validCopy, subtitle: "O bolo mais BARATO da cidade" },
-    { forbiddenTerms: ["barato"], isStory: false },
+    { forbiddenTerms: ["barato"], hasCaption: true },
   );
 
   assert.deepEqual(issues, ["Termos proibidos usados: barato."]);
@@ -153,7 +153,10 @@ test("getPostCopyIssues exige legenda fora do Story e ignora no Story", () => {
     "Falta a legenda.",
   ]);
   assert.deepEqual(
-    getPostCopyIssues(copyWithoutCaption, { ...postOptions, isStory: true }),
+    getPostCopyIssues(copyWithoutCaption, {
+      ...postOptions,
+      hasCaption: false,
+    }),
     [],
   );
 });
@@ -166,11 +169,11 @@ test("getBlockingPlaceholders só bloqueia campos que vão na arte e a legenda",
     caption: "Bolo por {{preço}} hoje.\nPeça pelo direct.",
   };
 
-  assert.deepEqual(getBlockingPlaceholders(copy, ["title", "cta"], false), [
+  assert.deepEqual(getBlockingPlaceholders(copy, ["title", "cta"], true), [
     { field: "cta", placeholder: "{{data}}" },
     { field: "caption", placeholder: "{{preço}}" },
   ]);
-  assert.deepEqual(getBlockingPlaceholders(copy, ["title", "cta"], true), [
+  assert.deepEqual(getBlockingPlaceholders(copy, ["title", "cta"], false), [
     { field: "cta", placeholder: "{{data}}" },
   ]);
 });

@@ -21,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useGeneratePostCopy } from "@/hooks/mutations/use-generate-post-copy";
-import { findArtFormat } from "@/lib/art-options";
+import { findArtFormat, hasCaption } from "@/lib/art-options";
 import {
   MAX_POST_COPY_TOPICS,
   postCopySchema,
@@ -72,11 +72,11 @@ export function CopyApprovalForm({
   const topics = useFieldArray({ control: form.control, name: "topics" });
   const values = useWatch({ control: form.control }) as PostCopy;
   const format = findArtFormat(draft.formatId);
-  const isStory = format.id === "story";
+  const withCaption = hasCaption(format);
   const blockingPlaceholders = getBlockingPlaceholders(
     values,
     artFields,
-    isStory,
+    withCaption,
   );
 
   const saveCopy = useEffectEvent((nextValues: PostCopy) => {
@@ -131,7 +131,7 @@ export function CopyApprovalForm({
   };
 
   const handleApprove = (copy: PostCopy) => {
-    if (!isStory && !copy.caption) {
+    if (withCaption && !copy.caption) {
       form.setError("caption", { message: "Escreva a legenda do post." });
       return;
     }
@@ -141,7 +141,7 @@ export function CopyApprovalForm({
     }
 
     updateDraft({
-      copy: isStory ? { ...copy, caption: undefined } : copy,
+      copy: withCaption ? copy : { ...copy, caption: undefined },
       artFields,
       isApproved: true,
     });
@@ -314,7 +314,7 @@ export function CopyApprovalForm({
             />
             <PlaceholderHint texts={[values.cta]} />
           </CopyFieldCard>
-          {isStory ? null : (
+          {withCaption ? (
             <CopyFieldCard {...fieldCardProps("caption")}>
               <FormField
                 control={form.control}
@@ -336,7 +336,7 @@ export function CopyApprovalForm({
               />
               <PlaceholderHint texts={[values.caption ?? ""]} />
             </CopyFieldCard>
-          )}
+          ) : null}
           {blockingPlaceholders.length > 0 ? (
             <p
               role="status"
