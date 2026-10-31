@@ -51,7 +51,9 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
     id: number;
     keepVersion: number;
     imageUrl: string;
+    hasAdjustments: boolean;
   } | null>(null);
+  const [lastSavedVersion, setLastSavedVersion] = useState(0);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const quota = useArtQuota();
   const artworkAdjustment = useArtworkAdjustment({
@@ -123,8 +125,12 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
   const openEditor = () => {
     setEditorSession((currentSession) => ({
       id: (currentSession?.id ?? 0) + 1,
-      keepVersion: latestVersion.version,
-      imageUrl: latestVersion.imageUrl,
+      keepVersion: Math.max(latestVersion.version, lastSavedVersion),
+      imageUrl:
+        lastSavedVersion > latestVersion.version && currentSession
+          ? currentSession.imageUrl
+          : latestVersion.imageUrl,
+      hasAdjustments: false,
     }));
     setIsEditorOpen(true);
   };
@@ -147,7 +153,12 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
       return false;
     }
 
-    setEditorSession({ ...editorSession, imageUrl: adjustedImage.imageUrl });
+    setEditorSession({
+      ...editorSession,
+      imageUrl: adjustedImage.imageUrl,
+      hasAdjustments: true,
+    });
+    setLastSavedVersion(adjustedImage.version ?? 0);
     setSelectedVersion(null);
     router.refresh();
 
@@ -157,7 +168,7 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
   const handleDiscard = async () => {
     setIsEditorOpen(false);
 
-    if (!editorSession || latestVersion.version <= editorSession.keepVersion) {
+    if (!editorSession?.hasAdjustments) {
       return;
     }
 
@@ -167,6 +178,7 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
         keepVersion: editorSession.keepVersion,
       })
     ) {
+      setLastSavedVersion(editorSession.keepVersion);
       setSelectedVersion(null);
       router.refresh();
     }

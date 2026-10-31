@@ -1,6 +1,7 @@
 import "server-only";
 
 import { and, desc, eq } from "drizzle-orm";
+import { cache } from "react";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -39,7 +40,7 @@ const versionLayersSchema = z
   .object({ editInstruction: z.string().optional() })
   .catch({});
 
-export async function getArtworkDetail(
+export const getArtworkDetail = cache(async function getArtworkDetail(
   artworkId: string,
 ): Promise<ArtworkDetail | null> {
   const userId = await getCurrentUserId();
@@ -121,4 +122,4 @@ export async function getArtworkDetail(
     caption: versions[0]?.caption ?? artwork.contentCaption ?? "",
     versions: versionDetails,
   };
-}
+});

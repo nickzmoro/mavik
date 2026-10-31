@@ -472,23 +472,23 @@ export async function POST(request: Request) {
   const editedArtworkId = parsedInput.data.editInstruction
     ? parsedInput.data.artworkId
     : undefined;
-  const storedRender = editedArtworkId
-    ? await getLatestArtworkRender(claims.sub, editedArtworkId)
-    : null;
-
-  if (editedArtworkId && !storedRender) {
-    return errorResponse(errorMessages.artworkNotFound, 404);
-  }
-
-  const imageInput = storedRender
-    ? {
-        ...parsedInput.data,
-        referenceImage: `data:image/png;base64,${storedRender.toString("base64")}`,
-      }
-    : parsedInput.data;
   const openai = new OpenAI({ apiKey });
 
   try {
+    const storedRender = editedArtworkId
+      ? await getLatestArtworkRender(claims.sub, editedArtworkId)
+      : null;
+
+    if (editedArtworkId && !storedRender) {
+      return errorResponse(errorMessages.artworkNotFound, 404);
+    }
+
+    const imageInput = storedRender
+      ? {
+          ...parsedInput.data,
+          referenceImage: `data:image/png;base64,${storedRender.toString("base64")}`,
+        }
+      : parsedInput.data;
     const {
       referenceImage,
       editInstruction,
