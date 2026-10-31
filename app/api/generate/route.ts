@@ -9,6 +9,7 @@ import {
   type BrandContext,
 } from "@/lib/brand/get-brand-context";
 import { saveArtworkDraft } from "@/lib/content/save-artwork-draft";
+import { buildApprovedCopyInstruction } from "@/lib/post-copy/approved-copy";
 import {
   formatRetryAfter,
   getBlockedRemainingMs,
@@ -108,13 +109,19 @@ function errorResponse(errorMessage: string, status: number) {
   return NextResponse.json({ errorMessage }, { status });
 }
 
+const HEADLINE_RULE =
+  "Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.";
+
+const APPROVED_COPY_RULE =
+  "The client approved the texts below. They replace the headline and call to action rules: place them in the template's text areas, in this order, adding text areas only when the template has fewer, and quote them in your prompt exactly as written.";
+
 const BRAND_POST_INSTRUCTIONS = `You are the senior art director of the brand described below, writing the prompt for GPT Image to create an Instagram post in the format given below.
 The attached brand manual (PDF) is the governing principle of every post: its colors, typography, layout, graphic elements and image style are mandatory, even when the user's request suggests otherwise. The user's request only defines the subject and the message.
 The first attached approved post is the TEMPLATE for this post; the other approved posts only show the brand style. Study the template and describe its layout as a precise spec: the position and size of every element as a percentage of the frame (photo area, headline, secondary text, call to action, panels and shapes), margins and alignment, number of text lines, typography weight, size and case, textures, and the HEX color of every background, panel, shape and text. Reproduce that spec exactly, changing only the product, the photo and the text. Never mix in layouts from the other approved posts. Avoid the style of the attached rejected posts.
 Everything listed under "PROIBIDO NA ARTE" is forbidden and overrides the approved posts: if an approved post contains a forbidden color, element, text or style, leave it out or replace it with an allowed brand color.
 The "ART DIRECTION RULES" section, when present, was written by this brand's owner and applies only to this brand: follow every rule in it, above the generic style guidance and the approved posts. Only an explicit request from the user for this specific post (or a "PROIBIDO NA ARTE" item) overrides one of these rules.
 Write a detailed prompt that specifies: the template's layout spec, element by element; the exact brand colors by name and HEX for background, shapes and text (no colors outside the brand palette); the look of the typography (describe the brand fonts' style, weight and case, since the image model cannot load font files); the image style; and the mood of the brand's tone of voice.
-Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
+${HEADLINE_RULE}
 Only add a call to action, button, badge or seal if the template has one, in the same position, size, shape and colors as in it. Never invent buttons or calls to action such as "Descubra mais", "Saiba mais" or "Compre agora", and never use accent colors that the template does not use.
 When a product photo is attached, that exact product is the hero of the post: describe it precisely (shape, colors, labels, packaging) and never replace it with another product or with the products shown in the example posts.
 Never draw, describe or invent any logo, symbol, monogram, wordmark, and never write the brand name in the image or in your prompt: the official logo file is placed afterwards in the bottom-right corner, so keep that area clean.
@@ -186,17 +193,30 @@ async function writeImagePrompt(
   }: GenerateImageInput,
   brandContext: BrandContext | null,
   brandFiles: BrandFiles,
+  approvedCopyInstruction: string,
 ) {
+  const brandPostInstructions = approvedCopyInstruction
+    ? BRAND_POST_INSTRUCTIONS.replace(
+        HEADLINE_RULE,
+        `${APPROVED_COPY_RULE}\n${approvedCopyInstruction}`,
+      )
+    : BRAND_POST_INSTRUCTIONS;
   const systemPrompt = brandContext
     ? [
-        `${BRAND_POST_INSTRUCTIONS}${brandContext.guidelines}`,
+        `${brandPostInstructions}${brandContext.guidelines}`,
         describeFormat(format, brandContext),
         !editInstruction &&
           `Photo for this variation: show the product ${photoAngles[variationIndex % photoAngles.length]}, keeping the template layout and the size and position of its photo area.`,
       ]
         .filter(Boolean)
         .join("\n")
-    : `${PROMPT_WRITER_INSTRUCTIONS}\n${describeFormat(format, null)}`;
+    : [
+        PROMPT_WRITER_INSTRUCTIONS,
+        describeFormat(format, null),
+        approvedCopyInstruction,
+      ]
+        .filter(Boolean)
+        .join("\n");
 
   const completion = await openai.chat.completions.create({
     model: IMAGE_PROMPT_MODEL,
@@ -442,8 +462,16 @@ export async function POST(request: Request) {
   const openai = new OpenAI({ apiKey });
 
   try {
-    const { referenceImage, editInstruction, format, variationIndex } =
-      parsedInput.data;
+    const {
+      referenceImage,
+      editInstruction,
+      format,
+      variationIndex,
+      approvedCopy,
+    } = parsedInput.data;
+    const approvedCopyInstruction = editInstruction
+      ? ""
+      : buildApprovedCopyInstruction(approvedCopy ?? []);
     const brandContext = await getBrandContext(claims.sub, openai, {
       variationOffset: variationIndex,
       contentFormat: imageFormats[format].contentFormat,
@@ -463,6 +491,7 @@ export async function POST(request: Request) {
       parsedInput.data,
       brandContext,
       brandFiles,
+      approvedCopyInstruction,
     );
 
     if (!writtenPrompt) {
@@ -494,6 +523,7 @@ export async function POST(request: Request) {
         format,
         editInstruction,
       ),
+      approvedCopyInstruction,
     ]
       .filter(Boolean)
       .join("\n\n");

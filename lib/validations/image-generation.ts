@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { artFormatIdSchema } from "@/lib/art-options";
 import { maxVariationsPerGeneration } from "@/lib/mocks/studio";
+import { approvedCopyEntrySchema } from "@/lib/post-copy/approved-copy";
 
 export const REFERENCE_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
 export const REFERENCE_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -52,6 +53,7 @@ export const generateImageSchema = z
       .int()
       .min(0)
       .max(maxVariationsPerGeneration - 1),
+    approvedCopy: z.array(approvedCopyEntrySchema).max(12).optional(),
   })
   .refine((input) => !input.editInstruction || input.referenceImage, {
     error: "Não encontramos a arte para ajustar. Gere de novo.",
