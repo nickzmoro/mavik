@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ArtworkCard } from "@/components/common/artwork-card";
+import { ZaionPageLoader } from "@/components/common/zaion-loader/zaion-page-loader";
 import { getRecentArtworks } from "@/lib/content/get-recent-artworks";
 import { routes } from "@/lib/routes";
 
@@ -103,11 +104,7 @@ export default function StudioArtworksPage({
           <ChevronRight aria-hidden="true" className="size-4" />
         </Link>
       </header>
-      <Suspense
-        fallback={
-          <p className="m-0 text-sm text-muted">Carregando seus posts…</p>
-        }
-      >
+      <Suspense fallback={<ZaionPageLoader />}>
         <ArtworksList searchParams={searchParams} />
       </Suspense>
     </div>

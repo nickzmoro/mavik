@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { ZaionPageLoader } from "@/components/common/zaion-loader/zaion-page-loader";
 import {
   IDEA_DATES_WINDOW_DAYS,
   getIdeasData,
@@ -25,11 +26,7 @@ async function IdeasLibraryLoader() {
 export default function IdeasPage() {
   return (
     <div className="flex flex-col gap-5">
-      <Suspense
-        fallback={
-          <p className="m-0 text-sm text-muted">Carregando suas ideias…</p>
-        }
-      >
+      <Suspense fallback={<ZaionPageLoader />}>
         <IdeasLibraryLoader />
       </Suspense>
     </div>

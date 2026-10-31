@@ -41,3 +41,4 @@ Você é um engenheiro de software sênior especializado em desenvolvimento web 
 - **SEMPRE** crie hooks customizados para queries e mutations do React Query.
 - **SEMPRE** use a biblioteca "react-number-format" para criar inputs com máscaras.
 - **SEMPRE** crie e exporte uma função que retorne a query key de uma query e mutation key de uma mutation.
+- **SEMPRE** use o loader da Zaion (`ZaionPageLoader` em `components/common/zaion-loader/zaion-page-loader.tsx`) como `fallback` do `Suspense` de páginas e seções de `/app` e em `loading.tsx`. **NUNCA** use `fallback={null}` nem textos como "Carregando…" nesses casos. Em seções pequenas, passe um `className` com altura menor (ex.: `min-h-64 flex-none`). Skeletons de elementos pontuais (saudação, título, banner de onboarding) são a única exceção.

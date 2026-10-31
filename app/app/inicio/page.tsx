@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { ZaionPageLoader } from "@/components/common/zaion-loader/zaion-page-loader";
+
 import { AgentSuggestionCard } from "./components/agent-suggestion-card";
 import { BrandSummaryCard } from "./components/brand-summary-card";
 import { CreatePostCard } from "./components/create-post-card";
@@ -15,6 +17,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+const sectionLoaderClassName = "min-h-64 flex-none";
+
 export default function HomePage() {
   return (
     <>
@@ -23,16 +27,22 @@ export default function HomePage() {
         <div className="flex min-w-0 flex-[2_1_520px] flex-col gap-6">
           <CreatePostCard />
           <AgentSuggestionCard />
-          <Suspense fallback={null}>
+          <Suspense
+            fallback={<ZaionPageLoader className={sectionLoaderClassName} />}
+          >
             <UpcomingPostsSection />
           </Suspense>
-          <Suspense fallback={null}>
+          <Suspense
+            fallback={<ZaionPageLoader className={sectionLoaderClassName} />}
+          >
             <DraftsSection />
           </Suspense>
         </div>
         <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-6">
           <WeeklySummaryCard />
-          <Suspense fallback={null}>
+          <Suspense
+            fallback={<ZaionPageLoader className={sectionLoaderClassName} />}
+          >
             <BrandSummaryCard />
           </Suspense>
           <ShortcutsCard />

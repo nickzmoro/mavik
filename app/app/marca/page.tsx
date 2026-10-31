@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { ZaionPageLoader } from "@/components/common/zaion-loader/zaion-page-loader";
 import { brandDisplayFont } from "@/lib/brand-display-font";
 import { getBrandKitData } from "@/lib/brand/get-brand-kit-data";
 import { getInstagramConnection } from "@/lib/instagram/accounts";
@@ -64,11 +65,7 @@ export default function BrandPage({
 }) {
   return (
     <div className={`${brandDisplayFont.variable} flex flex-col gap-6`}>
-      <Suspense
-        fallback={
-          <p className="m-0 text-sm text-muted">Carregando sua marca…</p>
-        }
-      >
+      <Suspense fallback={<ZaionPageLoader />}>
         <BrandWorkspaceLoader searchParams={searchParams} />
       </Suspense>
     </div>

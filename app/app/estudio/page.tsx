@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { ZaionPageLoader } from "@/components/common/zaion-loader/zaion-page-loader";
 import { brandDisplayFont } from "@/lib/brand-display-font";
 import { getStudioArtwork } from "@/lib/content/get-studio-artwork";
 import { STUDIO_ARTWORK_PARAM } from "@/lib/routes";
@@ -38,7 +39,7 @@ export default function StudioPage({
 }) {
   return (
     <div className={`${brandDisplayFont.variable} flex flex-col gap-5`}>
-      <Suspense fallback={null}>
+      <Suspense fallback={<ZaionPageLoader />}>
         <StudioWorkspaceLoader searchParams={searchParams} />
       </Suspense>
     </div>
