@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { postCopySchema, type PostCopy } from "./post-copy-schema.ts";
-import { findPlaceholders, getPostCopyIssues } from "./validate-post-copy.ts";
+import {
+  findPlaceholders,
+  getBlockingPlaceholders,
+  getPostCopyIssues,
+} from "./validate-post-copy.ts";
 
 const validCopy: PostCopy = {
   title: { regular: "Bolo de", highlight: "cenoura" },
@@ -152,4 +156,21 @@ test("getPostCopyIssues exige legenda fora do Story e ignora no Story", () => {
     getPostCopyIssues(copyWithoutCaption, { ...postOptions, isStory: true }),
     [],
   );
+});
+
+test("getBlockingPlaceholders só bloqueia campos que vão na arte e a legenda", () => {
+  const copy = {
+    ...validCopy,
+    subtitle: "Por {{preço}}",
+    cta: "Até {{data}}",
+    caption: "Bolo por {{preço}} hoje.\nPeça pelo direct.",
+  };
+
+  assert.deepEqual(getBlockingPlaceholders(copy, ["title", "cta"], false), [
+    { field: "cta", placeholder: "{{data}}" },
+    { field: "caption", placeholder: "{{preço}}" },
+  ]);
+  assert.deepEqual(getBlockingPlaceholders(copy, ["title", "cta"], true), [
+    { field: "cta", placeholder: "{{data}}" },
+  ]);
 });

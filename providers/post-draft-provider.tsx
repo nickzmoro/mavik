@@ -44,6 +44,10 @@ const readStoredDraftRaw = () => {
 };
 
 const writeStoredDraftRaw = (nextRaw: string | null) => {
+  if (nextRaw === storedDraftRaw) {
+    return;
+  }
+
   storedDraftRaw = nextRaw;
 
   try {

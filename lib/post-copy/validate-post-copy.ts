@@ -1,5 +1,9 @@
 import { findMentionedTerms, lintCaption } from "../caption/lint.ts";
-import type { PostCopy } from "./post-copy-schema.ts";
+import {
+  postCopyFieldSchema,
+  type PostCopy,
+  type PostCopyField,
+} from "./post-copy-schema.ts";
 
 export const MAX_CAPTION_HASHTAGS = 5;
 
@@ -11,14 +15,39 @@ type PostCopyIssuesOptions = {
 export const findPlaceholders = (text: string) =>
   text.match(/\{\{[^{}]+\}\}/g) ?? [];
 
-export const getPostCopyTexts = (copy: PostCopy) => [
-  copy.title.regular,
-  copy.title.highlight,
-  copy.subtitle,
-  ...copy.topics.flatMap((topic) => [topic.title, topic.sentence]),
-  copy.cta,
-  ...(copy.caption ? [copy.caption] : []),
-];
+const getFieldTexts = (copy: PostCopy, field: PostCopyField) => {
+  switch (field) {
+    case "title":
+      return [copy.title.regular, copy.title.highlight];
+    case "topics":
+      return copy.topics.flatMap((topic) => [topic.title, topic.sentence]);
+    case "caption":
+      return copy.caption ? [copy.caption] : [];
+    default:
+      return [copy[field]];
+  }
+};
+
+export function getBlockingPlaceholders(
+  copy: PostCopy,
+  artFields: PostCopyField[],
+  isStory: boolean,
+) {
+  const blockingFields: PostCopyField[] = isStory
+    ? artFields
+    : [...artFields, "caption"];
+
+  return postCopyFieldSchema.options
+    .filter((field) => blockingFields.includes(field))
+    .flatMap((field) =>
+      getFieldTexts(copy, field)
+        .flatMap(findPlaceholders)
+        .map((placeholder) => ({ field, placeholder })),
+    );
+}
+
+export const getPostCopyTexts = (copy: PostCopy) =>
+  postCopyFieldSchema.options.flatMap((field) => getFieldTexts(copy, field));
 
 function getCaptionIssues(caption: string | undefined, isStory: boolean) {
   if (isStory) {
