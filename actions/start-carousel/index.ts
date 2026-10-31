@@ -35,10 +35,10 @@ export async function startCarousel(
     return authFailure(onboardingErrorMessages.sessionExpired);
   }
 
-  const { artworkId, coverCopy, discardedArtworkIds } = parsedInput.data;
+  const { artworkId, carouselCopy, discardedArtworkIds } = parsedInput.data;
 
   try {
-    if (!(await saveCoverSlide(userId, artworkId, coverCopy))) {
+    if (!(await saveCoverSlide(userId, artworkId, carouselCopy))) {
       return authFailure(startFailedMessage);
     }
 

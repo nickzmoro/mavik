@@ -28,6 +28,7 @@ import { useToast } from "@/providers/toast-provider";
 
 import { artworkDateFormatter } from "./artwork-date-formatter";
 import { ArtworkVersions } from "./artwork-versions";
+import { CarouselEditor } from "./carousel-editor";
 
 const saveFailedMessage =
   "Não conseguimos salvar agora. Confira sua internet e tente de novo.";
@@ -47,7 +48,9 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
       ? "story"
       : artwork.format === "banner"
         ? "banner-site"
-        : "portrait",
+        : artwork.format === "carrossel"
+          ? "carousel"
+          : "portrait",
   );
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isLimitOpen, setIsLimitOpen] = useState(false);
@@ -70,6 +73,7 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
     artwork.versions[0];
   const format = findArtFormat(formatId);
   const isStory = artwork.format === "story";
+  const caption = artwork.caption || artwork.carousel?.copy.caption || "";
 
   const dates = [
     { label: "Criada em", value: artwork.createdAt },
@@ -215,37 +219,48 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
         </div>
       </header>
       <div className="flex flex-wrap items-start gap-5">
-        <figure className="glass m-0 flex min-w-0 flex-[1_1_360px] flex-col gap-3 rounded-3xl p-4 sm:p-5">
-          <div
-            className="relative mx-auto w-full max-w-120 overflow-hidden rounded-[18px]"
-            style={{ aspectRatio: format.aspectRatio }}
-          >
-            <Image
-              key={currentVersion.imageUrl}
-              src={currentVersion.imageUrl}
-              alt={`${artwork.title}, versão ${currentVersion.version}`}
-              fill
-              unoptimized
-              priority
-              sizes="(min-width: 768px) 480px, 100vw"
-              className="object-cover"
-              onLoad={({ currentTarget }) =>
-                setFormatId(
-                  getArtFormatIdFromSize(
-                    currentTarget.naturalWidth,
-                    currentTarget.naturalHeight,
-                  ),
-                )
-              }
-            />
+        {artwork.carousel ? (
+          <div className="glass m-0 flex min-w-0 flex-[1_1_360px] flex-col gap-3 rounded-3xl p-4 sm:p-5">
+            <div className="mx-auto w-full max-w-120">
+              <CarouselEditor
+                artworkId={artwork.id}
+                carousel={artwork.carousel}
+              />
+            </div>
           </div>
-          <figcaption className="text-center text-xs leading-[1.4] text-muted">
-            Versão {currentVersion.version}
-            {currentVersion.version === artwork.versions[0].version
-              ? " · atual"
-              : ""}
-          </figcaption>
-        </figure>
+        ) : (
+          <figure className="glass m-0 flex min-w-0 flex-[1_1_360px] flex-col gap-3 rounded-3xl p-4 sm:p-5">
+            <div
+              className="relative mx-auto w-full max-w-120 overflow-hidden rounded-[18px]"
+              style={{ aspectRatio: format.aspectRatio }}
+            >
+              <Image
+                key={currentVersion.imageUrl}
+                src={currentVersion.imageUrl}
+                alt={`${artwork.title}, versão ${currentVersion.version}`}
+                fill
+                unoptimized
+                priority
+                sizes="(min-width: 768px) 480px, 100vw"
+                className="object-cover"
+                onLoad={({ currentTarget }) =>
+                  setFormatId(
+                    getArtFormatIdFromSize(
+                      currentTarget.naturalWidth,
+                      currentTarget.naturalHeight,
+                    ),
+                  )
+                }
+              />
+            </div>
+            <figcaption className="text-center text-xs leading-[1.4] text-muted">
+              Versão {currentVersion.version}
+              {currentVersion.version === artwork.versions[0].version
+                ? " · atual"
+                : ""}
+            </figcaption>
+          </figure>
+        )}
         <div className="glass flex min-w-0 flex-[1_1_320px] flex-col gap-5 rounded-3xl p-4 sm:p-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">
@@ -255,28 +270,40 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
               {format.label} · {format.ratioLabel}
             </Badge>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={openEditor}>
-              <Sparkles aria-hidden="true" className="size-4.5" />
-              Ajustar com IA
-            </Button>
-            {canPublishToInstagram(format) ? (
-              <Button variant="outline" onClick={() => setIsScheduleOpen(true)}>
-                <Calendar aria-hidden="true" className="size-4.5" />
-                Agendar
-              </Button>
-            ) : null}
-            <Button variant="ghost" onClick={handleDownload}>
-              <Download aria-hidden="true" className="size-4.5" />
-              Baixar
-            </Button>
-            <Button variant="ghost" asChild>
+          {artwork.carousel ? (
+            <Button variant="ghost" className="self-start" asChild>
               <Link href={getStudioUrlForArtwork(artwork.id)}>
                 <Layers aria-hidden="true" className="size-4.5" />
-                Abrir no estúdio
+                Abrir a capa no estúdio
               </Link>
             </Button>
-          </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={openEditor}>
+                <Sparkles aria-hidden="true" className="size-4.5" />
+                Ajustar com IA
+              </Button>
+              {canPublishToInstagram(format) ? (
+                <Button
+                  variant="outline"
+                  onClick={() => setIsScheduleOpen(true)}
+                >
+                  <Calendar aria-hidden="true" className="size-4.5" />
+                  Agendar
+                </Button>
+              ) : null}
+              <Button variant="ghost" onClick={handleDownload}>
+                <Download aria-hidden="true" className="size-4.5" />
+                Baixar
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href={getStudioUrlForArtwork(artwork.id)}>
+                  <Layers aria-hidden="true" className="size-4.5" />
+                  Abrir no estúdio
+                </Link>
+              </Button>
+            </div>
+          )}
           <dl className="m-0 grid gap-3 text-sm leading-normal sm:grid-cols-2">
             {dates.map(({ label, value }) => (
               <div key={label} className="flex flex-col gap-0.5">
@@ -296,18 +323,18 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
                 </dd>
               </div>
             ) : null}
-            {artwork.caption ? (
+            {caption ? (
               <div className="flex flex-col gap-0.5 sm:col-span-2">
                 <dt className="text-xs leading-[1.4] font-semibold text-muted">
                   Legenda
                 </dt>
                 <dd className="m-0 break-words whitespace-pre-line">
-                  {artwork.caption}
+                  {caption}
                 </dd>
               </div>
             ) : null}
           </dl>
-          {artwork.versions.length > 1 ? (
+          {artwork.versions.length > 1 && !artwork.carousel ? (
             <ArtworkVersions
               versions={artwork.versions}
               selectedVersion={currentVersion.version}

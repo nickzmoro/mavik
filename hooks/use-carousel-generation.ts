@@ -63,7 +63,7 @@ export function useCarouselGeneration({
     const startResult = await startCarouselMutation
       .mutateAsync({
         artworkId: coverArtworkId,
-        coverCopy: carouselCopy.slides[0],
+        carouselCopy,
         discardedArtworkIds: otherCoverArtworkIds,
       })
       .catch(() => null);

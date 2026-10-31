@@ -8,7 +8,15 @@ import { db } from "@/db";
 import { artworks, artworkVersions, contents } from "@/db/schema";
 import { getCurrentUserId, getOwnedStore } from "@/lib/onboarding/store-access";
 
+import {
+  carouselCopySchema,
+  carouselSlideCopySchema,
+  type CarouselCopy,
+  type CarouselSlideCopy,
+} from "@/lib/carousel/carousel-copy";
+
 import { signRenderPaths } from "./artwork-images";
+import { listSlides } from "./artwork-slides";
 import {
   getArtworkDisplayStatus,
   type ArtworkDisplayStatus,
@@ -34,7 +42,20 @@ export type ArtworkDetail = {
   contentId?: string;
   caption: string;
   versions: ArtworkVersionDetail[];
+  carousel?: {
+    copy: CarouselCopy;
+    slides: {
+      position: number;
+      imageUrl: string;
+      version: number;
+      copy?: CarouselSlideCopy;
+    }[];
+  };
 };
+
+const carouselLayersSchema = z
+  .object({ carouselCopy: carouselCopySchema.optional().catch(undefined) })
+  .catch({});
 
 const versionLayersSchema = z
   .object({ editInstruction: z.string().optional() })
@@ -81,9 +102,15 @@ export const getArtworkDetail = cache(async function getArtworkDetail(
     .from(artworkVersions)
     .where(eq(artworkVersions.artworkId, artworkId))
     .orderBy(desc(artworkVersions.version));
-  const urlByPath = await signRenderPaths(
-    versions.flatMap(({ renderPath }) => (renderPath ? [renderPath] : [])),
-  );
+  const slides =
+    artwork.format === "carrossel" ? await listSlides(artworkId) : [];
+  const urlByPath = await signRenderPaths([
+    ...versions.flatMap(({ renderPath }) => (renderPath ? [renderPath] : [])),
+    ...slides.map(({ renderPath }) => renderPath),
+  ]);
+  const carouselCopy = versions
+    .map(({ layers }) => carouselLayersSchema.parse(layers).carouselCopy)
+    .find(Boolean);
   const versionDetails = versions.flatMap((version) => {
     const imageUrl = version.renderPath && urlByPath.get(version.renderPath);
 
@@ -121,5 +148,25 @@ export const getArtworkDetail = cache(async function getArtworkDetail(
     contentId: artwork.contentId ?? undefined,
     caption: versions[0]?.caption ?? artwork.contentCaption ?? "",
     versions: versionDetails,
+    carousel: carouselCopy
+      ? {
+          copy: carouselCopy,
+          slides: slides.flatMap(({ position, renderPath, version, copy }) => {
+            const imageUrl = urlByPath.get(renderPath);
+            const slideCopy = carouselSlideCopySchema.safeParse(copy);
+
+            return imageUrl
+              ? [
+                  {
+                    position,
+                    imageUrl,
+                    version,
+                    copy: slideCopy.success ? slideCopy.data : undefined,
+                  },
+                ]
+              : [];
+          }),
+        }
+      : undefined,
   };
 });

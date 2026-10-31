@@ -7,7 +7,8 @@ import { db } from "@/db";
 import { artworks, artworkSlides, artworkVersions } from "@/db/schema";
 import { planSlideReorder } from "@/lib/carousel/slides";
 import {
-  carouselSlideCopySchema,
+  carouselCopySchema,
+  type CarouselCopy,
   type CarouselSlideCopy,
 } from "@/lib/carousel/carousel-copy";
 import { getOwnedStore } from "@/lib/onboarding/store-access";
@@ -16,7 +17,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ARTWORKS_BUCKET } from "./artworks";
 
 const coverLayersSchema = z
-  .object({ carouselStyle: z.string().optional() })
+  .object({
+    carouselStyle: z.string().optional(),
+    carouselCopy: carouselCopySchema.optional().catch(undefined),
+  })
   .passthrough()
   .catch({});
 
@@ -81,17 +85,24 @@ export async function getCarouselCover(userId: string, artworkId: string) {
     renderPath: coverVersion.renderPath,
     image,
     style: coverLayersSchema.parse(coverVersion.layers).carouselStyle,
+    carouselCopy: coverLayersSchema.parse(coverVersion.layers).carouselCopy,
   };
 }
 
-export async function saveCarouselStyle(versionId: string, style: string) {
+async function mergeCoverLayers(
+  versionId: string,
+  layers: Record<string, unknown>,
+) {
   await db
     .update(artworkVersions)
     .set({
-      layers: sql`${artworkVersions.layers} || ${JSON.stringify({ carouselStyle: style })}::jsonb`,
+      layers: sql`${artworkVersions.layers} || ${JSON.stringify(layers)}::jsonb`,
     })
     .where(eq(artworkVersions.id, versionId));
 }
+
+export const saveCarouselStyle = (versionId: string, style: string) =>
+  mergeCoverLayers(versionId, { carouselStyle: style });
 
 export async function getSlideImage(artworkId: string, position: number) {
   const [slide] = await db
@@ -182,7 +193,7 @@ export async function upsertSlide({
 export async function startCarousel(
   userId: string,
   artworkId: string,
-  coverCopy: CarouselSlideCopy,
+  carouselCopy: CarouselCopy,
 ) {
   const cover = await getCarouselCover(userId, artworkId);
 
@@ -190,13 +201,14 @@ export async function startCarousel(
     return false;
   }
 
+  await mergeCoverLayers(cover.versionId, { carouselCopy });
   await db
     .insert(artworkSlides)
     .values({
       artworkId,
       position: 1,
       renderPath: cover.renderPath,
-      copy: carouselSlideCopySchema.parse(coverCopy),
+      copy: carouselCopy.slides[0],
     })
     .onConflictDoNothing();
 
