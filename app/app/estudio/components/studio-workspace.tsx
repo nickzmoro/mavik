@@ -2,6 +2,7 @@
 
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import type { ScheduleArtFormValues } from "@/lib/validations/studio";
+import { usePostDraft } from "@/providers/post-draft-provider";
 import { useToast } from "@/providers/toast-provider";
 
 import { useStudio, type StudioDialog } from "../hooks/use-studio";
@@ -17,6 +18,17 @@ type StudioWorkspaceProps = {
 };
 
 export function StudioWorkspace({ initialArtwork }: StudioWorkspaceProps) {
+  const { isHydrated } = usePostDraft();
+
+  return (
+    <StudioWorkspaceContent
+      key={isHydrated ? "hydrated" : "server"}
+      initialArtwork={initialArtwork}
+    />
+  );
+}
+
+function StudioWorkspaceContent({ initialArtwork }: StudioWorkspaceProps) {
   const studio = useStudio(initialArtwork);
   const { showToast } = useToast();
 

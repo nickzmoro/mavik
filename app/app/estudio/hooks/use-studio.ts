@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { useGeneratePostCaption } from "@/hooks/mutations/use-generate-post-caption";
 import { useGenerateImage } from "@/hooks/mutations/use-generate-image";
@@ -12,6 +12,10 @@ import { useAttachments } from "@/hooks/use-attachments";
 import { compressImageDataUrl } from "@/lib/compress-image-data-url";
 import { findArtFormat, formatArtCount } from "@/lib/art-options";
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
+import {
+  toApprovedCopyEntries,
+  type ApprovedCopyEntry,
+} from "@/lib/post-copy/approved-copy";
 import {
   buildGuidedPrompt,
   skippedAnswer,
@@ -29,6 +33,7 @@ import type {
   ScheduleArtFormValues,
   StudioPromptFormValues,
 } from "@/lib/validations/studio";
+import { usePostDraft } from "@/providers/post-draft-provider";
 import { useToast } from "@/providers/toast-provider";
 
 import { toScheduledAt } from "../utils/schedule-days";
@@ -42,7 +47,11 @@ type StudioImage = GenerateImageResult & { formatId: ArtFormatId };
 export function useStudio(initialArtwork: StudioArtwork | null) {
   const { showToast } = useToast();
   const pauta = useSearchParams().get(STUDIO_PAUTA_PARAM) ?? "";
-  const initialPrompt = initialArtwork?.prompt ?? pauta;
+  const { draft, clearDraft } = usePostDraft();
+  const approvedDraft =
+    !initialArtwork && draft?.isApproved && draft.copy ? draft : null;
+  const initialPrompt =
+    initialArtwork?.prompt ?? approvedDraft?.prompt ?? pauta;
   const generateImageMutation = useGenerateImage();
   const generatePostCaptionMutation = useGeneratePostCaption();
   const scheduleArtworkMutation = useScheduleArtwork();
@@ -53,18 +62,28 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   );
   const [guidedStep, setGuidedStep] = useState(0);
   const [guidedAnswers, setGuidedAnswers] = useState<string[]>([]);
-  const attachments = useAttachments();
+  const attachments = useAttachments(approvedDraft?.attachments);
   const [formatId, setFormatId] = useState<ArtFormatId>(
-    initialArtwork?.isStory ? "story" : "portrait",
+    approvedDraft?.formatId ?? (initialArtwork?.isStory ? "story" : "portrait"),
   );
-  const quota = useArtQuota();
+  const quota = useArtQuota(approvedDraft?.variationCount);
+  const [approvedCopy, setApprovedCopy] = useState<
+    ApprovedCopyEntry[] | undefined
+  >(
+    approvedDraft?.copy
+      ? toApprovedCopyEntries(approvedDraft.copy, approvedDraft.artFields)
+      : undefined,
+  );
+  const hasStartedApprovedGenerationRef = useRef(false);
   const [phase, setPhase] = useState<StudioPhase>(
     initialArtwork ? "done" : "idle",
   );
   const [selectedVariation, setSelectedVariation] = useState(0);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [dialog, setDialog] = useState<StudioDialog>("none");
-  const [caption, setCaption] = useState(initialArtwork?.caption ?? "");
+  const [caption, setCaption] = useState(
+    initialArtwork?.caption ?? approvedDraft?.copy?.caption ?? "",
+  );
   const [generatedImages, setGeneratedImages] = useState<StudioImage[]>(
     initialArtwork
       ? [
@@ -118,7 +137,10 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
       (attachment) => attachment.kind === "photo" && attachment.file,
     )?.file;
 
-  const generate = async ({ prompt }: StudioPromptFormValues) => {
+  const generateArt = async (
+    prompt: string,
+    copyEntries: ApprovedCopyEntry[] | undefined,
+  ) => {
     const quotaError = quota.getQuotaError();
 
     if (quotaError === "limit") {
@@ -161,6 +183,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
             referenceImage,
             format: generationFormatId,
             variationIndex,
+            approvedCopy: copyEntries,
           })
           .then((result) => ({ ...result, formatId: generationFormatId })),
       ),
@@ -199,7 +222,24 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
     setPhase("done");
   };
 
-  const regenerate = () => generate({ prompt: lastPrompt });
+  const generate = ({ prompt }: StudioPromptFormValues) => {
+    setApprovedCopy(undefined);
+    return generateArt(prompt, undefined);
+  };
+
+  const regenerate = () => generateArt(lastPrompt, approvedCopy);
+
+  const startApprovedGeneration = useEffectEvent(() => {
+    if (!approvedDraft || hasStartedApprovedGenerationRef.current) {
+      return;
+    }
+
+    hasStartedApprovedGenerationRef.current = true;
+    generateArt(approvedDraft.prompt, approvedCopy);
+    clearDraft();
+  });
+
+  useEffect(() => startApprovedGeneration(), []);
 
   const cancelGeneration = () => {
     generationIdRef.current += 1;
