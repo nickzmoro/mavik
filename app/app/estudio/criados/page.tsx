@@ -21,7 +21,7 @@ const pageLinkClassName =
   "inline-flex min-h-11 items-center gap-1 rounded-(--r-sm) px-2 text-sm font-semibold text-primary no-underline transition-colors duration-150 hover:text-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 const getPageUrl = (page: number) =>
-  `${routes.studioArtworks}?${new URLSearchParams({ [PAGE_PARAM]: String(page) })}`;
+  `${routes.artworks}?${new URLSearchParams({ [PAGE_PARAM]: String(page) })}`;
 
 async function ArtworksList({ searchParams }: { searchParams: SearchParams }) {
   const requestedPage = Number((await searchParams)[PAGE_PARAM]);
@@ -41,7 +41,7 @@ async function ArtworksList({ searchParams }: { searchParams: SearchParams }) {
           {page === 1 ? "Você ainda não gerou posts" : "Não há mais posts"}
         </p>
         <Link
-          href={page === 1 ? routes.studio : routes.studioArtworks}
+          href={page === 1 ? routes.studio : routes.artworks}
           className={pageLinkClassName}
         >
           {page === 1 ? "Criar no Estúdio" : "Voltar para a primeira página"}

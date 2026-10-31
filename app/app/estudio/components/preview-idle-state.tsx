@@ -37,7 +37,7 @@ export function PreviewIdleState() {
               Criadas recentemente
             </span>
             <Link
-              href={routes.studioArtworks}
+              href={routes.artworks}
               className="rounded-(--r-sm) text-xs leading-[1.4] font-semibold text-primary no-underline transition-colors duration-150 hover:text-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
             >
               Ver todas

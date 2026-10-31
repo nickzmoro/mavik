@@ -24,7 +24,7 @@ export async function DraftsSection() {
       <div className="flex items-center justify-between gap-3">
         <HomeSectionTitle id="drafts-title">Rascunhos</HomeSectionTitle>
         <Link
-          href={routes.studioArtworks}
+          href={routes.artworks}
           className="inline-flex min-h-11 items-center gap-1 rounded-(--r-sm) text-sm font-semibold text-primary no-underline transition-colors duration-150 hover:text-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
         >
           Ver todos os posts

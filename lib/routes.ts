@@ -11,9 +11,9 @@ export const routes = {
   appRoot: "/app",
   authenticatedHome: "/app/inicio",
   agent: "/app/agente",
+  artworks: "/app/artes",
   ideas: "/app/ideias",
   studio: "/app/estudio",
-  studioArtworks: "/app/estudio/criados",
   studioApproval: "/app/estudio/aprovar",
   schedule: "/app/agenda",
   results: "/app/resultados",
@@ -21,6 +21,9 @@ export const routes = {
   onboarding: "/app/etapas",
   plans: "/app/planos",
 } as const;
+
+export const getArtworkRoute = (artworkId: string) =>
+  `${routes.artworks}/${encodeURIComponent(artworkId)}`;
 
 export const getAgentConversationRoute = (conversationId: string) =>
   `${routes.agent}/${encodeURIComponent(conversationId)}`;
