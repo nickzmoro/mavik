@@ -1,9 +1,8 @@
 import { Check, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { formatVariationCount } from "@/lib/art-options";
 import { generationSteps } from "@/lib/mocks/studio";
-
-import { formatVariationCount } from "../hooks/use-studio";
 import { VariationGrid } from "./variation-grid";
 
 type PreviewGeneratingStateProps = {

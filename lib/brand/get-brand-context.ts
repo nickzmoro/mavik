@@ -34,6 +34,10 @@ type LogoAsset = { storagePath: string; kind: "logo_claro" | "logo_escuro" };
 
 type StoredFile = { storagePath: string; mimeType: string; label: string };
 
+type LayoutStructure = { layoutModes?: Record<string, boolean> };
+
+const isLayoutPromptEnabled = false;
+
 export type BrandContext = {
   brandName: string;
   productNames: string[];
@@ -41,7 +45,6 @@ export type BrandContext = {
   colorHexes: string[];
   restrictions: string[];
   forbiddenTerms: string[];
-  primaryHex?: string;
   variationIndex: number;
   logos: LogoAsset[];
   manual?: StoredFile;
@@ -197,19 +200,20 @@ export async function getBrandContext(
     contentFormat === "story" && storyExamples.length > 0;
   const lovedTerms = terms.filter(({ kind }) => kind === "amada");
   const forbiddenTerms = terms.filter(({ kind }) => kind === "proibida");
-  const fixedLayoutElements = [
-    ...new Set(
-      layouts.flatMap(({ structure }) => {
-        const layoutModes =
-          (structure as { layoutModes?: Record<string, boolean> })
-            .layoutModes ?? {};
-
-        return layoutElements
-          .filter((element) => layoutModes[element.id])
-          .map((element) => element.label);
-      }),
-    ),
-  ];
+  const layoutStructures = layouts.map(
+    ({ structure }) => structure as LayoutStructure,
+  );
+  const fixedLayoutElements = isLayoutPromptEnabled
+    ? [
+        ...new Set(
+          layoutStructures.flatMap(({ layoutModes = {} }) =>
+            layoutElements
+              .filter((element) => layoutModes[element.id])
+              .map((element) => element.label),
+          ),
+        ),
+      ]
+    : [];
 
   const sections = [
     `Marca: ${store.name} (segmento: ${store.segment}).`,
@@ -275,9 +279,6 @@ export async function getBrandContext(
     ],
     restrictions: restrictions.map(({ value }) => value),
     forbiddenTerms: forbiddenTerms.map(({ term }) => term),
-    primaryHex: colors
-      .find(({ role }) => role === "primaria")
-      ?.hex.toUpperCase(),
     variationIndex,
     manual:
       manual?.mimeType === "application/pdf" ? toStoredFile(manual) : undefined,

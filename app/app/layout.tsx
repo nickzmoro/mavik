@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/common/app-sidebar/app-sidebar";
 import { FeedbackWidget } from "@/components/common/feedback-widget/feedback-widget";
 import { OnboardingBanner } from "@/components/common/onboarding-banner";
 import { routes } from "@/lib/routes";
+import { PostDraftProvider } from "@/providers/post-draft-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 import { getCurrentUserClaims } from "@/lib/supabase/get-current-user-claims";
 
@@ -30,17 +31,19 @@ export default function AuthenticatedAppLayout({
         <RequireAuth />
       </Suspense>
       <ToastProvider>
-        <AppShell
-          sidebar={<AppSidebar />}
-          banner={
-            <Suspense fallback={null}>
-              <OnboardingBanner />
-            </Suspense>
-          }
-        >
-          {children}
-        </AppShell>
-        <FeedbackWidget />
+        <PostDraftProvider>
+          <AppShell
+            sidebar={<AppSidebar />}
+            banner={
+              <Suspense fallback={null}>
+                <OnboardingBanner />
+              </Suspense>
+            }
+          >
+            {children}
+          </AppShell>
+          <FeedbackWidget />
+        </PostDraftProvider>
       </ToastProvider>
     </>
   );

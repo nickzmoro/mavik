@@ -21,7 +21,7 @@ import {
 } from "@/lib/validations/studio";
 
 import type { StudioState } from "../hooks/use-studio";
-import { RoundSendButton } from "./round-send-button";
+import { RoundSendButton } from "@/components/common/round-send-button";
 import {
   composerTextareaClassName,
   StudioComposerShell,

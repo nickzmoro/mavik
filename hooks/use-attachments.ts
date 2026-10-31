@@ -50,8 +50,9 @@ const formatLinkName = (url: string) => {
   );
 };
 
-export function useAttachments() {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+export function useAttachments(initialAttachments: Attachment[] = []) {
+  const [attachments, setAttachments] =
+    useState<Attachment[]>(initialAttachments);
   const [errorMessage, setErrorMessage] = useState("");
 
   const remainingSlots = maxAttachments - attachments.length;

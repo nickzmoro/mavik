@@ -2,6 +2,7 @@
 
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import type { ScheduleArtFormValues } from "@/lib/validations/studio";
+import { usePostDraft } from "@/providers/post-draft-provider";
 import { useToast } from "@/providers/toast-provider";
 
 import { useStudio, type StudioDialog } from "../hooks/use-studio";
@@ -10,13 +11,24 @@ import { ScheduleArtDialog } from "./schedule-art-dialog";
 import { StudioHeader } from "./studio-header";
 import { StudioPreviewPanel } from "./studio-preview-panel";
 import { StudioRequestPanel } from "./studio-request-panel";
-import { TrialLimitDialog } from "./trial-limit-dialog";
+import { TrialLimitDialog } from "@/components/common/trial-limit-dialog";
 
 type StudioWorkspaceProps = {
   initialArtwork: StudioArtwork | null;
 };
 
 export function StudioWorkspace({ initialArtwork }: StudioWorkspaceProps) {
+  const { isHydrated } = usePostDraft();
+
+  return (
+    <StudioWorkspaceContent
+      key={isHydrated ? "hydrated" : "server"}
+      initialArtwork={initialArtwork}
+    />
+  );
+}
+
+function StudioWorkspaceContent({ initialArtwork }: StudioWorkspaceProps) {
   const studio = useStudio(initialArtwork);
   const { showToast } = useToast();
 

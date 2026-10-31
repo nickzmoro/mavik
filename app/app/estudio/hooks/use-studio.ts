@@ -1,24 +1,27 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { useGeneratePostCaption } from "@/hooks/mutations/use-generate-post-caption";
 import { useGenerateImage } from "@/hooks/mutations/use-generate-image";
 import { usePublishArtworkNow } from "@/hooks/mutations/use-publish-artwork-now";
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
+import { useArtQuota } from "@/hooks/use-art-quota";
 import { useAttachments } from "@/hooks/use-attachments";
 import { compressImageDataUrl } from "@/lib/compress-image-data-url";
+import { findArtFormat, formatArtCount } from "@/lib/art-options";
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import {
-  artFormats,
+  toApprovedCopyEntries,
+  type ApprovedCopyEntry,
+} from "@/lib/post-copy/approved-copy";
+import {
   buildGuidedPrompt,
-  maxVariationsPerGeneration,
   skippedAnswer,
   studioQuestions,
   type ArtFormatId,
 } from "@/lib/mocks/studio";
-import { mockTrialUsage } from "@/lib/mocks/sidebar";
 import { readFileAsDataUrl } from "@/lib/read-file-as-data-url";
 import { STUDIO_PAUTA_PARAM } from "@/lib/routes";
 import {
@@ -30,6 +33,7 @@ import type {
   ScheduleArtFormValues,
   StudioPromptFormValues,
 } from "@/lib/validations/studio";
+import { usePostDraft } from "@/providers/post-draft-provider";
 import { useToast } from "@/providers/toast-provider";
 
 import { toScheduledAt } from "../utils/schedule-days";
@@ -40,19 +44,14 @@ export type StudioDialog = "none" | "editor" | "schedule" | "limit";
 
 type StudioImage = GenerateImageResult & { formatId: ArtFormatId };
 
-const findArtFormat = (formatId?: ArtFormatId) =>
-  artFormats.find((artFormat) => artFormat.id === formatId) ?? artFormats[1];
-
-export const formatArtCount = (count: number) =>
-  count === 1 ? "1 arte" : `${count} artes`;
-
-export const formatVariationCount = (count: number) =>
-  count === 1 ? "1 variação" : `${count} variações`;
-
 export function useStudio(initialArtwork: StudioArtwork | null) {
   const { showToast } = useToast();
   const pauta = useSearchParams().get(STUDIO_PAUTA_PARAM) ?? "";
-  const initialPrompt = initialArtwork?.prompt ?? pauta;
+  const { draft, clearDraft } = usePostDraft();
+  const approvedDraft =
+    !initialArtwork && draft?.isApproved && draft.copy ? draft : null;
+  const initialPrompt =
+    initialArtwork?.prompt ?? approvedDraft?.prompt ?? pauta;
   const generateImageMutation = useGenerateImage();
   const generatePostCaptionMutation = useGeneratePostCaption();
   const scheduleArtworkMutation = useScheduleArtwork();
@@ -63,27 +62,28 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   );
   const [guidedStep, setGuidedStep] = useState(0);
   const [guidedAnswers, setGuidedAnswers] = useState<string[]>([]);
-  const attachments = useAttachments();
+  const attachments = useAttachments(approvedDraft?.attachments);
   const [formatId, setFormatId] = useState<ArtFormatId>(
-    initialArtwork?.isStory ? "story" : "portrait",
+    approvedDraft?.formatId ?? (initialArtwork?.isStory ? "story" : "portrait"),
   );
-  const [usedArts, setUsedArts] = useState(mockTrialUsage.used);
-  const [variationCount, setVariationCount] = useState(
-    Math.max(
-      1,
-      Math.min(
-        maxVariationsPerGeneration,
-        mockTrialUsage.total - mockTrialUsage.used,
-      ),
-    ),
+  const quota = useArtQuota(approvedDraft?.variationCount);
+  const [approvedCopy, setApprovedCopy] = useState<
+    ApprovedCopyEntry[] | undefined
+  >(
+    approvedDraft?.copy
+      ? toApprovedCopyEntries(approvedDraft.copy, approvedDraft.artFields)
+      : undefined,
   );
+  const hasStartedApprovedGenerationRef = useRef(false);
   const [phase, setPhase] = useState<StudioPhase>(
     initialArtwork ? "done" : "idle",
   );
   const [selectedVariation, setSelectedVariation] = useState(0);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [dialog, setDialog] = useState<StudioDialog>("none");
-  const [caption, setCaption] = useState(initialArtwork?.caption ?? "");
+  const [caption, setCaption] = useState(
+    initialArtwork?.caption ?? approvedDraft?.copy?.caption ?? "",
+  );
   const [generatedImages, setGeneratedImages] = useState<StudioImage[]>(
     initialArtwork
       ? [
@@ -101,10 +101,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   const [isAdjusting, setIsAdjusting] = useState(false);
 
   const imageUrls = generatedImages.map((image) => image.imageUrl);
-  const artLimit = mockTrialUsage.total;
-  const remainingArts = mockTrialUsage.isLimitEnabled
-    ? Math.max(0, artLimit - usedArts)
-    : Number.POSITIVE_INFINITY;
+  const { variationCount, remainingArts } = quota;
   const format = findArtFormat(formatId);
   const isGuidedComplete = guidedStep >= studioQuestions.length;
 
@@ -140,17 +137,20 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
       (attachment) => attachment.kind === "photo" && attachment.file,
     )?.file;
 
-  const generate = async ({ prompt }: StudioPromptFormValues) => {
-    if (remainingArts <= 0) {
+  const generateArt = async (
+    prompt: string,
+    copyEntries: ApprovedCopyEntry[] | undefined,
+  ) => {
+    const quotaError = quota.getQuotaError();
+
+    if (quotaError === "limit") {
       setDialog("limit");
       return;
     }
 
-    if (variationCount > remainingArts) {
+    if (quotaError) {
       setIsOptionsOpen(true);
-      showToast(
-        `Restam ${formatArtCount(remainingArts)} no teste. Escolha até ${formatVariationCount(remainingArts)}.`,
-      );
+      showToast(quotaError);
       return;
     }
 
@@ -183,6 +183,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
             referenceImage,
             format: generationFormatId,
             variationIndex,
+            approvedCopy: copyEntries,
           })
           .then((result) => ({ ...result, formatId: generationFormatId })),
       ),
@@ -217,11 +218,28 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
 
     setGeneratedImages(generatedResults);
     setSelectedVariation(0);
-    setUsedArts((currentUsed) => currentUsed + generatedResults.length);
+    quota.registerUsedArts(generatedResults.length);
     setPhase("done");
   };
 
-  const regenerate = () => generate({ prompt: lastPrompt });
+  const generate = ({ prompt }: StudioPromptFormValues) => {
+    setApprovedCopy(undefined);
+    return generateArt(prompt, undefined);
+  };
+
+  const regenerate = () => generateArt(lastPrompt, approvedCopy);
+
+  const startApprovedGeneration = useEffectEvent(() => {
+    if (!approvedDraft || hasStartedApprovedGenerationRef.current) {
+      return;
+    }
+
+    hasStartedApprovedGenerationRef.current = true;
+    generateArt(approvedDraft.prompt, approvedCopy);
+    clearDraft();
+  });
+
+  useEffect(() => startApprovedGeneration(), []);
 
   const cancelGeneration = () => {
     generationIdRef.current += 1;
@@ -278,7 +296,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
         ...adjustedImage,
         formatId: resultFormat.id,
       });
-      setUsedArts((currentUsed) => currentUsed + 1);
+      quota.registerUsedArts(1);
 
       return true;
     } catch (error) {
@@ -394,7 +412,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   };
 
   const changeVariationCount = (count: number) => {
-    setVariationCount(count);
+    quota.setVariationCount(count);
     setSelectedVariation(0);
   };
 
@@ -409,8 +427,8 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
     attachments,
     format,
     resultFormat,
-    usedArts,
-    artLimit,
+    usedArts: quota.usedArts,
+    artLimit: quota.artLimit,
     remainingArts,
     variationCount,
     phase,

@@ -13,11 +13,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { formatArtCount } from "@/lib/art-options";
 import { studioPlans } from "@/lib/mocks/studio";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-
-import { formatArtCount } from "../hooks/use-studio";
 
 type TrialLimitDialogProps = {
   open: boolean;
