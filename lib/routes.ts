@@ -14,6 +14,7 @@ export const routes = {
   ideas: "/app/ideias",
   studio: "/app/estudio",
   studioArtworks: "/app/estudio/criados",
+  studioApproval: "/app/estudio/aprovar",
   schedule: "/app/agenda",
   results: "/app/resultados",
   brand: "/app/marca",
