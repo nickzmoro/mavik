@@ -97,18 +97,25 @@ const errorMessages = {
     `Você gerou muitas artes seguidas. Tente de novo em ${retryAfter}.`,
 };
 
+function isRateLimitExempt(userId: string) {
+  return (process.env.IMAGE_RATE_LIMIT_EXEMPT_USER_IDS ?? "")
+    .split(",")
+    .map((exemptUserId) => exemptUserId.trim())
+    .includes(userId);
+}
+
 function errorResponse(errorMessage: string, status: number) {
   return NextResponse.json({ errorMessage }, { status });
 }
 
 const BRAND_POST_INSTRUCTIONS = `You are the senior art director of the brand described below, writing the prompt for GPT Image to create an Instagram post in the format given below.
 The attached brand manual (PDF) is the governing principle of every post: its colors, typography, layout, graphic elements and image style are mandatory, even when the user's request suggests otherwise. The user's request only defines the subject and the message.
-The attached approved posts are the template for this post: describe their layout precisely (grid, where the photo, headline, secondary text and call to action sit, proportions, margins, shapes, textures, typography weight, size and case, color of each element) and reproduce it as closely as possible, changing only the content. Avoid the style of the attached rejected posts.
+The first attached approved post is the TEMPLATE for this post; the other approved posts only show the brand style. Study the template and describe its layout as a precise spec: the position and size of every element as a percentage of the frame (photo area, headline, secondary text, call to action, panels and shapes), margins and alignment, number of text lines, typography weight, size and case, textures, and the HEX color of every background, panel, shape and text. Reproduce that spec exactly, changing only the product, the photo and the text. Never mix in layouts from the other approved posts. Avoid the style of the attached rejected posts.
 Everything listed under "PROIBIDO NA ARTE" is forbidden and overrides the approved posts: if an approved post contains a forbidden color, element, text or style, leave it out or replace it with an allowed brand color.
 The "ART DIRECTION RULES" section, when present, was written by this brand's owner and applies only to this brand: follow every rule in it, above the generic style guidance and the approved posts. Only an explicit request from the user for this specific post (or a "PROIBIDO NA ARTE" item) overrides one of these rules.
-Write a detailed prompt that specifies: the layout copied from the approved posts and the manual; the exact brand colors by name and HEX for background, shapes and text (no colors outside the brand palette); the look of the typography (describe the brand fonts' style, weight and case, since the image model cannot load font files); the image style; and the mood of the brand's tone of voice.
+Write a detailed prompt that specifies: the template's layout spec, element by element; the exact brand colors by name and HEX for background, shapes and text (no colors outside the brand palette); the look of the typography (describe the brand fonts' style, weight and case, since the image model cannot load font files); the image style; and the mood of the brand's tone of voice.
 Include a short headline in Brazilian Portuguese (up to 8 words), never using forbidden terms, and quote every piece of text exactly.
-Only add a call to action, button, badge or seal if the approved posts have one, in the same position, size, shape and colors as in them. Never invent buttons or calls to action such as "Descubra mais", "Saiba mais" or "Compre agora", and never use accent colors that the approved posts do not use.
+Only add a call to action, button, badge or seal if the template has one, in the same position, size, shape and colors as in it. Never invent buttons or calls to action such as "Descubra mais", "Saiba mais" or "Compre agora", and never use accent colors that the template does not use.
 When a product photo is attached, that exact product is the hero of the post: describe it precisely (shape, colors, labels, packaging) and never replace it with another product or with the products shown in the example posts.
 Never draw, describe or invent any logo, symbol, monogram, wordmark, and never write the brand name in the image or in your prompt: the official logo file is placed afterwards in the bottom-right corner, so keep that area clean.
 Output ONLY the final English prompt for GPT Image, in a single paragraph, with no preamble, quotes or explanations.
@@ -185,8 +192,7 @@ async function writeImagePrompt(
         `${BRAND_POST_INSTRUCTIONS}${brandContext.guidelines}`,
         describeFormat(format, brandContext),
         !editInstruction &&
-          `Photo for this variation: show the product ${photoAngles[variationIndex % photoAngles.length]}, keeping the approved layout.`,
-        brandFiles.goodExamples.length > 0 && buildColorVariation(brandContext),
+          `Photo for this variation: show the product ${photoAngles[variationIndex % photoAngles.length]}, keeping the template layout and the size and position of its photo area.`,
       ]
         .filter(Boolean)
         .join("\n")
@@ -194,7 +200,7 @@ async function writeImagePrompt(
 
   const completion = await openai.chat.completions.create({
     model: IMAGE_PROMPT_MODEL,
-    temperature: 0.4,
+    temperature: 0.2,
     messages: [
       {
         role: "system",
@@ -233,9 +239,18 @@ async function writeImagePrompt(
             ? [
                 {
                   type: "text" as const,
-                  text: "Posts aprovados da marca (siga este padrão):",
+                  text: "Post aprovado que é o molde desta arte (copie a estrutura exatamente):",
                 },
-                ...toImageParts(brandFiles.goodExamples, "high"),
+                ...toImageParts(brandFiles.goodExamples.slice(0, 1), "high"),
+              ]
+            : []),
+          ...(brandFiles.goodExamples.length > 1
+            ? [
+                {
+                  type: "text" as const,
+                  text: "Outros posts aprovados (só referência de estilo, não misture os layouts):",
+                },
+                ...toImageParts(brandFiles.goodExamples.slice(1), "low"),
               ]
             : []),
           ...(brandFiles.badExamples.length > 0
@@ -269,13 +284,17 @@ async function writeImagePrompt(
   return completion.choices[0]?.message.content?.trim();
 }
 
-function buildColorVariation(brandContext: BrandContext) {
-  const isAlternateVariation =
-    brandContext.primaryHex && brandContext.variationIndex % 2 === 1;
+function putTemplateFirst<T>(examples: T[], variationIndex: number) {
+  if (examples.length === 0) {
+    return examples;
+  }
 
-  return isAlternateVariation
-    ? `Color variation for this post: keep exactly the same layout as the approved posts, but the sections that are white or light in them (such as the lower panel) must use the brand primary color ${brandContext.primaryHex}, with text and details in white or another contrasting brand color.`
-    : "Color variation for this post: keep exactly the same color distribution as the approved posts, including the white or light sections (such as the lower panel).";
+  const templateIndex = variationIndex % examples.length;
+
+  return [
+    ...examples.slice(templateIndex),
+    ...examples.slice(0, templateIndex),
+  ];
 }
 
 function buildEditGuardrail(editInstruction: string) {
@@ -310,7 +329,10 @@ function buildImageGuardrails(
       !editInstruction &&
       "Reference image 1 is the product photo: this exact product must be the main subject of the post, reproduced faithfully (same shape, colors, labels and packaging). Do not replace it with any other product.",
     exampleCount > 0 &&
-      `Reference images ${firstExampleIndex} to ${lastExampleIndex} are approved posts of this brand and the template for this post: closely replicate their layout, element placement, proportions, typography style, graphic elements and color usage, changing only the products, photos and text. Do not copy their logos. ${buildColorVariation(brandContext)}`,
+      `Reference image ${firstExampleIndex} is the approved template for this post: replicate its exact layout, the position and size of every element, proportions, margins, typography style and case, graphic elements and the color of every area, changing only the product, photo and text.`,
+    exampleCount > 1 &&
+      `Reference images ${firstExampleIndex + 1} to ${lastExampleIndex} are other approved posts of this brand: use them only for the brand style and never mix their layouts into this post.`,
+    exampleCount > 0 && "Do not copy the logos of the reference posts.",
     hasReferenceImage &&
       !editInstruction &&
       exampleCount > 0 &&
@@ -403,17 +425,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const userKey = `generate-image:user:${claims.sub}`;
-  const blockedRemainingMs = await getBlockedRemainingMs([userKey]);
+  if (!isRateLimitExempt(claims.sub)) {
+    const userKey = `generate-image:user:${claims.sub}`;
+    const blockedRemainingMs = await getBlockedRemainingMs([userKey]);
 
-  if (blockedRemainingMs > 0) {
-    return errorResponse(
-      errorMessages.tooManyAttempts(formatRetryAfter(blockedRemainingMs)),
-      429,
-    );
+    if (blockedRemainingMs > 0) {
+      return errorResponse(
+        errorMessages.tooManyAttempts(formatRetryAfter(blockedRemainingMs)),
+        429,
+      );
+    }
+
+    await registerAttempt(userKey, generateImageRateLimitRule);
   }
-
-  await registerAttempt(userKey, generateImageRateLimitRule);
 
   const openai = new OpenAI({ apiKey });
 
@@ -427,7 +451,13 @@ export async function POST(request: Request) {
     const downloadedBrandFiles = await downloadBrandFiles(brandContext);
     const brandFiles = editInstruction
       ? { ...downloadedBrandFiles, goodExamples: [], badExamples: [] }
-      : downloadedBrandFiles;
+      : {
+          ...downloadedBrandFiles,
+          goodExamples: putTemplateFirst(
+            downloadedBrandFiles.goodExamples,
+            brandContext?.variationIndex ?? 0,
+          ),
+        };
     const writtenPrompt = await writeImagePrompt(
       openai,
       parsedInput.data,

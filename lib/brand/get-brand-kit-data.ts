@@ -21,6 +21,7 @@ import {
   defaultBrandFonts,
   emptyLayoutModes,
   fontSamples,
+  layoutElements,
   mockBrandRules,
   type BrandColor,
   type BrandFont,
@@ -222,7 +223,12 @@ export async function getBrandKitData(): Promise<BrandKitData> {
         name: layout.name,
         format:
           layout.format === "story" ? ("story" as const) : ("post" as const),
-        layoutModes: { ...emptyLayoutModes, ...structure.layoutModes },
+        layoutModes: Object.fromEntries(
+          layoutElements.map(({ id }) => [
+            id,
+            structure.layoutModes?.[id] ?? emptyLayoutModes[id],
+          ]),
+        ) as LayoutModes,
         postImageUrl: sourceAsset
           ? urlByPath.get(sourceAsset.storagePath)
           : undefined,
