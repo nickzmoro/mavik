@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { getInitials } from "@/lib/get-initials";
 import { getOnboardingData } from "@/lib/onboarding/get-onboarding-data";
@@ -18,9 +19,7 @@ type OnboardingPageProps = {
   searchParams: Promise<{ etapa?: string }>;
 };
 
-export default async function OnboardingPage({
-  searchParams,
-}: OnboardingPageProps) {
+async function OnboardingLoader({ searchParams }: OnboardingPageProps) {
   const [{ etapa }, { fullName, email }, data] = await Promise.all([
     searchParams,
     getCurrentUserProfile(),
@@ -50,5 +49,13 @@ export default async function OnboardingPage({
       userInitials={getInitials(fullName || email, "U")}
       data={data}
     />
+  );
+}
+
+export default function OnboardingPage({ searchParams }: OnboardingPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <OnboardingLoader searchParams={searchParams} />
+    </Suspense>
   );
 }
