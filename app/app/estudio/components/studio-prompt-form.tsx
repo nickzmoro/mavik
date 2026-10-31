@@ -24,8 +24,8 @@ import {
 } from "@/lib/validations/studio";
 
 import type { StudioState } from "../hooks/use-studio";
-import { FormatOptionsPopover } from "./format-options-popover";
-import { RoundSendButton } from "./round-send-button";
+import { FormatOptionsPopover } from "@/components/common/format-options-popover";
+import { RoundSendButton } from "@/components/common/round-send-button";
 import {
   composerTextareaClassName,
   StudioComposerShell,

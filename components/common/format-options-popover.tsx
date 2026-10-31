@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
+import { useId } from "react";
 
 import { SegmentedControl } from "@/components/common/segmented-control";
 import {
@@ -43,6 +44,7 @@ export function FormatOptionsPopover({
   onVariationCountChange,
   remainingArts,
 }: FormatOptionsPopoverProps) {
+  const formatLabelId = useId();
   const variationOptions = variationCountOptions.map((count) => {
     const isBlocked = remainingArts > 0 && count > remainingArts;
 
@@ -83,14 +85,14 @@ export function FormatOptionsPopover({
         className="flex w-85 max-w-[calc(100vw-2rem)] flex-col gap-0.5"
       >
         <span
-          id="studio-format-label"
+          id={formatLabelId}
           className="px-3 pt-2 pb-1.5 text-xs leading-[1.4] font-semibold text-muted"
         >
           Formato
         </span>
         <div
           role="radiogroup"
-          aria-labelledby="studio-format-label"
+          aria-labelledby={formatLabelId}
           className="flex flex-col gap-0.5"
         >
           {artFormats.map((artFormat) => {

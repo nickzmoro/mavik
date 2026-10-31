@@ -34,7 +34,7 @@ import {
 import { useToast } from "@/providers/toast-provider";
 
 import { BrandAssuranceNote } from "./brand-assurance-note";
-import { RoundSendButton } from "./round-send-button";
+import { RoundSendButton } from "@/components/common/round-send-button";
 import {
   composerTextareaClassName,
   StudioComposerShell,

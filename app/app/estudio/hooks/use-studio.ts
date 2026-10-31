@@ -7,14 +7,10 @@ import { useGeneratePostCaption } from "@/hooks/mutations/use-generate-post-capt
 import { useGenerateImage } from "@/hooks/mutations/use-generate-image";
 import { usePublishArtworkNow } from "@/hooks/mutations/use-publish-artwork-now";
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
+import { useArtQuota } from "@/hooks/use-art-quota";
 import { useAttachments } from "@/hooks/use-attachments";
 import { compressImageDataUrl } from "@/lib/compress-image-data-url";
-import {
-  findArtFormat,
-  formatArtCount,
-  formatVariationCount,
-  getInitialVariationCount,
-} from "@/lib/art-options";
+import { findArtFormat, formatArtCount } from "@/lib/art-options";
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import {
   buildGuidedPrompt,
@@ -22,7 +18,6 @@ import {
   studioQuestions,
   type ArtFormatId,
 } from "@/lib/mocks/studio";
-import { mockTrialUsage } from "@/lib/mocks/sidebar";
 import { readFileAsDataUrl } from "@/lib/read-file-as-data-url";
 import { STUDIO_PAUTA_PARAM } from "@/lib/routes";
 import {
@@ -62,10 +57,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   const [formatId, setFormatId] = useState<ArtFormatId>(
     initialArtwork?.isStory ? "story" : "portrait",
   );
-  const [usedArts, setUsedArts] = useState(mockTrialUsage.used);
-  const [variationCount, setVariationCount] = useState(
-    getInitialVariationCount(mockTrialUsage.total - mockTrialUsage.used),
-  );
+  const quota = useArtQuota();
   const [phase, setPhase] = useState<StudioPhase>(
     initialArtwork ? "done" : "idle",
   );
@@ -90,10 +82,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   const [isAdjusting, setIsAdjusting] = useState(false);
 
   const imageUrls = generatedImages.map((image) => image.imageUrl);
-  const artLimit = mockTrialUsage.total;
-  const remainingArts = mockTrialUsage.isLimitEnabled
-    ? Math.max(0, artLimit - usedArts)
-    : Number.POSITIVE_INFINITY;
+  const { variationCount, remainingArts } = quota;
   const format = findArtFormat(formatId);
   const isGuidedComplete = guidedStep >= studioQuestions.length;
 
@@ -130,16 +119,16 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
     )?.file;
 
   const generate = async ({ prompt }: StudioPromptFormValues) => {
-    if (remainingArts <= 0) {
+    const quotaError = quota.getQuotaError();
+
+    if (quotaError === "limit") {
       setDialog("limit");
       return;
     }
 
-    if (variationCount > remainingArts) {
+    if (quotaError) {
       setIsOptionsOpen(true);
-      showToast(
-        `Restam ${formatArtCount(remainingArts)} no teste. Escolha até ${formatVariationCount(remainingArts)}.`,
-      );
+      showToast(quotaError);
       return;
     }
 
@@ -206,7 +195,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
 
     setGeneratedImages(generatedResults);
     setSelectedVariation(0);
-    setUsedArts((currentUsed) => currentUsed + generatedResults.length);
+    quota.registerUsedArts(generatedResults.length);
     setPhase("done");
   };
 
@@ -267,7 +256,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
         ...adjustedImage,
         formatId: resultFormat.id,
       });
-      setUsedArts((currentUsed) => currentUsed + 1);
+      quota.registerUsedArts(1);
 
       return true;
     } catch (error) {
@@ -383,7 +372,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   };
 
   const changeVariationCount = (count: number) => {
-    setVariationCount(count);
+    quota.setVariationCount(count);
     setSelectedVariation(0);
   };
 
@@ -398,8 +387,8 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
     attachments,
     format,
     resultFormat,
-    usedArts,
-    artLimit,
+    usedArts: quota.usedArts,
+    artLimit: quota.artLimit,
     remainingArts,
     variationCount,
     phase,

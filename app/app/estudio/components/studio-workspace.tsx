@@ -10,7 +10,7 @@ import { ScheduleArtDialog } from "./schedule-art-dialog";
 import { StudioHeader } from "./studio-header";
 import { StudioPreviewPanel } from "./studio-preview-panel";
 import { StudioRequestPanel } from "./studio-request-panel";
-import { TrialLimitDialog } from "./trial-limit-dialog";
+import { TrialLimitDialog } from "@/components/common/trial-limit-dialog";
 
 type StudioWorkspaceProps = {
   initialArtwork: StudioArtwork | null;

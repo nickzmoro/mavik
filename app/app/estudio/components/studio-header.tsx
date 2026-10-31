@@ -7,7 +7,6 @@ import { formatArtCount } from "@/lib/art-options";
 import { mockTrialUsage } from "@/lib/mocks/sidebar";
 import { routes } from "@/lib/routes";
 
-
 type StudioHeaderProps = {
   usedArts: number;
   artLimit: number;
