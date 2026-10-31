@@ -2,7 +2,7 @@ import OpenAI, { APIError, toFile } from "openai";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 
-import { IMAGE_PROMPT_MODEL } from "@/lib/ai/models";
+import { IMAGE_MODEL, IMAGE_PROMPT_MODEL } from "@/lib/ai/models";
 import { findArtFormat } from "@/lib/art-options";
 import { getArtFormatIdFromSize } from "@/lib/content/artwork-format";
 import { applyLogo, hideLogoArea } from "@/lib/brand/apply-logo";
@@ -35,7 +35,6 @@ import {
   type GenerateImageInput,
 } from "@/lib/validations/image-generation";
 
-const IMAGE_MODEL = "gpt-image-2.5-flare";
 const HOUR_MS = 60 * 60 * 1000;
 const generateImageRateLimitRule: RateLimitRule = {
   limit: 10,
