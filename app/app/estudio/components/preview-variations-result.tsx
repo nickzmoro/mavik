@@ -2,6 +2,7 @@ import {
   Calendar,
   Copy,
   Download,
+  GalleryHorizontal,
   PenLine,
   RefreshCw,
   Send,
@@ -13,7 +14,8 @@ import Image from "next/image";
 
 import { IconButton } from "@/components/common/icon-button";
 import { Button } from "@/components/ui/button";
-import { hasCaption, canPublishToInstagram } from "@/lib/art-options";
+import { Progress } from "@/components/ui/progress";
+import { canPublishToInstagram, hasCaption } from "@/lib/art-options";
 import { brandRuleHighlights } from "@/lib/mocks/studio";
 import { cn } from "@/lib/utils";
 
@@ -169,8 +171,42 @@ export function PreviewVariationsResult({
           </span>
         ))}
       </div>
+      {studio.carouselProgress ? (
+        <div
+          role="status"
+          className="tile flex flex-col gap-2.5 rounded-2xl px-3.5 py-3"
+        >
+          <span className="text-sm leading-[1.4] font-semibold">
+            Gerando os slides no estilo da capa: {studio.carouselProgress.done}{" "}
+            de {studio.carouselProgress.total}
+          </span>
+          <Progress
+            value={studio.carouselProgress.done}
+            max={studio.carouselProgress.total}
+            aria-label="Slides gerados"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="self-start"
+            onClick={studio.cancelCarouselGeneration}
+          >
+            Parar depois dos slides em andamento
+          </Button>
+        </div>
+      ) : null}
       <div className="flex flex-wrap gap-2">
-        {canPublishToInstagram(studio.resultFormat) ? (
+        {studio.resultFormat.kind === "carousel" ? (
+          <Button
+            disabled={Boolean(studio.carouselProgress) || !studio.carouselCopy}
+            onClick={() =>
+              studio.startCarouselFromCover(studio.selectedVariation)
+            }
+          >
+            <GalleryHorizontal aria-hidden="true" className="size-4.5" />
+            Usar a capa {studio.selectedVariation + 1} e gerar os slides
+          </Button>
+        ) : canPublishToInstagram(studio.resultFormat) ? (
           <>
             <Button onClick={studio.openSchedule}>
               <Calendar aria-hidden="true" className="size-4.5" />

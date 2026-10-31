@@ -95,6 +95,8 @@ export function StudioPromptForm({
                       variationCount={studio.variationCount}
                       onVariationCountChange={studio.changeVariationCount}
                       remainingArts={studio.remainingArts}
+                      slideCount={studio.slideCount}
+                      onSlideCountChange={studio.setSlideCount}
                     />
                   }
                   actions={

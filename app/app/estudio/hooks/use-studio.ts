@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { useGeneratePostCaption } from "@/hooks/mutations/use-generate-post-caption";
@@ -10,8 +10,10 @@ import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
 import { useArtQuota } from "@/hooks/use-art-quota";
 import { useArtworkAdjustment } from "@/hooks/use-artwork-adjustment";
 import { useAttachments } from "@/hooks/use-attachments";
+import { useCarouselGeneration } from "@/hooks/use-carousel-generation";
 import { compressImageDataUrl } from "@/lib/compress-image-data-url";
 import { findArtFormat, formatArtCount } from "@/lib/art-options";
+import { DEFAULT_CAROUSEL_SLIDES } from "@/lib/carousel/carousel-copy";
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import {
   toApprovedCopyEntries,
@@ -24,7 +26,8 @@ import {
   type ArtFormatId,
 } from "@/lib/mocks/studio";
 import { readFileAsDataUrl } from "@/lib/read-file-as-data-url";
-import { STUDIO_PAUTA_PARAM } from "@/lib/routes";
+import { defaultArtFields } from "@/lib/post-draft";
+import { routes, STUDIO_PAUTA_PARAM } from "@/lib/routes";
 import {
   REFERENCE_IMAGE_MAX_BYTES,
   REFERENCE_IMAGE_TYPES,
@@ -48,9 +51,12 @@ type StudioImage = GenerateImageResult & { formatId: ArtFormatId };
 export function useStudio(initialArtwork: StudioArtwork | null) {
   const { showToast } = useToast();
   const pauta = useSearchParams().get(STUDIO_PAUTA_PARAM) ?? "";
-  const { draft, clearDraft } = usePostDraft();
+  const router = useRouter();
+  const { draft, startDraft, clearDraft } = usePostDraft();
   const approvedDraft =
-    !initialArtwork && draft?.isApproved && draft.copy ? draft : null;
+    !initialArtwork && draft?.isApproved && (draft.copy || draft.carouselCopy)
+      ? draft
+      : null;
   const initialPrompt =
     initialArtwork?.prompt ?? approvedDraft?.prompt ?? pauta;
   const generateImageMutation = useGenerateImage();
@@ -74,11 +80,30 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   });
   const [approvedCopy, setApprovedCopy] = useState<
     ApprovedCopyEntry[] | undefined
-  >(
-    approvedDraft?.copy
-      ? toApprovedCopyEntries(approvedDraft.copy, approvedDraft.artFields)
-      : undefined,
+  >(() => {
+    if (approvedDraft?.copy) {
+      return toApprovedCopyEntries(approvedDraft.copy, approvedDraft.artFields);
+    }
+
+    const cover = approvedDraft?.carouselCopy?.slides[0];
+
+    return cover
+      ? [
+          { role: "headline" as const, text: cover.headline },
+          ...(cover.body
+            ? [{ role: "subtitle" as const, text: cover.body }]
+            : []),
+        ]
+      : undefined;
+  });
+  const [carouselCopy] = useState(approvedDraft?.carouselCopy ?? null);
+  const [slideCount, setSlideCount] = useState(
+    approvedDraft?.slideCount ?? DEFAULT_CAROUSEL_SLIDES,
   );
+  const carouselGeneration = useCarouselGeneration({
+    quota,
+    onLimitReached: () => setDialog("limit"),
+  });
   const hasStartedApprovedGenerationRef = useRef(false);
   const [phase, setPhase] = useState<StudioPhase>(
     initialArtwork ? "done" : "idle",
@@ -87,7 +112,10 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [dialog, setDialog] = useState<StudioDialog>("none");
   const [caption, setCaption] = useState(
-    initialArtwork?.caption ?? approvedDraft?.copy?.caption ?? "",
+    initialArtwork?.caption ??
+      approvedDraft?.copy?.caption ??
+      approvedDraft?.carouselCopy?.caption ??
+      "",
   );
   const [generatedImages, setGeneratedImages] = useState<StudioImage[]>(
     initialArtwork
@@ -228,8 +256,39 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   };
 
   const generate = ({ prompt }: StudioPromptFormValues) => {
+    if (format.kind === "carousel") {
+      startDraft({
+        prompt,
+        formatId: format.id,
+        variationCount,
+        attachments: attachments.attachments,
+        artFields: defaultArtFields,
+        isApproved: false,
+        slideCount,
+      });
+      router.push(routes.studioApproval);
+      return;
+    }
+
     setApprovedCopy(undefined);
     return generateArt(prompt, undefined);
+  };
+
+  const startCarouselFromCover = (variationIndex: number) => {
+    const coverArtworkId = generatedImages[variationIndex]?.artworkId;
+
+    if (!carouselCopy || !coverArtworkId) {
+      showToast("Não encontramos essa capa salva. Gere a capa de novo.");
+      return;
+    }
+
+    carouselGeneration.startCarouselGeneration({
+      coverArtworkId,
+      otherCoverArtworkIds: generatedImages.flatMap(({ artworkId }) =>
+        artworkId && artworkId !== coverArtworkId ? [artworkId] : [],
+      ),
+      carouselCopy,
+    });
   };
 
   const regenerate = () => generateArt(lastPrompt, approvedCopy);
@@ -421,6 +480,12 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   const closeDialog = () => setDialog("none");
 
   return {
+    carouselCopy,
+    slideCount,
+    setSlideCount,
+    carouselProgress: carouselGeneration.carouselProgress,
+    cancelCarouselGeneration: carouselGeneration.cancelCarouselGeneration,
+    startCarouselFromCover,
     mode,
     guidedStep,
     guidedAnswers,
