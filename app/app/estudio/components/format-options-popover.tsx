@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { formatArtCount, formatVariationCount } from "@/lib/art-options";
 import {
   artFormats,
   maxVariationsPerGeneration,
@@ -17,8 +18,6 @@ import {
   type ArtFormatId,
 } from "@/lib/mocks/studio";
 import { cn } from "@/lib/utils";
-
-import { formatArtCount, formatVariationCount } from "../hooks/use-studio";
 
 type FormatOptionsPopoverProps = {
   open: boolean;

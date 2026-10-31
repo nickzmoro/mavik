@@ -9,11 +9,15 @@ import { usePublishArtworkNow } from "@/hooks/mutations/use-publish-artwork-now"
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
 import { useAttachments } from "@/hooks/use-attachments";
 import { compressImageDataUrl } from "@/lib/compress-image-data-url";
+import {
+  findArtFormat,
+  formatArtCount,
+  formatVariationCount,
+  getInitialVariationCount,
+} from "@/lib/art-options";
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import {
-  artFormats,
   buildGuidedPrompt,
-  maxVariationsPerGeneration,
   skippedAnswer,
   studioQuestions,
   type ArtFormatId,
@@ -40,15 +44,6 @@ export type StudioDialog = "none" | "editor" | "schedule" | "limit";
 
 type StudioImage = GenerateImageResult & { formatId: ArtFormatId };
 
-const findArtFormat = (formatId?: ArtFormatId) =>
-  artFormats.find((artFormat) => artFormat.id === formatId) ?? artFormats[1];
-
-export const formatArtCount = (count: number) =>
-  count === 1 ? "1 arte" : `${count} artes`;
-
-export const formatVariationCount = (count: number) =>
-  count === 1 ? "1 variação" : `${count} variações`;
-
 export function useStudio(initialArtwork: StudioArtwork | null) {
   const { showToast } = useToast();
   const pauta = useSearchParams().get(STUDIO_PAUTA_PARAM) ?? "";
@@ -69,13 +64,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   );
   const [usedArts, setUsedArts] = useState(mockTrialUsage.used);
   const [variationCount, setVariationCount] = useState(
-    Math.max(
-      1,
-      Math.min(
-        maxVariationsPerGeneration,
-        mockTrialUsage.total - mockTrialUsage.used,
-      ),
-    ),
+    getInitialVariationCount(mockTrialUsage.total - mockTrialUsage.used),
   );
   const [phase, setPhase] = useState<StudioPhase>(
     initialArtwork ? "done" : "idle",

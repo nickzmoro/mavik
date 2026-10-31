@@ -1,12 +1,9 @@
 import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { formatVariationCount } from "@/lib/art-options";
 
-import {
-  formatVariationCount,
-  type StudioPhase,
-  type StudioState,
-} from "../hooks/use-studio";
+import type { StudioPhase, StudioState } from "../hooks/use-studio";
 import { PreviewGeneratingState } from "./preview-generating-state";
 import { PreviewIdleState } from "./preview-idle-state";
 import { PreviewVariationsResult } from "./preview-variations-result";

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
+import { formatVariationCount } from "@/lib/art-options";
 import {
   studioPromptMaxLength,
   studioPromptStarters,
@@ -22,7 +23,7 @@ import {
   type StudioPromptFormValues,
 } from "@/lib/validations/studio";
 
-import { formatVariationCount, type StudioState } from "../hooks/use-studio";
+import type { StudioState } from "../hooks/use-studio";
 import { FormatOptionsPopover } from "./format-options-popover";
 import { RoundSendButton } from "./round-send-button";
 import {

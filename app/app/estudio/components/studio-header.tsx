@@ -3,10 +3,10 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { formatArtCount } from "@/lib/art-options";
 import { mockTrialUsage } from "@/lib/mocks/sidebar";
 import { routes } from "@/lib/routes";
 
-import { formatArtCount } from "../hooks/use-studio";
 
 type StudioHeaderProps = {
   usedArts: number;

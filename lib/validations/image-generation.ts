@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { artFormatIdSchema } from "@/lib/art-options";
 import { maxVariationsPerGeneration } from "@/lib/mocks/studio";
 
 export const REFERENCE_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
@@ -45,7 +46,7 @@ export const generateImageSchema = z
       .min(1, { error: "Diga o que você quer mudar." })
       .max(300, { error: "Use até 300 caracteres no ajuste." })
       .optional(),
-    format: z.enum(["square", "portrait", "story"]),
+    format: artFormatIdSchema,
     variationIndex: z
       .number()
       .int()
