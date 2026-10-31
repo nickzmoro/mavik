@@ -60,4 +60,20 @@ function RadioGroupCardItem({
   );
 }
 
-export { RadioGroup, RadioGroupCardItem, RadioGroupItem };
+function RadioGroupChipItem({
+  className,
+  ...props
+}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
+  return (
+    <RadioGroupPrimitive.Item
+      data-slot="radio-group-chip-item"
+      className={cn(
+        "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-muted bg-bg px-4 font-display text-sm leading-none font-semibold whitespace-nowrap text-text transition-[background-color,border-color] duration-150 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-surface-2 motion-reduce:transition-none [&_svg]:size-4 [&_svg]:shrink-0",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export { RadioGroup, RadioGroupCardItem, RadioGroupChipItem, RadioGroupItem };
