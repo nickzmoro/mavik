@@ -66,22 +66,28 @@ export async function getIdeasData(): Promise<IdeasData> {
     businessGoal:
       businessGoals.find(({ value }) => value === store.mainGoal)?.label ??
       null,
-    ideas: storeIdeas.map((idea) => ({
-      id: idea.id,
-      title: idea.title,
-      format: idea.format,
-      contentType: idea.contentType,
-      goal: idea.goal,
-      funnelStage: idea.funnelStage,
-      audience: idea.audience,
-      calendarDateId: idea.calendarDateId,
-      isRecommended: idea.recommended,
-      why: idea.why,
-      howToUse: idea.howToUse,
-      bestTime: idea.bestTime,
-      steps: Array.isArray(idea.steps) ? idea.steps.map(String) : [],
-      captionExample: idea.captionExample,
-    })),
+    ideas: storeIdeas.flatMap(({ format, ...idea }) =>
+      format === "banner"
+        ? []
+        : [
+            {
+              id: idea.id,
+              title: idea.title,
+              format,
+              contentType: idea.contentType,
+              goal: idea.goal,
+              funnelStage: idea.funnelStage,
+              audience: idea.audience,
+              calendarDateId: idea.calendarDateId,
+              isRecommended: idea.recommended,
+              why: idea.why,
+              howToUse: idea.howToUse,
+              bestTime: idea.bestTime,
+              steps: Array.isArray(idea.steps) ? idea.steps.map(String) : [],
+              captionExample: idea.captionExample,
+            },
+          ],
+    ),
     dates: dates.map((calendarDate) => ({
       id: calendarDate.id,
       name: calendarDate.name,

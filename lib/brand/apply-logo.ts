@@ -2,12 +2,17 @@ import "server-only";
 
 import sharp from "sharp";
 
+import { findArtFormat } from "@/lib/art-options";
+import {
+  getLogoMaxSize,
+  getLogoPlacement,
+  getSafeArea,
+} from "@/lib/images/format-geometry";
+import type { ArtFormatId } from "@/lib/mocks/studio";
+
 import type { BrandContext } from "./get-brand-context";
 import { downloadBrandAsset } from "./get-brand-context";
 
-const LOGO_MAX_WIDTH_RATIO = 0.3;
-const LOGO_MAX_HEIGHT_RATIO = 0.12;
-const MARGIN_RATIO = 0.05;
 const LIGHT_BACKGROUND_LUMINANCE = 128;
 
 type LogoKind = BrandContext["logos"][number]["kind"];
@@ -59,15 +64,25 @@ async function resizeLogo(
 export async function applyLogo(
   imageBytes: Buffer,
   logos: BrandContext["logos"],
+  formatId: ArtFormatId,
 ) {
   if (logos.length === 0) {
     return imageBytes;
   }
 
-  const { width = 1024, height = 1024 } = await sharp(imageBytes).metadata();
-  const maxLogoWidth = Math.round(width * LOGO_MAX_WIDTH_RATIO);
-  const maxLogoHeight = Math.round(height * LOGO_MAX_HEIGHT_RATIO);
-  const margin = Math.round(width * MARGIN_RATIO);
+  const { width = 1024 } = await sharp(imageBytes).metadata();
+  const scale = width / findArtFormat(formatId).generationSize.width;
+  const scaleBox = <TBox extends Record<string, number>>(box: TBox) =>
+    Object.fromEntries(
+      Object.entries(box).map(([key, value]) => [
+        key,
+        Math.round(value * scale),
+      ]),
+    ) as TBox;
+  const safeArea = scaleBox(getSafeArea(formatId));
+  const { width: maxLogoWidth, height: maxLogoHeight } = scaleBox(
+    getLogoMaxSize(formatId),
+  );
   const findLogo = (kind: LogoKind) => logos.find((logo) => logo.kind === kind);
 
   const measuredLogo = await resizeLogo(
@@ -75,10 +90,7 @@ export async function applyLogo(
     maxLogoWidth,
     maxLogoHeight,
   );
-  const placement = {
-    left: width - measuredLogo.width - margin,
-    top: height - measuredLogo.height - margin,
-  };
+  const placement = getLogoPlacement(safeArea, measuredLogo);
   const backgroundLuminance = await getBackgroundLuminance(imageBytes, {
     ...placement,
     width: measuredLogo.width,
@@ -92,13 +104,7 @@ export async function applyLogo(
       : measuredLogo;
 
   return sharp(imageBytes)
-    .composite([
-      {
-        input: logo.bytes,
-        left: width - logo.width - margin,
-        top: height - logo.height - margin,
-      },
-    ])
+    .composite([{ input: logo.bytes, ...getLogoPlacement(safeArea, logo) }])
     .png()
     .toBuffer();
 }

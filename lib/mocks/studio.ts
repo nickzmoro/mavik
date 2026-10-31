@@ -65,10 +65,25 @@ export const studioPromptStarters = [
 
 export const studioPromptMaxLength = 1500;
 
-export type ArtFormatId = "square" | "portrait" | "story";
+export type ArtFormatId =
+  | "square"
+  | "portrait"
+  | "story"
+  | "banner-site"
+  | "banner-linkedin"
+  | "banner-facebook"
+  | "banner-youtube";
+
+export type ArtFormatKind = "post" | "story" | "banner";
+
+type Size = { width: number; height: number };
 
 export type ArtFormat = {
   id: ArtFormatId;
+  kind: ArtFormatKind;
+  generationSize: Size;
+  outputSize: Size;
+  safeAreaSize?: Size;
   label: string;
   description: string;
   name: string;
@@ -78,9 +93,14 @@ export type ArtFormat = {
   chipIconClassName: string;
 };
 
+const bannerGenerationSize = { width: 2048, height: 1152 };
+
 export const artFormats: ArtFormat[] = [
   {
     id: "square",
+    kind: "post",
+    generationSize: { width: 1024, height: 1024 },
+    outputSize: { width: 1024, height: 1024 },
     label: "Post quadrado",
     description: "1:1 · Feed",
     name: "Post 1:1",
@@ -91,6 +111,9 @@ export const artFormats: ArtFormat[] = [
   },
   {
     id: "portrait",
+    kind: "post",
+    generationSize: { width: 1024, height: 1280 },
+    outputSize: { width: 1024, height: 1280 },
     label: "Post vertical",
     description: "4:5 · Feed, ocupa mais a tela",
     name: "Post 4:5",
@@ -101,6 +124,9 @@ export const artFormats: ArtFormat[] = [
   },
   {
     id: "story",
+    kind: "story",
+    generationSize: { width: 1152, height: 2048 },
+    outputSize: { width: 1152, height: 2048 },
     label: "Story",
     description: "9:16 · Stories e Reels",
     name: "Story 9:16",
@@ -108,6 +134,59 @@ export const artFormats: ArtFormat[] = [
     aspectRatio: "9 / 16",
     iconClassName: "h-4.75 w-2.75",
     chipIconClassName: "h-3.5 w-2",
+  },
+  {
+    id: "banner-site",
+    kind: "banner",
+    generationSize: bannerGenerationSize,
+    outputSize: { width: 1920, height: 600 },
+    label: "Banner de site",
+    description: "1920x600 · Topo do site",
+    name: "Banner de site",
+    ratioLabel: "16:5",
+    aspectRatio: "1920 / 600",
+    iconClassName: "h-2 w-5",
+    chipIconClassName: "h-1.5 w-4",
+  },
+  {
+    id: "banner-linkedin",
+    kind: "banner",
+    generationSize: bannerGenerationSize,
+    outputSize: { width: 1584, height: 396 },
+    label: "Capa do LinkedIn",
+    description: "1584x396 · Perfil ou página",
+    name: "Capa do LinkedIn",
+    ratioLabel: "4:1",
+    aspectRatio: "1584 / 396",
+    iconClassName: "h-1.5 w-5",
+    chipIconClassName: "h-1 w-4",
+  },
+  {
+    id: "banner-facebook",
+    kind: "banner",
+    generationSize: bannerGenerationSize,
+    outputSize: { width: 1640, height: 624 },
+    label: "Capa do Facebook",
+    description: "1640x624 · Página",
+    name: "Capa do Facebook",
+    ratioLabel: "2,6:1",
+    aspectRatio: "1640 / 624",
+    iconClassName: "h-2 w-5",
+    chipIconClassName: "h-1.5 w-4",
+  },
+  {
+    id: "banner-youtube",
+    kind: "banner",
+    generationSize: bannerGenerationSize,
+    outputSize: { width: 2560, height: 1440 },
+    safeAreaSize: { width: 1546, height: 423 },
+    label: "Banner do YouTube",
+    description: "2560x1440 · Área segura no centro",
+    name: "Banner do YouTube",
+    ratioLabel: "16:9",
+    aspectRatio: "16 / 9",
+    iconClassName: "h-3 w-5",
+    chipIconClassName: "h-2.25 w-4",
   },
 ];
 

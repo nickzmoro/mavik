@@ -123,6 +123,7 @@ export const contentFormatEnum = pgEnum("content_format", [
   "story",
   "reels",
   "carrossel",
+  "banner",
 ]);
 export const contentTypeEnum = pgEnum("content_type", [
   "educativo",

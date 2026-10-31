@@ -1,14 +1,19 @@
-import type { ArtFormatId } from "../mocks/studio.ts";
+import { artFormats, type ArtFormatId } from "../mocks/studio.ts";
+
+const ratioDistance = (
+  width: number,
+  height: number,
+  size: { width: number; height: number },
+) => Math.abs(Math.log(width / height) - Math.log(size.width / size.height));
 
 export function getArtFormatIdFromSize(
   width: number,
   height: number,
 ): ArtFormatId {
-  const ratio = height / width;
-
-  if (ratio >= 1.6) {
-    return "story";
-  }
-
-  return ratio >= 1.15 ? "portrait" : "square";
+  return artFormats.reduce((closest, format) =>
+    ratioDistance(width, height, format.outputSize) <
+    ratioDistance(width, height, closest.outputSize)
+      ? format
+      : closest,
+  ).id;
 }

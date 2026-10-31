@@ -2,6 +2,7 @@ import OpenAI, { APIError, toFile } from "openai";
 import { NextResponse } from "next/server";
 
 import { IMAGE_PROMPT_MODEL } from "@/lib/ai/models";
+import { findArtFormat } from "@/lib/art-options";
 import { applyLogo, hideLogoArea } from "@/lib/brand/apply-logo";
 import {
   downloadBrandAsset,
@@ -17,6 +18,9 @@ import {
   buildApprovedCopyInstruction,
   replaceHeadlineRule,
 } from "@/lib/post-copy/approved-copy";
+import { fitToFormat } from "@/lib/images/fit-to-format";
+import { getSafeArea } from "@/lib/images/format-geometry";
+import type { ArtFormat, ArtFormatId } from "@/lib/mocks/studio";
 import {
   formatRetryAfter,
   getBlockedRemainingMs,
@@ -37,24 +41,25 @@ const generateImageRateLimitRule: RateLimitRule = {
   blockMs: HOUR_MS,
   maxBlockMs: 24 * HOUR_MS,
 };
-const imageFormats = {
-  square: {
-    size: "1024x1024",
-    contentFormat: "post",
-    description: "a 1:1 square Instagram feed post",
-  },
-  portrait: {
-    size: "1024x1280",
-    contentFormat: "post",
-    description: "a 4:5 Instagram feed post",
-  },
-  story: {
-    size: "1152x2048",
-    contentFormat: "story",
-    description:
-      "a 9:16 vertical Instagram story. Keep the top 14% and the bottom 20% of the frame free of text and graphics",
-  },
-} as const;
+const instagramFormatDescriptions: Partial<Record<ArtFormatId, string>> = {
+  square: "a 1:1 square Instagram feed post",
+  portrait: "a 4:5 Instagram feed post",
+  story:
+    "a 9:16 vertical Instagram story. Keep the top 14% and the bottom 20% of the frame free of text and graphics",
+};
+
+const toContentFormat = ({ kind }: ArtFormat) =>
+  kind === "post" ? ("post" as const) : kind;
+
+const toPercent = (value: number, total: number) =>
+  Math.round((value / total) * 100);
+
+function describeBannerComposition(format: ArtFormat) {
+  const safeArea = getSafeArea(format.id);
+  const { width, height } = format.generationSize;
+
+  return `Wide horizontal composition: put the text block on one side and the product on the other side. Every piece of text, the call to action and every important element must sit inside the safe band that starts ${toPercent(safeArea.left, width)}% from the left edge and ${toPercent(safeArea.top, height)}% from the top edge and covers ${toPercent(safeArea.width, width)}% of the width and ${toPercent(safeArea.height, height)}% of the height. Everything outside that band is cropped away: extend the background to every edge and never place text, logos or the product's key details outside the band. If the approved posts are vertical, rebuild their layout for this wide frame instead of placing a small vertical post in the middle.`;
+}
 
 const FEED_EXAMPLES_IN_STORY =
   "The approved posts are feed posts: rebuild their layout for the tall vertical frame (stack the elements vertically and let the photo fill the height), never place a smaller feed post in the middle of the story.";
@@ -63,14 +68,16 @@ function describeFormat(
   format: GenerateImageInput["format"],
   brandContext: BrandContext | null,
 ) {
+  const artFormat = findArtFormat(format);
   const isAdaptingFeedExamples =
     format === "story" &&
     Boolean(brandContext?.goodExamples.length) &&
     !brandContext?.hasStoryExamples;
 
   return [
-    `Format: ${imageFormats[format].description}.`,
+    `Format: ${instagramFormatDescriptions[format] ?? `a wide horizontal ${artFormat.label} banner`}.`,
     isAdaptingFeedExamples && FEED_EXAMPLES_IN_STORY,
+    artFormat.kind === "banner" && describeBannerComposition(artFormat),
   ]
     .filter(Boolean)
     .join(" ");
@@ -406,10 +413,11 @@ async function generateImage(
   referenceImages: Awaited<ReturnType<typeof toFile>>[],
   format: GenerateImageInput["format"],
 ) {
+  const { generationSize } = findArtFormat(format);
   const imageOptions = {
     model: IMAGE_MODEL,
     prompt: imagePrompt,
-    size: imageFormats[format].size,
+    size: `${generationSize.width}x${generationSize.height}`,
     quality: "high",
     output_format: "png",
   } as const;
@@ -501,7 +509,7 @@ export async function POST(request: Request) {
       : buildApprovedCopyInstruction(approvedCopy ?? []);
     const brandContext = await getBrandContext(claims.sub, openai, {
       variationOffset: variationIndex,
-      contentFormat: imageFormats[format].contentFormat,
+      contentFormat: findArtFormat(format).kind === "story" ? "story" : "post",
     });
     const downloadedBrandFiles = await downloadBrandFiles(brandContext);
     const brandFiles = editInstruction
@@ -567,32 +575,35 @@ export async function POST(request: Request) {
 
     const generatedImage = Buffer.from(imageBase64, "base64");
     const finalImage = brandContext
-      ? await applyLogo(generatedImage, brandContext.logos).catch((error) => {
-          console.error("Logo overlay failed", error);
-          return generatedImage;
-        })
+      ? await applyLogo(generatedImage, brandContext.logos, format).catch(
+          (error) => {
+            console.error("Logo overlay failed", error);
+            return generatedImage;
+          },
+        )
       : generatedImage;
+    const formattedImage = await fitToFormat(finalImage, format);
     const savedArtwork =
       editedArtworkId && editInstruction
         ? await appendArtworkVersion({
             userId: claims.sub,
             artworkId: editedArtworkId,
-            image: finalImage,
+            image: formattedImage,
             editInstruction,
           })
         : await saveArtworkDraft({
             userId: claims.sub,
-            image: finalImage,
+            image: formattedImage,
             prompt: editInstruction
               ? `${parsedInput.data.prompt}\n\nAjuste: ${editInstruction}`
               : parsedInput.data.prompt,
-            format: imageFormats[format].contentFormat,
+            format: toContentFormat(findArtFormat(format)),
           }).then((artworkId) =>
             artworkId ? { artworkId, version: 1 } : null,
           );
 
     return NextResponse.json({
-      imageUrl: `data:image/png;base64,${finalImage.toString("base64")}`,
+      imageUrl: `data:image/png;base64,${formattedImage.toString("base64")}`,
       artworkId: savedArtwork?.artworkId,
       version: savedArtwork?.version,
     });

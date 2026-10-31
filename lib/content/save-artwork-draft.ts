@@ -14,7 +14,7 @@ type SaveArtworkDraftInput = {
   userId: string;
   image: Buffer;
   prompt: string;
-  format: "post" | "story";
+  format: "post" | "story" | "banner";
 };
 
 export async function saveArtworkDraft({

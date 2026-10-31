@@ -6,7 +6,9 @@ import {
   type ArtFormatId,
 } from "./mocks/studio.ts";
 
-export const artFormatIdSchema = z.enum(["square", "portrait", "story"]);
+export const artFormatIdSchema = z.enum(
+  artFormats.map(({ id }) => id) as [ArtFormatId, ...ArtFormatId[]],
+);
 
 export const artOptionsSchema = z.object({
   formatId: artFormatIdSchema,

@@ -32,6 +32,7 @@ const formatLabels: Record<UpcomingContent["format"], string> = {
   story: "Story",
   reels: "Reels",
   carrossel: "Carrossel",
+  banner: "Banner",
 };
 
 const scheduleFormatter = new Intl.DateTimeFormat("pt-BR", {
