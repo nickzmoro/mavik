@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { artworks, artworkVersions, contents } from "@/db/schema";
+import type { ArtFormatId } from "@/lib/mocks/studio";
 import { getCurrentUserId, getOwnedStore } from "@/lib/onboarding/store-access";
 
 import { getArtworkImageUrls } from "./artwork-images";
@@ -16,7 +17,7 @@ export type StudioArtwork = {
   caption: string;
   imageUrl: string;
   version: number;
-  isStory: boolean;
+  formatId: ArtFormatId;
 };
 
 export async function getStudioArtwork(
@@ -69,6 +70,11 @@ export async function getStudioArtwork(
     caption: latestVersion?.caption ?? artwork.contentCaption ?? "",
     imageUrl,
     version: latestVersion.version,
-    isStory: artwork.format === "story",
+    formatId:
+      artwork.format === "story"
+        ? "story"
+        : artwork.format === "banner"
+          ? "banner-site"
+          : "portrait",
   };
 }

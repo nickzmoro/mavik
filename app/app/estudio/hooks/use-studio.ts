@@ -65,7 +65,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   const [guidedAnswers, setGuidedAnswers] = useState<string[]>([]);
   const attachments = useAttachments(approvedDraft?.attachments);
   const [formatId, setFormatId] = useState<ArtFormatId>(
-    approvedDraft?.formatId ?? (initialArtwork?.isStory ? "story" : "portrait"),
+    approvedDraft?.formatId ?? initialArtwork?.formatId ?? "portrait",
   );
   const quota = useArtQuota(approvedDraft?.variationCount);
   const artworkAdjustment = useArtworkAdjustment({
@@ -96,7 +96,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
             imageUrl: initialArtwork.imageUrl,
             artworkId: initialArtwork.artworkId,
             version: initialArtwork.version,
-            formatId: initialArtwork.isStory ? "story" : "portrait",
+            formatId: initialArtwork.formatId,
           },
         ]
       : [],
