@@ -2,13 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mic, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { AttachmentList } from "@/components/common/attachments/attachment-list";
 import { AttachmentPicker } from "@/components/common/attachments/attachment-picker";
+import { FormatOptionsPopover } from "@/components/common/format-options-popover";
+import { RoundSendButton } from "@/components/common/round-send-button";
+import { TrialLimitDialog } from "@/components/common/trial-limit-dialog";
 import { VoiceRecordingBar } from "@/components/common/voice-recording-bar";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -17,13 +20,20 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useArtQuota } from "@/hooks/use-art-quota";
 import { useAttachments } from "@/hooks/use-attachments";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
+import { findArtFormat } from "@/lib/art-options";
+import type { ArtFormatId } from "@/lib/mocks/studio";
+import { defaultArtFields } from "@/lib/post-draft";
+import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import {
   generateArtFormSchema,
   type GenerateArtFormValues,
 } from "@/lib/validations/generate-art";
+import { usePostDraft, type PostDraft } from "@/providers/post-draft-provider";
+import { useToast } from "@/providers/toast-provider";
 
 const promptStarters = [
   "Produto em destaque",
@@ -33,12 +43,32 @@ const promptStarters = [
 ];
 
 export function CreatePostCard() {
+  const { draft, isHydrated } = usePostDraft();
+
+  return (
+    <CreatePostForm
+      key={isHydrated ? "hydrated" : "server"}
+      draft={draft?.isApproved ? null : draft}
+    />
+  );
+}
+
+function CreatePostForm({ draft }: { draft: PostDraft | null }) {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const { startDraft } = usePostDraft();
   const form = useForm<GenerateArtFormValues>({
     resolver: zodResolver(generateArtFormSchema),
-    defaultValues: { prompt: "" },
+    defaultValues: { prompt: draft?.prompt ?? "" },
   });
-  const [isComposerActive, setIsComposerActive] = useState(false);
-  const attachments = useAttachments();
+  const [isComposerActive, setIsComposerActive] = useState(Boolean(draft));
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [isLimitDialogOpen, setIsLimitDialogOpen] = useState(false);
+  const [formatId, setFormatId] = useState<ArtFormatId>(
+    draft?.formatId ?? "portrait",
+  );
+  const quota = useArtQuota(draft?.variationCount);
+  const attachments = useAttachments(draft?.attachments);
   const recording = useSpeechRecognition((transcript) =>
     form.setValue(
       "prompt",
@@ -49,7 +79,30 @@ export function CreatePostCard() {
     ),
   );
 
-  const handleGenerateArt = () => {};
+  const handleGenerateArt = ({ prompt }: GenerateArtFormValues) => {
+    const quotaError = quota.getQuotaError();
+
+    if (quotaError === "limit") {
+      setIsLimitDialogOpen(true);
+      return;
+    }
+
+    if (quotaError) {
+      setIsOptionsOpen(true);
+      showToast(quotaError);
+      return;
+    }
+
+    startDraft({
+      prompt,
+      formatId,
+      variationCount: quota.variationCount,
+      attachments: attachments.attachments,
+      artFields: defaultArtFields,
+      isApproved: false,
+    });
+    router.push(routes.studioApproval);
+  };
 
   const handlePickStarter = (starter: string) => {
     form.setValue("prompt", `${starter}: `);
@@ -106,10 +159,21 @@ export function CreatePostCard() {
                   ) : (
                     <>
                       {isComposerActive ? (
-                        <AttachmentPicker
-                          attachments={attachments}
-                          target="art"
-                        />
+                        <>
+                          <AttachmentPicker
+                            attachments={attachments}
+                            target="art"
+                          />
+                          <FormatOptionsPopover
+                            open={isOptionsOpen}
+                            onOpenChange={setIsOptionsOpen}
+                            format={findArtFormat(formatId)}
+                            onFormatChange={setFormatId}
+                            variationCount={quota.variationCount}
+                            onVariationCountChange={quota.setVariationCount}
+                            remainingArts={quota.remainingArts}
+                          />
+                        </>
                       ) : (
                         <Sparkles
                           aria-hidden="true"
@@ -136,9 +200,7 @@ export function CreatePostCard() {
                       >
                         <Mic aria-hidden="true" className="size-4.5" />
                       </button>
-                      <Button type="submit" className="max-sm:w-full">
-                        Gerar arte
-                      </Button>
+                      <RoundSendButton label="Gerar arte" />
                     </>
                   )}
                 </div>
@@ -163,6 +225,11 @@ export function CreatePostCard() {
           </div>
         </form>
       </Form>
+      <TrialLimitDialog
+        open={isLimitDialogOpen}
+        onOpenChange={setIsLimitDialogOpen}
+        artLimit={quota.artLimit}
+      />
     </section>
   );
 }
