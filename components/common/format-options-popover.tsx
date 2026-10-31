@@ -1,8 +1,9 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Minus, Plus } from "lucide-react";
 import { useId } from "react";
 
+import { IconButton } from "@/components/common/icon-button";
 import { SegmentedControl } from "@/components/common/segmented-control";
 import {
   Popover,
@@ -11,6 +12,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatArtCount, formatVariationCount } from "@/lib/art-options";
+import {
+  DEFAULT_CAROUSEL_SLIDES,
+  MAX_CAROUSEL_SLIDES,
+  MIN_CAROUSEL_SLIDES,
+} from "@/lib/carousel/carousel-copy";
 import {
   artFormats,
   maxVariationsPerGeneration,
@@ -28,6 +34,8 @@ type FormatOptionsPopoverProps = {
   variationCount: number;
   onVariationCountChange: (count: number) => void;
   remainingArts: number;
+  slideCount?: number;
+  onSlideCountChange?: (count: number) => void;
 };
 
 const formatGroups = [
@@ -54,8 +62,13 @@ export function FormatOptionsPopover({
   variationCount,
   onVariationCountChange,
   remainingArts,
+  slideCount = DEFAULT_CAROUSEL_SLIDES,
+  onSlideCountChange,
 }: FormatOptionsPopoverProps) {
   const formatLabelId = useId();
+  const slideCountLabelId = useId();
+  const isCarousel = format.kind === "carousel";
+  const variationLabel = isCarousel ? "Versões da capa" : "Variações";
   const variationOptions = variationCountOptions.map((count) => {
     const isBlocked = remainingArts > 0 && count > remainingArts;
 
@@ -163,13 +176,49 @@ export function FormatOptionsPopover({
           ))}
         </div>
         <div aria-hidden="true" className="mx-3 my-1.5 h-px bg-border" />
+        {isCarousel && onSlideCountChange ? (
+          <div className="flex items-center justify-between gap-3 px-3 pt-1 pb-2">
+            <span
+              id={slideCountLabelId}
+              className="text-xs leading-[1.4] font-semibold text-muted"
+            >
+              Slides
+            </span>
+            <div
+              role="group"
+              aria-labelledby={slideCountLabelId}
+              className="flex items-center gap-1"
+            >
+              <IconButton
+                label="Menos slides"
+                disabled={slideCount <= MIN_CAROUSEL_SLIDES}
+                onClick={() => onSlideCountChange(slideCount - 1)}
+              >
+                <Minus />
+              </IconButton>
+              <output
+                aria-live="polite"
+                className="min-w-8 text-center text-sm font-semibold tabular-nums"
+              >
+                {slideCount}
+              </output>
+              <IconButton
+                label="Mais slides"
+                disabled={slideCount >= MAX_CAROUSEL_SLIDES}
+                onClick={() => onSlideCountChange(slideCount + 1)}
+              >
+                <Plus />
+              </IconButton>
+            </div>
+          </div>
+        ) : null}
         <div className="flex flex-col gap-2 px-3 pt-1 pb-2">
           <span className="flex items-baseline justify-between gap-2 text-xs leading-[1.4] text-muted">
-            <span className="font-semibold">Variações</span>
+            <span className="font-semibold">{variationLabel}</span>
             <span>{getVariationHint(remainingArts)}</span>
           </span>
           <SegmentedControl
-            label="Variações"
+            label={variationLabel}
             options={variationOptions}
             value={String(variationCount)}
             onChange={(count) => onVariationCountChange(Number(count))}
@@ -177,7 +226,9 @@ export function FormatOptionsPopover({
             itemClassName="min-h-10 flex-1"
           />
           <span className="text-xs leading-normal text-muted">
-            Cada variação usa 1 arte do seu plano.
+            {isCarousel
+              ? "Cada capa e cada slide usam 1 arte do seu plano."
+              : "Cada variação usa 1 arte do seu plano."}
           </span>
         </div>
         <div className="flex justify-end px-1 pb-1">

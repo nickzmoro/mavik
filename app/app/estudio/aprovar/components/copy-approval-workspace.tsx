@@ -7,10 +7,14 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useGenerateCarouselCopy } from "@/hooks/mutations/use-generate-carousel-copy";
 import { useGeneratePostCopy } from "@/hooks/mutations/use-generate-post-copy";
+import { findArtFormat } from "@/lib/art-options";
+import { DEFAULT_CAROUSEL_SLIDES } from "@/lib/carousel/carousel-copy";
 import { routes } from "@/lib/routes";
 import { usePostDraft } from "@/providers/post-draft-provider";
 
+import { CarouselCopyForm } from "./carousel-copy-form";
 import { CopyApprovalForm } from "./copy-approval-form";
 
 const generateFailedMessage =
@@ -43,20 +47,47 @@ export function CopyApprovalWorkspace() {
   const router = useRouter();
   const { draft, isHydrated, hasLostAttachments, updateDraft } = usePostDraft();
   const generatePostCopyMutation = useGeneratePostCopy();
+  const generateCarouselCopyMutation = useGenerateCarouselCopy();
   const hasRequestedCopyRef = useRef(false);
   const isMountedRef = useRef(true);
   const [errorMessage, setErrorMessage] = useState("");
   const hasDraft = Boolean(draft);
-  const hasCopy = Boolean(draft?.copy);
+  const isCarousel = draft
+    ? findArtFormat(draft.formatId).kind === "carousel"
+    : false;
+  const hasCopy = Boolean(isCarousel ? draft?.carouselCopy : draft?.copy);
 
   const requestCopy = async () => {
     if (!draft) {
       return;
     }
 
-    const result = await generatePostCopyMutation
-      .mutateAsync({ prompt: draft.prompt, formatId: draft.formatId })
-      .catch(() => null);
+    const result = await (
+      isCarousel
+        ? generateCarouselCopyMutation
+            .mutateAsync({
+              prompt: draft.prompt,
+              slideCount: draft.slideCount ?? DEFAULT_CAROUSEL_SLIDES,
+            })
+            .then((carouselResult) =>
+              carouselResult.isSuccess
+                ? {
+                    isSuccess: true as const,
+                    changes: { carouselCopy: carouselResult.data.copy },
+                  }
+                : carouselResult,
+            )
+        : generatePostCopyMutation
+            .mutateAsync({ prompt: draft.prompt, formatId: draft.formatId })
+            .then((postResult) =>
+              postResult.isSuccess
+                ? {
+                    isSuccess: true as const,
+                    changes: { copy: postResult.data.copy },
+                  }
+                : postResult,
+            )
+    ).catch(() => null);
 
     if (!isMountedRef.current) {
       return;
@@ -67,7 +98,7 @@ export function CopyApprovalWorkspace() {
       return;
     }
 
-    updateDraft({ copy: result.data.copy });
+    updateDraft(result.changes);
   };
   const requestFirstCopy = useEffectEvent(() => requestCopy());
 
@@ -120,6 +151,14 @@ export function CopyApprovalWorkspace() {
             </div>
           </AlertDescription>
         </Alert>
+      );
+    }
+
+    if (isCarousel && draft?.carouselCopy) {
+      return (
+        <CarouselCopyForm
+          draft={{ ...draft, carouselCopy: draft.carouselCopy }}
+        />
       );
     }
 

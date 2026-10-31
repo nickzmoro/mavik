@@ -24,6 +24,7 @@ import { useArtQuota } from "@/hooks/use-art-quota";
 import { useAttachments } from "@/hooks/use-attachments";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { findArtFormat } from "@/lib/art-options";
+import { DEFAULT_CAROUSEL_SLIDES } from "@/lib/carousel/carousel-copy";
 import type { ArtFormatId } from "@/lib/mocks/studio";
 import { defaultArtFields } from "@/lib/post-draft";
 import { routes } from "@/lib/routes";
@@ -67,6 +68,9 @@ function CreatePostForm({ draft }: { draft: PostDraft | null }) {
   const [formatId, setFormatId] = useState<ArtFormatId>(
     draft?.formatId ?? "portrait",
   );
+  const [slideCount, setSlideCount] = useState(
+    draft?.slideCount ?? DEFAULT_CAROUSEL_SLIDES,
+  );
   const quota = useArtQuota(draft?.variationCount);
   const attachments = useAttachments(draft?.attachments);
   const recording = useSpeechRecognition((transcript) =>
@@ -100,6 +104,8 @@ function CreatePostForm({ draft }: { draft: PostDraft | null }) {
       attachments: attachments.attachments,
       artFields: defaultArtFields,
       isApproved: false,
+      slideCount:
+        findArtFormat(formatId).kind === "carousel" ? slideCount : undefined,
     });
     router.push(routes.studioApproval);
   };
@@ -172,6 +178,8 @@ function CreatePostForm({ draft }: { draft: PostDraft | null }) {
                             variationCount={quota.variationCount}
                             onVariationCountChange={quota.setVariationCount}
                             remainingArts={quota.remainingArts}
+                            slideCount={slideCount}
+                            onSlideCountChange={setSlideCount}
                           />
                         </>
                       ) : (

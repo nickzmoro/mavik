@@ -2,6 +2,11 @@ import { z } from "zod";
 
 import { artOptionsSchema } from "./art-options.ts";
 import {
+  carouselCopySchema,
+  MAX_CAROUSEL_SLIDES,
+  MIN_CAROUSEL_SLIDES,
+} from "./carousel/carousel-copy.ts";
+import {
   postCopyFieldSchema,
   postCopySchema,
   type PostCopyField,
@@ -16,6 +21,13 @@ export const storedPostDraftSchema = artOptionsSchema.extend({
   artFields: z.array(postCopyFieldSchema),
   isApproved: z.boolean(),
   attachmentCount: z.number().int().min(0).optional(),
+  slideCount: z
+    .number()
+    .int()
+    .min(MIN_CAROUSEL_SLIDES)
+    .max(MAX_CAROUSEL_SLIDES)
+    .optional(),
+  carouselCopy: carouselCopySchema.optional(),
 });
 
 export type StoredPostDraft = z.infer<typeof storedPostDraftSchema>;

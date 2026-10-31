@@ -87,6 +87,12 @@ export const rateLimitRules = {
     blockMs: MINUTE_MS,
     maxBlockMs: HOUR_MS,
   },
+  generateCarouselCopyByUser: {
+    limit: 20,
+    windowMs: 10 * MINUTE_MS,
+    blockMs: MINUTE_MS,
+    maxBlockMs: HOUR_MS,
+  },
   generateIdeasByUser: {
     limit: 6,
     windowMs: 10 * MINUTE_MS,

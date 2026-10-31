@@ -8,6 +8,7 @@ import {
 
 export const MIN_CAROUSEL_SLIDES = 3;
 export const MAX_CAROUSEL_SLIDES = 10;
+export const DEFAULT_CAROUSEL_SLIDES = 6;
 const MAX_COVER_WORDS = 6;
 const MAX_HEADLINE_WORDS = 7;
 const MAX_BODY_WORDS = 25;
