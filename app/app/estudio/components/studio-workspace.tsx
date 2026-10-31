@@ -8,7 +8,7 @@ import { usePostDraft } from "@/providers/post-draft-provider";
 import { useToast } from "@/providers/toast-provider";
 
 import { useStudio, type StudioDialog } from "../hooks/use-studio";
-import { AiEditorDialog } from "./ai-editor-dialog";
+import { AiEditorDialog } from "@/components/common/ai-editor/ai-editor-dialog";
 import { StudioHeader } from "./studio-header";
 import { StudioPreviewPanel } from "./studio-preview-panel";
 import { StudioRequestPanel } from "./studio-request-panel";

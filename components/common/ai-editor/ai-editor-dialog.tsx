@@ -33,12 +33,12 @@ import {
 } from "@/lib/validations/studio";
 import { useToast } from "@/providers/toast-provider";
 
-import { BrandAssuranceNote } from "./brand-assurance-note";
+import { BrandAssuranceNote } from "@/components/common/brand-assurance-note";
 import { RoundSendButton } from "@/components/common/round-send-button";
 import {
   composerTextareaClassName,
   StudioComposerShell,
-} from "./studio-composer-shell";
+} from "@/components/common/studio-composer-shell";
 
 const pluralize = (count: number, singular: string, plural: string) =>
   `${count} ${count === 1 ? singular : plural}`;

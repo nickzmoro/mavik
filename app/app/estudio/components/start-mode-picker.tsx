@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import type { StudioMode } from "../hooks/use-studio";
-import { BrandAssuranceNote } from "./brand-assurance-note";
+import { BrandAssuranceNote } from "@/components/common/brand-assurance-note";
 
 const startOptions: {
   mode: StudioMode;

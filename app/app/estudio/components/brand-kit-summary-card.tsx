@@ -7,7 +7,7 @@ import { useBrandKitData } from "@/hooks/queries/use-brand-kit-data";
 import { mockBrandRules } from "@/lib/mocks/brand";
 import { routes } from "@/lib/routes";
 
-import { BrandAssuranceNote } from "./brand-assurance-note";
+import { BrandAssuranceNote } from "@/components/common/brand-assurance-note";
 
 const summaryColorRoles = ["primary", "secondary", "accent", "background"];
 

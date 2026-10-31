@@ -25,7 +25,7 @@ import { RoundSendButton } from "@/components/common/round-send-button";
 import {
   composerTextareaClassName,
   StudioComposerShell,
-} from "./studio-composer-shell";
+} from "@/components/common/studio-composer-shell";
 
 type GuidedQuestionsProps = {
   studio: StudioState;
