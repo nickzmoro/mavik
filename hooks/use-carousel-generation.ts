@@ -79,31 +79,39 @@ export function useCarouselGeneration({
     isCancelledRef.current = false;
     setProgress({ done: 0, total: remainingSlides.length });
 
-    const results = await runWithConcurrency(
-      remainingSlides,
-      SLIDE_CONCURRENCY,
-      async ({ slide, position }) => {
-        if (isCancelledRef.current) {
-          throw new Error("cancelado");
-        }
+    const generateSlide = async ({
+      slide,
+      position,
+    }: (typeof remainingSlides)[number]) => {
+      if (isCancelledRef.current) {
+        throw new Error("cancelado");
+      }
 
-        const generatedSlide = await generateCarouselSlideMutation.mutateAsync({
-          artworkId: coverArtworkId,
-          position,
-          slideCount: carouselCopy.slides.length,
-          slide,
-        });
+      const generatedSlide = await generateCarouselSlideMutation.mutateAsync({
+        artworkId: coverArtworkId,
+        position,
+        slideCount: carouselCopy.slides.length,
+        slide,
+      });
 
-        quota.registerUsedArts(1);
-        setProgress((currentProgress) =>
-          currentProgress
-            ? { ...currentProgress, done: currentProgress.done + 1 }
-            : currentProgress,
-        );
+      quota.registerUsedArts(1);
+      setProgress((currentProgress) =>
+        currentProgress
+          ? { ...currentProgress, done: currentProgress.done + 1 }
+          : currentProgress,
+      );
 
-        return generatedSlide;
-      },
-    );
+      return generatedSlide;
+    };
+    const [firstSlide, ...otherSlides] = remainingSlides;
+    const results = [
+      ...(await runWithConcurrency([firstSlide], 1, generateSlide)),
+      ...(await runWithConcurrency(
+        otherSlides,
+        SLIDE_CONCURRENCY,
+        generateSlide,
+      )),
+    ];
     const failedCount = results.filter(
       ({ status }) => status === "rejected",
     ).length;
