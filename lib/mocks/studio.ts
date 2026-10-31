@@ -63,7 +63,7 @@ export const studioPromptStarters = [
   "Aviso de horário",
 ];
 
-export const studioPromptMaxLength = 1000;
+export const studioPromptMaxLength = 1500;
 
 export type ArtFormatId = "square" | "portrait" | "story";
 
