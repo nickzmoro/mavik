@@ -3,6 +3,7 @@ import {
   Calendar,
   ChartColumn,
   House,
+  Images,
   Layers,
   Lightbulb,
   Palette,
@@ -41,6 +42,7 @@ export const sidebarNavGroups: SidebarNavGroup[] = [
       },
       { label: "Ideias", href: routes.ideas, icon: Lightbulb },
       { label: "Estúdio", href: routes.studio, icon: Layers },
+      { label: "Artes", href: routes.artworks, icon: Images },
     ],
   },
   {

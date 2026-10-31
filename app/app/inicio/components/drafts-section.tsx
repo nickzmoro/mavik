@@ -12,7 +12,7 @@ const draftsLimit = 4;
 export async function DraftsSection() {
   const drafts = await getRecentArtworks({
     limit: draftsLimit,
-    onlyDrafts: true,
+    status: "rascunho",
   });
 
   if (drafts.length === 0) {

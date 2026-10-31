@@ -18,6 +18,17 @@ const filterPillVariants = cva(
   },
 );
 
+export const getFilterPillClassName = ({
+  isActive,
+  size,
+}: VariantProps<typeof filterPillVariants> & { isActive: boolean }) =>
+  cn(
+    filterPillVariants({ size }),
+    isActive
+      ? "border border-primary bg-primary font-semibold text-on-primary"
+      : "chip-surface font-medium hover:border-accent hover:text-text",
+  );
+
 type FilterPillProps = Omit<React.ComponentProps<"button">, "aria-pressed"> &
   VariantProps<typeof filterPillVariants> & {
     isActive: boolean;
@@ -34,13 +45,7 @@ export function FilterPill({
     <button
       type={type}
       aria-pressed={isActive}
-      className={cn(
-        filterPillVariants({ size }),
-        isActive
-          ? "border border-primary bg-primary font-semibold text-on-primary"
-          : "chip-surface font-medium hover:border-accent hover:text-text",
-        className,
-      )}
+      className={cn(getFilterPillClassName({ isActive, size }), className)}
       {...props}
     />
   );

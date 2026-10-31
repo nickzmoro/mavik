@@ -2,18 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { artworkDisplayStatusLabels } from "@/lib/content/artwork-status";
 import type { RecentArtwork } from "@/lib/content/get-recent-artworks";
-import { getStudioUrlForArtwork } from "@/lib/routes";
+import { getArtworkRoute } from "@/lib/routes";
 
 export const postCardLinkClassName =
   "glass flex flex-col gap-3 rounded-[20px] p-2.5 text-inherit no-underline transition-transform duration-150 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none motion-reduce:hover:translate-y-0";
-
-export const artworkStatusLabels: Record<RecentArtwork["status"], string> = {
-  rascunho: "Rascunho",
-  em_revisao: "Em revisão",
-  aprovada: "Aprovada",
-  descartada: "Descartada",
-};
 
 const createdAtFormatter = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
@@ -26,8 +20,8 @@ const createdAtFormatter = new Intl.DateTimeFormat("pt-BR", {
 export function ArtworkCard({ artwork }: { artwork: RecentArtwork }) {
   return (
     <Link
-      href={getStudioUrlForArtwork(artwork.id)}
-      aria-label={`Abrir no Estúdio: ${artwork.title}`}
+      href={getArtworkRoute(artwork.id)}
+      aria-label={`Abrir arte: ${artwork.title}`}
       className={postCardLinkClassName}
     >
       <div className="relative aspect-4/5 overflow-hidden rounded-[14px]">
@@ -48,7 +42,9 @@ export function ArtworkCard({ artwork }: { artwork: RecentArtwork }) {
           Criado em {createdAtFormatter.format(artwork.createdAt)}
         </span>
         <div>
-          <Badge variant="outline">{artworkStatusLabels[artwork.status]}</Badge>
+          <Badge variant="outline">
+            {artworkDisplayStatusLabels[artwork.status]}
+          </Badge>
         </div>
       </div>
     </Link>

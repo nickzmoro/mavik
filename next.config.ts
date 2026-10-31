@@ -69,6 +69,11 @@ const nextConfig: NextConfig = {
       { source: "/inicio", destination: "/app/inicio", permanent: false },
       { source: "/app", destination: "/app/inicio", permanent: false },
       {
+        source: "/app/estudio/criados",
+        destination: "/app/artes",
+        permanent: true,
+      },
+      {
         source: "/onboarding/:path*",
         destination: "/app/etapas",
         permanent: false,
