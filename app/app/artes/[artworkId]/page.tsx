@@ -32,9 +32,7 @@ async function ArtworkDetailLoader({ params }: ArtworkPageProps) {
     notFound();
   }
 
-  return (
-    <ArtworkDetailView key={artwork.versions[0].version} artwork={artwork} />
-  );
+  return <ArtworkDetailView artwork={artwork} />;
 }
 
 export default function ArtworkPage({ params }: ArtworkPageProps) {

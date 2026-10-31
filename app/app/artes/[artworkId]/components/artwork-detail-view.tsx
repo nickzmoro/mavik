@@ -1,16 +1,20 @@
 "use client";
 
-import { ArrowLeft, Calendar, Download, Layers } from "lucide-react";
+import { ArrowLeft, Calendar, Download, Layers, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AiEditorDialog } from "@/components/common/ai-editor/ai-editor-dialog";
 import { ScheduleArtDialog } from "@/components/common/schedule-art-dialog";
+import { TrialLimitDialog } from "@/components/common/trial-limit-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { usePublishArtworkNow } from "@/hooks/mutations/use-publish-artwork-now";
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
+import { useArtQuota } from "@/hooks/use-art-quota";
+import { useArtworkAdjustment } from "@/hooks/use-artwork-adjustment";
 import { findArtFormat } from "@/lib/art-options";
 import { getArtFormatIdFromSize } from "@/lib/content/artwork-format";
 import { artworkDisplayStatusLabels } from "@/lib/content/artwork-status";
@@ -37,13 +41,24 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
   const { showToast } = useToast();
   const scheduleArtworkMutation = useScheduleArtwork();
   const publishArtworkNowMutation = usePublishArtworkNow();
-  const [selectedVersion, setSelectedVersion] = useState(
-    artwork.versions[0].version,
-  );
+  const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
   const [formatId, setFormatId] = useState<ArtFormatId>(
     artwork.format === "story" ? "story" : "portrait",
   );
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [isLimitOpen, setIsLimitOpen] = useState(false);
+  const [editorSession, setEditorSession] = useState<{
+    id: number;
+    keepVersion: number;
+    imageUrl: string;
+  } | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const quota = useArtQuota();
+  const artworkAdjustment = useArtworkAdjustment({
+    quota,
+    onLimitReached: () => setIsLimitOpen(true),
+  });
+  const latestVersion = artwork.versions[0];
   const currentVersion =
     artwork.versions.find(({ version }) => version === selectedVersion) ??
     artwork.versions[0];
@@ -105,6 +120,63 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
   const handleScheduled = ({ day, time, caption }: ScheduleArtFormValues) =>
     saveApprovedArt(caption, toScheduledAt(day, time));
 
+  const openEditor = () => {
+    setEditorSession((currentSession) => ({
+      id: (currentSession?.id ?? 0) + 1,
+      keepVersion: latestVersion.version,
+      imageUrl: latestVersion.imageUrl,
+    }));
+    setIsEditorOpen(true);
+  };
+
+  const handleAdjust = async (editInstruction: string) => {
+    if (!editorSession) {
+      return false;
+    }
+
+    const adjustedImage = await artworkAdjustment.adjustArtwork({
+      artworkId: artwork.id,
+      imageUrl: editorSession.imageUrl,
+      prompt: artwork.prompt,
+      editInstruction,
+      formatId,
+      variationIndex: 0,
+    });
+
+    if (!adjustedImage) {
+      return false;
+    }
+
+    setEditorSession({ ...editorSession, imageUrl: adjustedImage.imageUrl });
+    setSelectedVersion(null);
+    router.refresh();
+
+    return true;
+  };
+
+  const handleDiscard = async () => {
+    setIsEditorOpen(false);
+
+    if (!editorSession || latestVersion.version <= editorSession.keepVersion) {
+      return;
+    }
+
+    if (
+      await artworkAdjustment.discardAdjustments({
+        artworkId: artwork.id,
+        keepVersion: editorSession.keepVersion,
+      })
+    ) {
+      setSelectedVersion(null);
+      router.refresh();
+    }
+  };
+
+  const handleApprove = () => {
+    setIsEditorOpen(false);
+    setIsScheduleOpen(true);
+  };
+
   return (
     <>
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -163,11 +235,15 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
             </Badge>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setIsScheduleOpen(true)}>
+            <Button onClick={openEditor}>
+              <Sparkles aria-hidden="true" className="size-4.5" />
+              Ajustar com IA
+            </Button>
+            <Button variant="outline" onClick={() => setIsScheduleOpen(true)}>
               <Calendar aria-hidden="true" className="size-4.5" />
               Agendar
             </Button>
-            <Button variant="outline" onClick={handleDownload}>
+            <Button variant="ghost" onClick={handleDownload}>
               <Download aria-hidden="true" className="size-4.5" />
               Baixar
             </Button>
@@ -217,11 +293,30 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
           ) : null}
         </div>
       </div>
+      {editorSession ? (
+        <AiEditorDialog
+          key={editorSession.id}
+          open={isEditorOpen}
+          onOpenChange={setIsEditorOpen}
+          variationIndex={0}
+          imageUrl={editorSession.imageUrl}
+          isAdjusting={artworkAdjustment.isAdjusting}
+          format={format}
+          onAdjust={handleAdjust}
+          onDiscard={handleDiscard}
+          onApprove={handleApprove}
+        />
+      ) : null}
+      <TrialLimitDialog
+        open={isLimitOpen}
+        onOpenChange={setIsLimitOpen}
+        artLimit={quota.artLimit}
+      />
       <ScheduleArtDialog
         open={isScheduleOpen}
         onOpenChange={setIsScheduleOpen}
         variationIndex={0}
-        imageUrl={artwork.versions[0].imageUrl}
+        imageUrl={latestVersion.imageUrl}
         title={artwork.title}
         format={format}
         caption={artwork.caption}
