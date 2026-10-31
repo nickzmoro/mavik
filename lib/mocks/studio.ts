@@ -72,9 +72,10 @@ export type ArtFormatId =
   | "banner-site"
   | "banner-linkedin"
   | "banner-facebook"
-  | "banner-youtube";
+  | "banner-youtube"
+  | "carousel";
 
-export type ArtFormatKind = "post" | "story" | "banner";
+export type ArtFormatKind = "post" | "story" | "banner" | "carousel";
 
 type Size = { width: number; height: number };
 
@@ -134,6 +135,19 @@ export const artFormats: ArtFormat[] = [
     aspectRatio: "9 / 16",
     iconClassName: "h-4.75 w-2.75",
     chipIconClassName: "h-3.5 w-2",
+  },
+  {
+    id: "carousel",
+    kind: "carousel",
+    generationSize: { width: 1024, height: 1280 },
+    outputSize: { width: 1080, height: 1350 },
+    label: "Carrossel",
+    description: "4:5 · 3 a 10 slides no feed",
+    name: "Carrossel 4:5",
+    ratioLabel: "4:5",
+    aspectRatio: "4 / 5",
+    iconClassName: "h-4.5 w-3.5",
+    chipIconClassName: "h-3.5 w-2.75",
   },
   {
     id: "banner-site",

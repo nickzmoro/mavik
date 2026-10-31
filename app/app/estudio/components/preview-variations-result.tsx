@@ -13,7 +13,7 @@ import Image from "next/image";
 
 import { IconButton } from "@/components/common/icon-button";
 import { Button } from "@/components/ui/button";
-import { hasCaption, isInstagramFormat } from "@/lib/art-options";
+import { hasCaption, canPublishToInstagram } from "@/lib/art-options";
 import { brandRuleHighlights } from "@/lib/mocks/studio";
 import { cn } from "@/lib/utils";
 
@@ -170,7 +170,7 @@ export function PreviewVariationsResult({
         ))}
       </div>
       <div className="flex flex-wrap gap-2">
-        {isInstagramFormat(studio.resultFormat) ? (
+        {canPublishToInstagram(studio.resultFormat) ? (
           <>
             <Button onClick={studio.openSchedule}>
               <Calendar aria-hidden="true" className="size-4.5" />

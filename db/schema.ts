@@ -1239,6 +1239,45 @@ export const artworkVersions = pgTable(
   ],
 );
 
+export const artworkSlides = pgTable(
+  "artwork_slides",
+  {
+    id: id(),
+    artworkId: uuid("artwork_id")
+      .notNull()
+      .references(() => artworks.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    version: integer("version").notNull().default(1),
+    renderPath: text("render_path").notNull(),
+    copy: jsonb("copy").notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique("artwork_slides_artwork_id_position_unique").on(
+      table.artworkId,
+      table.position,
+    ),
+    index("artwork_slides_artwork_id_idx").on(table.artworkId),
+    check(
+      "artwork_slides_position_check",
+      sql`${table.position} between 1 and 10`,
+    ),
+    check("artwork_slides_version_check", sql`${table.version} >= 1`),
+    fullAccessPolicy(
+      "membros da loja",
+      parentStoreCheck({
+        parentTable: artworks,
+        parentId: artworks.id,
+        parentStoreId: artworks.storeId,
+        foreignKey: table.artworkId,
+      }),
+    ),
+  ],
+);
+
 export const artUsage = pgTable(
   "art_usage",
   {

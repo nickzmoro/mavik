@@ -48,10 +48,18 @@ const instagramFormatDescriptions: Partial<Record<ArtFormatId, string>> = {
   portrait: "a 4:5 Instagram feed post",
   story:
     "a 9:16 vertical Instagram story. Keep the top 14% and the bottom 20% of the frame free of text and graphics",
+  carousel:
+    "the cover slide of a 4:5 Instagram carousel. Keep every piece of text well inside the frame, clear of the outer 11% on every side, and leave the bottom 8% for a small slide number and the store handle",
 };
 
-const toContentFormat = ({ kind }: ArtFormat) =>
-  kind === "post" ? ("post" as const) : kind;
+const contentFormatByKind = {
+  post: "post",
+  story: "story",
+  banner: "banner",
+  carousel: "carrossel",
+} as const;
+
+const toContentFormat = ({ kind }: ArtFormat) => contentFormatByKind[kind];
 
 const toPercent = (value: number, total: number) =>
   Math.round((value / total) * 100);

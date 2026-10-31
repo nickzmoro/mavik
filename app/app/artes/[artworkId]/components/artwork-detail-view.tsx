@@ -15,7 +15,7 @@ import { usePublishArtworkNow } from "@/hooks/mutations/use-publish-artwork-now"
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
 import { useArtQuota } from "@/hooks/use-art-quota";
 import { useArtworkAdjustment } from "@/hooks/use-artwork-adjustment";
-import { findArtFormat, isInstagramFormat } from "@/lib/art-options";
+import { findArtFormat, canPublishToInstagram } from "@/lib/art-options";
 import { getArtFormatIdFromSize } from "@/lib/content/artwork-format";
 import { artworkDisplayStatusLabels } from "@/lib/content/artwork-status";
 import type { ArtworkDetail } from "@/lib/content/get-artwork-detail";
@@ -191,7 +191,7 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
   const handleApprove = () => {
     setIsEditorOpen(false);
 
-    if (isInstagramFormat(format)) {
+    if (canPublishToInstagram(format)) {
       setIsScheduleOpen(true);
     } else {
       handleDownload();
@@ -260,7 +260,7 @@ export function ArtworkDetailView({ artwork }: ArtworkDetailViewProps) {
               <Sparkles aria-hidden="true" className="size-4.5" />
               Ajustar com IA
             </Button>
-            {isInstagramFormat(format) ? (
+            {canPublishToInstagram(format) ? (
               <Button variant="outline" onClick={() => setIsScheduleOpen(true)}>
                 <Calendar aria-hidden="true" className="size-4.5" />
                 Agendar

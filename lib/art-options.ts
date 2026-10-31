@@ -30,7 +30,8 @@ export const formatArtCount = (count: number) =>
 export const formatVariationCount = (count: number) =>
   count === 1 ? "1 variação" : `${count} variações`;
 
-export const hasCaption = (format: ArtFormat) => format.kind === "post";
+export const hasCaption = (format: ArtFormat) =>
+  format.kind === "post" || format.kind === "carousel";
 
-export const isInstagramFormat = (format: ArtFormat) =>
-  format.kind !== "banner";
+export const canPublishToInstagram = (format: ArtFormat) =>
+  format.kind === "post" || format.kind === "story";

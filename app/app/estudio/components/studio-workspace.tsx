@@ -1,7 +1,7 @@
 "use client";
 
 import { ScheduleArtDialog } from "@/components/common/schedule-art-dialog";
-import { isInstagramFormat } from "@/lib/art-options";
+import { canPublishToInstagram } from "@/lib/art-options";
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
 import { downloadImage } from "@/lib/download-file";
 import type { ScheduleArtFormValues } from "@/lib/validations/studio";
@@ -108,7 +108,7 @@ function StudioWorkspaceContent({ initialArtwork }: StudioWorkspaceProps) {
         onAdjust={studio.adjustVariation}
         onDiscard={studio.discardAdjustments}
         onApprove={
-          isInstagramFormat(studio.resultFormat)
+          canPublishToInstagram(studio.resultFormat)
             ? studio.openSchedule
             : () => {
                 studio.closeDialog();
