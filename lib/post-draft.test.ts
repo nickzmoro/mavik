@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { parsePostDraft, type StoredPostDraft } from "./post-draft.ts";
+import {
+  mergeStoredDraft,
+  parsePostDraft,
+  type StoredPostDraft,
+} from "./post-draft.ts";
 
 const storedDraft: StoredPostDraft = {
   prompt: "Bolo de cenoura com cobertura",
@@ -28,4 +32,18 @@ test("parsePostDraft devolve null para null, JSON quebrado e formato inválido",
 
 test("parsePostDraft restaura prompt, formato, variações, textos e artFields", () => {
   assert.deepEqual(parsePostDraft(JSON.stringify(storedDraft)), storedDraft);
+});
+
+test("mergeStoredDraft mantém attachmentCount ao editar só o texto", () => {
+  const draftWithPhoto = { ...storedDraft, attachmentCount: 1 };
+
+  assert.equal(
+    mergeStoredDraft(draftWithPhoto, { prompt: "Outra ideia" }).attachmentCount,
+    1,
+  );
+  assert.equal(
+    mergeStoredDraft(draftWithPhoto, { prompt: "Outra ideia", attachments: [] })
+      .attachmentCount,
+    0,
+  );
 });

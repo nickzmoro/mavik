@@ -44,6 +44,7 @@ export function CopyApprovalWorkspace() {
   const { draft, isHydrated, hasLostAttachments, updateDraft } = usePostDraft();
   const generatePostCopyMutation = useGeneratePostCopy();
   const hasRequestedCopyRef = useRef(false);
+  const isMountedRef = useRef(true);
   const [errorMessage, setErrorMessage] = useState("");
   const hasDraft = Boolean(draft);
   const hasCopy = Boolean(draft?.copy);
@@ -57,6 +58,10 @@ export function CopyApprovalWorkspace() {
       .mutateAsync({ prompt: draft.prompt, formatId: draft.formatId })
       .catch(() => null);
 
+    if (!isMountedRef.current) {
+      return;
+    }
+
     if (!result?.isSuccess) {
       setErrorMessage(result?.errorMessage ?? generateFailedMessage);
       return;
@@ -65,6 +70,14 @@ export function CopyApprovalWorkspace() {
     updateDraft({ copy: result.data.copy });
   };
   const requestFirstCopy = useEffectEvent(() => requestCopy());
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isHydrated) {

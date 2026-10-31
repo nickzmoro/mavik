@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   buildApprovedCopyInstruction,
+  replaceHeadlineRule,
   toApprovedCopyEntries,
 } from "./approved-copy.ts";
 import type { PostCopy } from "./post-copy-schema.ts";
@@ -53,4 +54,15 @@ test("buildApprovedCopyInstruction contém cada texto idêntico entre aspas", ()
 
 test("buildApprovedCopyInstruction devolve vazio sem entradas", () => {
   assert.equal(buildApprovedCopyInstruction([]), "");
+});
+
+test("replaceHeadlineRule mantém $$ e $& do texto aprovado", () => {
+  const instruction = buildApprovedCopyInstruction([
+    { role: "cta", text: "Só R$$ 5 $& hoje" },
+  ]);
+
+  assert.equal(
+    replaceHeadlineRule("Antes. REGRA. Depois.", "REGRA", instruction),
+    `Antes. ${instruction}. Depois.`,
+  );
 });

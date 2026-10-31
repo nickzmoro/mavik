@@ -9,7 +9,10 @@ import {
   type BrandContext,
 } from "@/lib/brand/get-brand-context";
 import { saveArtworkDraft } from "@/lib/content/save-artwork-draft";
-import { buildApprovedCopyInstruction } from "@/lib/post-copy/approved-copy";
+import {
+  buildApprovedCopyInstruction,
+  replaceHeadlineRule,
+} from "@/lib/post-copy/approved-copy";
 import {
   formatRetryAfter,
   getBlockedRemainingMs,
@@ -196,7 +199,8 @@ async function writeImagePrompt(
   approvedCopyInstruction: string,
 ) {
   const brandPostInstructions = approvedCopyInstruction
-    ? BRAND_POST_INSTRUCTIONS.replace(
+    ? replaceHeadlineRule(
+        BRAND_POST_INSTRUCTIONS,
         HEADLINE_RULE,
         `${APPROVED_COPY_RULE}\n${approvedCopyInstruction}`,
       )

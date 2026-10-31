@@ -35,3 +35,17 @@ export function parsePostDraft(raw: string | null): StoredPostDraft | null {
     return null;
   }
 }
+
+export function mergeStoredDraft(
+  storedDraft: StoredPostDraft,
+  {
+    attachments,
+    ...changes
+  }: Partial<StoredPostDraft> & { attachments?: unknown[] },
+): StoredPostDraft {
+  return {
+    ...storedDraft,
+    ...changes,
+    attachmentCount: attachments?.length ?? storedDraft.attachmentCount,
+  };
+}

@@ -10,6 +10,7 @@ import {
 
 import type { Attachment } from "@/hooks/use-attachments";
 import {
+  mergeStoredDraft,
   parsePostDraft,
   POST_DRAFT_STORAGE_KEY,
   type StoredPostDraft,
@@ -99,20 +100,16 @@ export function PostDraftProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const updateDraft = ({
-    attachments: nextAttachments,
-    ...changes
-  }: Partial<PostDraft>) => {
+  const updateDraft = (changes: Partial<PostDraft>) => {
     if (!storedDraft) {
       return;
     }
 
-    if (nextAttachments) {
-      saveDraft({ ...storedDraft, ...changes, attachments: nextAttachments });
-      return;
+    if (changes.attachments) {
+      setAttachments(changes.attachments);
     }
 
-    writeStoredDraftRaw(JSON.stringify({ ...storedDraft, ...changes }));
+    writeStoredDraftRaw(JSON.stringify(mergeStoredDraft(storedDraft, changes)));
   };
 
   const clearDraft = () => {

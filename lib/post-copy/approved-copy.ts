@@ -52,3 +52,9 @@ export function buildApprovedCopyInstruction(entries: ApprovedCopyEntry[]) {
     ...entries.map(({ role, text }) => `- ${role}: "${text}"`),
   ].join("\n");
 }
+
+export const replaceHeadlineRule = (
+  instructions: string,
+  headlineRule: string,
+  replacement: string,
+) => instructions.replace(headlineRule, () => replacement);
