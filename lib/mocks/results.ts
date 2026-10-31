@@ -73,7 +73,7 @@ export const mockConclusions: Record<string, Conclusion> = {
     text: "Os posts de quinta podem estar trazendo mais gente ao balcão no sábado.",
     basisShort: "Sem dados de movimento",
     basis:
-      "O alcance sobe na quinta e o seu objetivo é o sábado, mas a Mavik ainda não tem nenhum dado de movimento da loja para comparar.",
+      "O alcance sobe na quinta e o seu objetivo é o sábado, mas a Zaion ainda não tem nenhum dado de movimento da loja para comparar.",
     strength: 1,
     limit:
       "Informe quantos clientes vieram nos últimos sábados. Com 8 semanas, comparamos sábados com e sem campanha.",

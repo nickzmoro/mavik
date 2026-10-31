@@ -116,7 +116,7 @@ export function Problem() {
                 </div>
               </div>
             }
-            /* Lado Direito (Agora - Mavik: Impecável, Logo Oficial, Design System) */
+            /* Lado Direito (Agora - Zaion: Impecável, Logo Oficial, Design System) */
             secondContent={
               <div className="w-full h-full bg-linear-to-br from-[#1A0F3C] via-[#2A1366] to-[#160B33] text-white flex flex-col justify-between p-4 sm:p-8 pt-14 sm:pt-6 relative font-sans">
                 {/* Header do Post Impecável */}
@@ -125,8 +125,8 @@ export function Problem() {
                     {/* Logo Oficial Intocável */}
                     <div className="px-2.5 py-1 rounded-lg bg-[#12092B]/80 border border-[#B390FA]/40 shadow-xs">
                       <Image
-                        src="/mavik-logo-dark.webp"
-                        alt="Logo Mavik Oficial"
+                        src="/zaion-logo-dark.webp"
+                        alt="Logo Zaion Oficial"
                         width={75}
                         height={20}
                         className="h-4 sm:h-5 w-auto object-contain"
@@ -143,7 +143,7 @@ export function Problem() {
                   </span>
                 </div>
 
-                {/* Conteúdo Estratégico Mavik */}
+                {/* Conteúdo Estratégico Zaion */}
                 <div className="my-auto py-3 sm:py-4 space-y-2.5">
                   <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-[#B390FA]/20 text-[#B390FA] border border-[#B390FA]/30">
                     <Wand2 className="w-3 h-3 text-[#B390FA]" />

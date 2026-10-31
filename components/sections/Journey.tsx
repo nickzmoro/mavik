@@ -78,7 +78,7 @@ export function Journey() {
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
             <div className="p-1.5 sm:p-2 rounded-lg bg-[#1A0F3C] border border-[#3A2A72] shrink-0">
               <Image
-                src="/mavik-logo-dark.webp"
+                src="/zaion-logo-dark.webp"
                 alt="Brand Kit Logo"
                 width={56}
                 height={16}
@@ -180,7 +180,7 @@ export function Journey() {
             <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
               <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-linear-to-br from-[#1A0F3C] to-[#5926C8] p-1 sm:p-1.5 flex flex-col justify-between shrink-0">
                 <span className="text-[8px] text-[#B390FA] font-bold">
-                  Mavik
+                  Zaion
                 </span>
                 <span className="text-[8px] text-white leading-tight">
                   Post #12
@@ -207,7 +207,7 @@ export function Journey() {
       badge: "Passo 05 · No piloto assistido",
       title: "Agende e acompanhe os resultados",
       description:
-        "Defina os horários de pico e a Mavik cuida da publicação automática. Acompanhe métricas limpas sem planilhas complexas.",
+        "Defina os horários de pico e a Zaion cuida da publicação automática. Acompanhe métricas limpas sem planilhas complexas.",
       mockup: (
         <div className="w-full p-3.5 sm:p-4 rounded-xl bg-[#F8F6FE] border border-[#E2DDF0] space-y-3 font-sans text-xs">
           <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2 border-b border-[#E2DDF0]">

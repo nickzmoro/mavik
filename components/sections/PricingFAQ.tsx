@@ -287,7 +287,7 @@ export function PricingFAQ() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Coluna 1: Imagem Ilustrativa Gerada por IA do SaaS Mavik */}
+            {/* Coluna 1: Imagem Ilustrativa Gerada por IA do SaaS Zaion */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -298,7 +298,7 @@ export function PricingFAQ() {
               <div className="relative rounded-3xl overflow-hidden bg-[#1A0F3C] group">
                 <Image
                   src="/faq-ai-studio.webp"
-                  alt="Mavik AI Studio Workspace"
+                  alt="Zaion AI Studio Workspace"
                   width={600}
                   height={600}
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"

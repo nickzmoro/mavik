@@ -74,7 +74,7 @@ export function FeedbackForm() {
         <DialogHeader>
           <DialogTitle>Mensagem enviada</DialogTitle>
           <DialogDescription>
-            Obrigado por ajudar a Mavik a melhorar.
+            Obrigado por ajudar a Zaion a melhorar.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center gap-3 px-5 py-8 text-center sm:px-7">

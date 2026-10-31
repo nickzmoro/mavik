@@ -17,20 +17,20 @@ export function OnboardingHeader({ userInitials }: OnboardingHeaderProps) {
       <div className="max-w-7xl flex mx-auto w-full shrink-0 items-center gap-3 rounded-none border-x-0 border-t-0 px-4 sm:gap-4 sm:px-6">
         <Link
           href={routes.authenticatedHome}
-          aria-label="Mavik, ir para o início"
+          aria-label="Zaion, ir para o início"
           className="flex rounded-(--r-sm) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           <Image
-            src="/mavik-logo-light.webp"
-            alt="Mavik"
+            src="/zaion-logo-light.webp"
+            alt="Zaion"
             width={2843}
             height={735}
             priority
             className="block h-6.5 w-auto dark:hidden"
           />
           <Image
-            src="/mavik-logo-dark.webp"
-            alt="Mavik"
+            src="/zaion-logo-dark.webp"
+            alt="Zaion"
             width={2843}
             height={735}
             priority

@@ -7,7 +7,7 @@ import { privacySections } from "./components/privacy-sections";
 export const metadata: Metadata = {
   title: "Política de privacidade",
   description:
-    "Como a Mavik coleta, usa, compartilha e protege seus dados pessoais, de acordo com a LGPD.",
+    "Como a Zaion coleta, usa, compartilha e protege seus dados pessoais, de acordo com a LGPD.",
   alternates: { canonical: "/privacidade" },
 };
 

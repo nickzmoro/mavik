@@ -11,11 +11,12 @@ export function AuthHeader({ title, description, icon }: AuthHeaderProps) {
     <div className="flex flex-col items-center gap-2 text-center">
       {icon ?? (
         <Image
-          src="/mavik-logo-purple.webp"
-          alt=""
-          width={38}
-          height={38}
-          className="mb-5 block size-10"
+          src="/zaion-logo-purple.webp"
+          alt="Zaion"
+          width={1082}
+          height={1288}
+          priority
+          className="mb-5 block h-10 w-auto"
         />
       )}
       <h1 className="m-0 font-display text-2xl sm:text-[32px] leading-[1.2] font-bold text-text">

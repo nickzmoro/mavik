@@ -24,7 +24,7 @@ const features = [
 export function LoginBrandPanel() {
   return (
     <AuthBrandPanel
-      ariaLabel="Sobre a Mavik"
+      ariaLabel="Sobre a Zaion"
       title="Sua equipe de marketing, sempre pronta."
       description="Crie posts com a cara da sua marca, ajuste cada detalhe e agende semanas de conteúdo em poucos minutos."
     >

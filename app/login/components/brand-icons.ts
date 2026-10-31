@@ -1,6 +1,6 @@
 import { createLucideIcon } from "lucide-react";
 
-export const SparklesIcon = createLucideIcon("mavik-sparkles", [
+export const SparklesIcon = createLucideIcon("zaion-sparkles", [
   [
     "path",
     {
@@ -12,7 +12,7 @@ export const SparklesIcon = createLucideIcon("mavik-sparkles", [
   ["path", { d: "M22 5h-4", key: "horizontal" }],
 ]);
 
-export const LayersIcon = createLucideIcon("mavik-layers", [
+export const LayersIcon = createLucideIcon("zaion-layers", [
   [
     "path",
     {
@@ -20,11 +20,17 @@ export const LayersIcon = createLucideIcon("mavik-layers", [
       key: "top",
     },
   ],
-  ["path", { d: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65", key: "bottom" }],
-  ["path", { d: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65", key: "middle" }],
+  [
+    "path",
+    { d: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65", key: "bottom" },
+  ],
+  [
+    "path",
+    { d: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65", key: "middle" },
+  ],
 ]);
 
-export const CalendarCheckIcon = createLucideIcon("mavik-calendar-check", [
+export const CalendarCheckIcon = createLucideIcon("zaion-calendar-check", [
   ["path", { d: "M8 2v4", key: "left-ring" }],
   ["path", { d: "M16 2v4", key: "right-ring" }],
   ["rect", { width: "18", height: "18", x: "3", y: "4", rx: "2", key: "body" }],

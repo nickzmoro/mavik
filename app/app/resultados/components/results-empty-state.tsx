@@ -59,7 +59,7 @@ export function ResultsEmptyState({
           Conecte o Instagram para ver seus resultados
         </h2>
         <p className="m-0 max-w-140 text-[15px] leading-[1.6] text-muted">
-          A Mavik só lê as métricas, nunca publica sozinha. Em cerca de 24 horas
+          A Zaion só lê as métricas, nunca publica sozinha. Em cerca de 24 horas
           você vê alcance, engajamento e os melhores conteúdos, e o agente
           começa a sugerir próximos passos.
         </p>

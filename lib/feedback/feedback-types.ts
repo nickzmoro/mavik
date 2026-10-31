@@ -17,7 +17,7 @@ export const feedbackTypes: Record<FeedbackType, FeedbackTypeConfig> = {
     label: "Sugestão",
     emailLabel: "Sugestão",
     icon: Lightbulb,
-    description: "Conte o que a Mavik poderia fazer por você.",
+    description: "Conte o que a Zaion poderia fazer por você.",
     placeholder: "Ex.: Queria poder agendar o mesmo post em duas redes.",
   },
   question: {

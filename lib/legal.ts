@@ -1,6 +1,6 @@
 export const legalInfo = {
-  companyName: "Mavik",
-  siteUrl: "maviktech.com.br",
-  contactEmail: "contato@maviktech.com.br",
-  lastUpdated: "24 de outubro de 2026",
+  companyName: "Zaion",
+  siteUrl: "zaiontechbr.com.br",
+  contactEmail: "contato@zaiontechbr.com.br",
+  lastUpdated: "31 de outubro de 2026",
 };

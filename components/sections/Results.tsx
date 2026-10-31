@@ -244,7 +244,7 @@ export function Results() {
                 </span>
               </div>
               <h3 className="text-xl sm:text-2xl font-display font-bold text-white mt-1">
-                Evolução Comparativa (Antes vs. Depois da Mavik)
+                Evolução Comparativa (Antes vs. Depois da Zaion)
               </h3>
             </div>
 
@@ -255,7 +255,7 @@ export function Results() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-[#B390FA]" />
-                <span className="text-white font-semibold">Com a Mavik</span>
+                <span className="text-white font-semibold">Com a Zaion</span>
               </div>
             </div>
           </div>
@@ -268,11 +268,11 @@ export function Results() {
               preserveAspectRatio="none"
             >
               <defs>
-                <linearGradient id="mavikFill" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="zaionFill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#B390FA" stopOpacity="0.35" />
                   <stop offset="100%" stopColor="#5926C8" stopOpacity="0.0" />
                 </linearGradient>
-                <linearGradient id="mavikStroke" x1="0" y1="0" x2="1" y2="0">
+                <linearGradient id="zaionStroke" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#5926C8" />
                   <stop offset="50%" stopColor="#B390FA" />
                   <stop offset="100%" stopColor="#4FD1AE" />
@@ -325,17 +325,17 @@ export function Results() {
                 strokeDasharray="6 4"
               />
 
-              {/* Área Sombreada Mavik */}
+              {/* Área Sombreada Zaion */}
               <path
                 d="M 0 200 Q 200 160, 400 110 T 800 40 L 800 220 L 0 220 Z"
-                fill="url(#mavikFill)"
+                fill="url(#zaionFill)"
               />
 
-              {/* Curva Mavik (Crescimento Acentuado) */}
+              {/* Curva Zaion (Crescimento Acentuado) */}
               <path
                 d="M 0 200 Q 200 160, 400 110 T 800 40"
                 fill="none"
-                stroke="url(#mavikStroke)"
+                stroke="url(#zaionStroke)"
                 strokeWidth="4"
               />
 

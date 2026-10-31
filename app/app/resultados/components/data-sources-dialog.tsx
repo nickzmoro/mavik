@@ -36,7 +36,7 @@ export function DataSourcesDialog({
         <DialogHeader contentClassName="gap-1">
           <DialogTitle>Fontes de dados</DialogTitle>
           <DialogDescription>
-            Quanto mais fontes, menos hipóteses. A Mavik só lê, nunca publica
+            Quanto mais fontes, menos hipóteses. A Zaion só lê, nunca publica
             sem a sua aprovação.
           </DialogDescription>
         </DialogHeader>

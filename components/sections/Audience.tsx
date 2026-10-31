@@ -29,7 +29,7 @@ export function Audience() {
       title: "Estou começando",
       tagline: "Responda 3 perguntas e receba 4 artes prontas.",
       description:
-        "Você não precisa saber nada sobre teoria das cores, proporção áurea ou tipografia. A Mavik atua como seu diretor de arte pessoal.",
+        "Você não precisa saber nada sobre teoria das cores, proporção áurea ou tipografia. A Zaion atua como seu diretor de arte pessoal.",
       highlights: [
         "Sem necessidade de dominar Photoshop ou Figma",
         "Sugestões estratégicas de títulos e legendas",
@@ -221,7 +221,7 @@ export function Audience() {
               </span>
               <div className="flex items-center justify-between bg-[#F8F6FE] p-2 rounded-lg border border-[#E2DDF0] text-xs">
                 <span className="font-mono text-[10px] text-[#5926C8] truncate">
-                  mavik.ia/aprovacao/marca-04-out26
+                  zaion.ia/aprovacao/marca-04-out26
                 </span>
                 <span className="text-[10px] font-bold text-[#0E8A6B] flex items-center gap-1 shrink-0 ml-2">
                   <CheckCircle2 className="w-3 h-3" /> 5 posts aprovados
@@ -258,7 +258,7 @@ export function Audience() {
             Do primeiro post ao time inteiro.
           </h2>
           <p className="mt-4 text-base sm:text-lg text-[#5E5877] max-w-2xl mx-auto leading-relaxed font-sans">
-            A Mavik se molda à sua rotina — sem complexidade para quem quer
+            A Zaion se molda à sua rotina — sem complexidade para quem quer
             rapidez, sem limitações para quem exige precisão.
           </p>
         </div>

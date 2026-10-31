@@ -137,8 +137,8 @@ export function CtaFooter() {
             <div className="md:col-span-5 flex flex-col items-start space-y-5">
               <Link href="#hero" className="inline-block">
                 <Image
-                  src="/mavik-logo-dark.webp"
-                  alt="Logo Oficial Mavik"
+                  src="/zaion-logo-dark.webp"
+                  alt="Logo Oficial Zaion"
                   width={150}
                   height={44}
                   className="h-9 w-auto object-contain"
@@ -146,7 +146,7 @@ export function CtaFooter() {
               </Link>
 
               <p className="text-xs sm:text-sm text-[#B9B0D6] max-w-sm leading-relaxed font-sans">
-                A Mavik capacita criadores e equipes a transformar ideias em
+                A Zaion capacita criadores e equipes a transformar ideias em
                 conteúdo profissional e consistente — tornando o marketing mais
                 simples, rápido e escalável.
               </p>
@@ -154,33 +154,23 @@ export function CtaFooter() {
               {/* Redes Sociais Solicitadas (Instagram, WhatsApp, LinkedIn) */}
               <div className="flex items-center gap-3 pt-2">
                 <a
-                  href="https://instagram.com"
+                  href="https://instagram.com/zaiontechbr"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full bg-[#1A0F3C] border border-[#3A2A72] flex items-center justify-center text-[#B9B0D6] hover:text-white hover:border-[#B390FA] hover:bg-[#2A1366] transition-all shadow-xs"
-                  aria-label="Instagram da Mavik"
+                  aria-label="Instagram da Zaion"
                 >
                   <InstagramIcon className="w-4 h-4" />
                 </a>
 
                 <a
-                  href="https://whatsapp.com"
+                  href="https://wa.me/5514996661883"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full bg-[#1A0F3C] border border-[#3A2A72] flex items-center justify-center text-[#B9B0D6] hover:text-[#4FD1AE] hover:border-[#4FD1AE] hover:bg-[#103B33] transition-all shadow-xs"
-                  aria-label="WhatsApp da Mavik"
+                  aria-label="WhatsApp da Zaion"
                 >
                   <WhatsappIcon className="w-4 h-4" />
-                </a>
-
-                <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-[#1A0F3C] border border-[#3A2A72] flex items-center justify-center text-[#B9B0D6] hover:text-white hover:border-[#B390FA] hover:bg-[#2A1366] transition-all shadow-xs"
-                  aria-label="LinkedIn da Mavik"
-                >
-                  <LinkedinIcon className="w-4 h-4" />
                 </a>
               </div>
             </div>
@@ -296,7 +286,7 @@ export function CtaFooter() {
                       href="#hero"
                       className="hover:text-white transition-colors"
                     >
-                      Sobre a Mavik
+                      Sobre a Zaion
                     </Link>
                   </li>
                   <li>
@@ -340,7 +330,7 @@ export function CtaFooter() {
 
           {/* Linha Inferior com Copyright e Links Legais (Fiel ao Graphy) */}
           <div className="border-t border-[#3A2A72]/40 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#B9B0D6]/70">
-            <p>© 2026 Mavik Inc. Todos os direitos reservados.</p>
+            <p>© 2026 Zaion Tech. Todos os direitos reservados.</p>
             <div className="flex items-center gap-6">
               <Link
                 href={routes.terms}

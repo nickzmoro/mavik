@@ -159,7 +159,7 @@ export const termsSections: LegalSectionContent[] = [
   },
   {
     id: "propriedade-intelectual",
-    title: "Propriedade da Mavik",
+    title: "Propriedade da Zaion",
     content: (
       <p>
         A marca, o software, o design e os demais elementos da plataforma
@@ -175,15 +175,15 @@ export const termsSections: LegalSectionContent[] = [
     content: (
       <>
         <p>
-          Trabalhamos para manter a plataforma disponível e segura, mas ela
-          pode passar por manutenções, falhas ou interrupções. Vamos avisar com
+          Trabalhamos para manter a plataforma disponível e segura, mas ela pode
+          passar por manutenções, falhas ou interrupções. Vamos avisar com
           antecedência sempre que possível.
         </p>
         <p>
-          Dentro do que a lei permite, não respondemos por resultados de
-          negócio obtidos com as publicações, por indisponibilidades de
-          serviços de terceiros ou por conteúdo publicado por você. Nada nestes
-          termos limita os seus direitos como consumidor.
+          Dentro do que a lei permite, não respondemos por resultados de negócio
+          obtidos com as publicações, por indisponibilidades de serviços de
+          terceiros ou por conteúdo publicado por você. Nada nestes termos
+          limita os seus direitos como consumidor.
         </p>
       </>
     ),

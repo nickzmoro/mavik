@@ -36,12 +36,12 @@ export function LegalPageLayout({
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-6 py-5">
           <Link
             href={routes.home}
-            aria-label="Mavik, página inicial"
+            aria-label="Zaion, página inicial"
             className="rounded-(--r-sm) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             <Image
-              src="/mavik-logo-light.webp"
-              alt="Mavik"
+              src="/zaion-logo-light.webp"
+              alt="Zaion"
               width={124}
               height={32}
               className="block h-8 w-auto"

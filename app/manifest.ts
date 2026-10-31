@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Mavik — Sua equipe de marketing em um só estúdio",
-    short_name: "Mavik",
+    name: "Zaion — Sua equipe de marketing em um só estúdio",
+    short_name: "Zaion",
     description:
       "Crie artes com IA no padrão da sua marca, edite no estúdio visual com camadas reais e agende semanas de conteúdo em minutos.",
     start_url: "/",
@@ -12,7 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#12092B",
     icons: [
       {
-        src: "/mavik-logo-favicon.webp",
+        src: "/zaion-logo-favicon.webp",
         sizes: "any",
         type: "image/webp",
       },

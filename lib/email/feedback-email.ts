@@ -47,7 +47,7 @@ export function buildFeedbackEmailText({
   email,
 }: FeedbackEmailParams) {
   return [
-    `${feedbackTypes[type].emailLabel} enviada pelo app da Mavik`,
+    `${feedbackTypes[type].emailLabel} enviada pelo app da Zaion`,
     "",
     `Nome: ${fullName || "Não informado"}`,
     `E-mail: ${email || "Não informado"}`,
@@ -80,12 +80,12 @@ export function buildFeedbackEmailHtml({
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <meta name="supported-color-schemes" content="light" />
-    <title>${emailLabel} pelo app da Mavik</title>
+    <title>${emailLabel} pelo app da Zaion</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
   </head>
   <body style="margin: 0; padding: 0; background-color: #f8f6fe">
     <div style="display: none; max-height: 0; overflow: hidden; opacity: 0">
-      ${emailLabel} de ${safeName} pelo app da Mavik.
+      ${emailLabel} de ${safeName} pelo app da Zaion.
     </div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8f6fe">
       <tr>
@@ -93,14 +93,14 @@ export function buildFeedbackEmailHtml({
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px">
             <tr>
               <td align="center" style="padding-bottom: 32px">
-                <img src="${siteUrl}/email/mavik-logo.png" width="144" height="37" alt="Mavik" style="display: block; border: 0; outline: none" />
+                <img src="${siteUrl}/email/zaion-logo.png" width="144" height="37" alt="Zaion" style="display: block; border: 0; outline: none" />
               </td>
             </tr>
             <tr>
               <td style="background-color: #ffffff; border: 1px solid #e2ddf0; border-radius: 16px; padding: 40px 32px">
                 <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; background-color: ${badge.background}; font-family: ${displayFont}; font-size: 12px; line-height: 1.2; font-weight: 600; color: ${badge.text}">${emailLabel}</span>
                 <h1 style="margin: 16px 0 8px; font-family: ${displayFont}; font-size: 24px; line-height: 1.25; font-weight: 700; color: #1b1530">Nova mensagem pelo app</h1>
-                <p style="margin: 0 0 24px; font-family: ${bodyFont}; font-size: 16px; line-height: 1.6; color: #5e5877">${safeName} escreveu para a Mavik.</p>
+                <p style="margin: 0 0 24px; font-family: ${bodyFont}; font-size: 16px; line-height: 1.6; color: #5e5877">${safeName} escreveu para a Zaion.</p>
 
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8f6fe; border: 1px solid #e2ddf0; border-radius: 16px">
                   <tr>
@@ -130,7 +130,7 @@ export function buildFeedbackEmailHtml({
             <tr>
               <td align="center" style="padding-top: 24px; font-family: ${bodyFont}; font-size: 12px; line-height: 1.5; color: #5e5877">
                 Enviado pelo formulário “Fale com a gente” do app.<br />
-                © 2026 Mavik. Todos os direitos reservados.
+                © 2026 Zaion. Todos os direitos reservados.
               </td>
             </tr>
           </table>

@@ -1,6 +1,6 @@
-# DESIGN.md — Mavik
+# DESIGN.md — Zaion
 
-Design system do Mavik: estúdio de marketing para pequenos negócios. Tudo deriva do logo — duas violetas (Violeta e Lavanda), Poppins para títulos e Inter para texto. O produto fala português brasileiro.
+Design system do Zaion: estúdio de marketing para pequenos negócios. Tudo deriva do logo — duas violetas (Violeta e Lavanda), Poppins para títulos e Inter para texto. O produto fala português brasileiro.
 
 ---
 
@@ -147,9 +147,9 @@ Sem animações de entrada decorativas. Respeite `prefers-reduced-motion`.
 
 ## Logo
 
-- Use `mavik-logo-light.webp` (colorido) em fundos claros.
-- Use `mavik-logo-dark.webp` (branco) sobre `primary-brand`, Noite e tema dark.
-- `mavik-logo-favicon.webp` é o símbolo isolado — favicons e avatares.
+- Use `zaion-logo-light.webp` (colorido) em fundos claros.
+- Use `zaion-logo-dark.webp` (branco) sobre `primary-brand`, Noite e tema dark.
+- `zaion-logo-favicon.webp` é o símbolo isolado — favicons e avatares.
 - Clear space de 25% da altura do logo. Altura mínima na tela: 24px.
 - Não estire, rotacione, recolora, adicione sombra ou outline.
 - Lavanda **não** funciona como fundo para o logo.

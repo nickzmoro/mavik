@@ -64,7 +64,7 @@ export function Connected() {
                 <div className="flex items-center justify-between pb-2 border-b border-[#3A2A72]/60">
                   <span className="text-[#B390FA] font-medium flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#4FD1AE] animate-pulse" />
-                    Agente Mavik Online
+                    Agente Zaion Online
                   </span>
                   <span className="text-[10px] text-white/50">
                     Memória de Marca Ativa

@@ -12,12 +12,12 @@ export function SidebarLogo({ onNavigate }: SidebarLogoProps) {
     <Link
       href={routes.authenticatedHome}
       onClick={onNavigate}
-      aria-label="Mavik, ir para o início"
+      aria-label="Zaion, ir para o início"
       className="relative flex w-fit items-center rounded-(--r-sm) px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     >
       <Image
-        src="/mavik-logo-dark.webp"
-        alt="Mavik"
+        src="/zaion-logo-dark.webp"
+        alt="Zaion"
         width={2843}
         height={735}
         priority

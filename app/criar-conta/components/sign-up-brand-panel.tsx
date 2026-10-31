@@ -8,7 +8,7 @@ const steps = [
   },
   {
     title: "Receba suas artes",
-    description: "A Mavik cria opções e você ajusta o que quiser.",
+    description: "A Zaion cria opções e você ajusta o que quiser.",
   },
   {
     title: "Revise e agende",
@@ -19,7 +19,7 @@ const steps = [
 export function SignUpBrandPanel() {
   return (
     <AuthBrandPanel
-      ariaLabel="Como a Mavik funciona"
+      ariaLabel="Como a Zaion funciona"
       title="Seus primeiros posts em poucos minutos."
       description="Três passos e sua marca ganha uma rotina de conteúdo."
     >

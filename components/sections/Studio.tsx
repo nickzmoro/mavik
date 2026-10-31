@@ -62,7 +62,7 @@ export function Studio() {
             </motion.div>
           }
         >
-          {/* Mockup Real do Editor Mavik */}
+          {/* Mockup Real do Editor Zaion */}
           <div className="relative w-full h-full flex flex-col justify-between bg-[#12092B] rounded-xl overflow-hidden font-sans border border-[#3A2A72]/80">
             {/* Topbar do Editor */}
             <div className="h-10 sm:h-12 border-b border-[#3A2A72]/60 px-3 sm:px-4 flex items-center justify-between bg-[#1A0F3C]/90 text-xs">
@@ -73,7 +73,7 @@ export function Studio() {
                   <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500/80" />
                 </div>
                 <span className="text-[#B9B0D6] border-l border-[#3A2A72] pl-2 sm:pl-3 font-medium text-[11px] sm:text-xs truncate max-w-32.5 sm:max-w-none">
-                  Campanha_Feed_01.mavik
+                  Campanha_Feed_01.zaion
                 </span>
               </div>
 
@@ -124,8 +124,8 @@ export function Studio() {
                   <div className="relative z-10 flex items-center justify-between">
                     <div className="p-1 sm:p-1.5 rounded-lg bg-[#12092B]/80 border border-[#B390FA]/30">
                       <Image
-                        src="/mavik-logo-dark.webp"
-                        alt="Logo Mavik"
+                        src="/zaion-logo-dark.webp"
+                        alt="Logo Zaion"
                         width={60}
                         height={18}
                         className="h-3.5 sm:h-4 w-auto object-contain"

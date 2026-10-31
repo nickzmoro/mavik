@@ -7,7 +7,7 @@ export function AuthFaviconIcon() {
       className="mb-2 flex size-14 items-center justify-center"
     >
       <Image
-        src="/mavik-logo-favicon.webp"
+        src="/zaion-logo-favicon.webp"
         alt=""
         width={63}
         height={64}

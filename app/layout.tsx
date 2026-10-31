@@ -19,7 +19,8 @@ const inter = Inter({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mavik.com.br";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://zaiontechbr.com.br";
 
 export const viewport: Viewport = {
   themeColor: "#12092B",
@@ -32,8 +33,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Mavik — Sua equipe de marketing em um só estúdio com IA",
-    template: "%s | Mavik",
+    default: "Zaion — Sua equipe de marketing em um só estúdio com IA",
+    template: "%s | Zaion",
   },
   description:
     "Crie artes com IA no padrão da sua marca, edite no estúdio visual com camadas reais e agende semanas de conteúdo em minutos. Sem logos tortas, sem alucinações visuais.",
@@ -47,13 +48,13 @@ export const metadata: Metadata = {
     "design com inteligência artificial",
     "editor visual em camadas",
     "software de marketing digital",
-    "mavik",
-    "mavik ia",
+    "zaion",
+    "zaion ia",
   ],
-  authors: [{ name: "Mavik", url: siteUrl }],
-  creator: "Mavik",
-  publisher: "Mavik",
-  applicationName: "Mavik",
+  authors: [{ name: "Zaion", url: siteUrl }],
+  creator: "Zaion",
+  publisher: "Zaion",
+  applicationName: "Zaion",
   category: "technology",
   formatDetection: {
     email: false,
@@ -64,11 +65,11 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Mavik — Sua equipe de marketing em um só estúdio",
+    title: "Zaion — Sua equipe de marketing em um só estúdio",
     description:
       "Crie artes no padrão da sua marca, edite no estúdio visual com camadas reais e agende semanas de conteúdo em minutos.",
     url: "/",
-    siteName: "Mavik",
+    siteName: "Zaion",
     locale: "pt_BR",
     type: "website",
     images: [
@@ -76,18 +77,18 @@ export const metadata: Metadata = {
         url: "/og-image.webp",
         width: 1200,
         height: 630,
-        alt: "Mavik — Crie seu post com IA em segundos no estúdio de marketing visual",
+        alt: "Zaion — Crie seu post com IA em segundos no estúdio de marketing visual",
         type: "image/webp",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mavik — Sua equipe de marketing em um só estúdio",
+    title: "Zaion — Sua equipe de marketing em um só estúdio",
     description:
       "Crie artes no padrão da sua marca, edite no estúdio visual com camadas reais e agende semanas de conteúdo em minutos.",
     images: ["/og-image.webp"],
-    creator: "@mavik_ai",
+    creator: "@zaiontechbr",
   },
   robots: {
     index: true,
@@ -102,10 +103,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/mavik-logo-favicon.webp" },
-      { url: "/mavik-logo-favicon.webp", sizes: "32x32", type: "image/webp" },
+      { url: "/zaion-logo-favicon.webp" },
+      { url: "/zaion-logo-favicon.webp", sizes: "32x32", type: "image/webp" },
     ],
-    apple: [{ url: "/mavik-logo-favicon.webp" }],
+    apple: [{ url: "/zaion-logo-favicon.webp" }],
   },
 };
 
@@ -120,11 +121,11 @@ export default function RootLayout({
       {
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
-        name: "Mavik",
+        name: "Zaion",
         url: siteUrl,
         logo: {
           "@type": "ImageObject",
-          url: `${siteUrl}/mavik-logo-dark.webp`,
+          url: `${siteUrl}/zaion-logo-dark.webp`,
           width: "200",
           height: "60",
         },
@@ -134,7 +135,7 @@ export default function RootLayout({
       {
         "@type": "WebApplication",
         "@id": `${siteUrl}/#webapp`,
-        name: "Mavik",
+        name: "Zaion",
         url: siteUrl,
         applicationCategory: "BusinessApplication, DesignApplication",
         operatingSystem: "All",
@@ -171,7 +172,7 @@ export default function RootLayout({
           },
           {
             "@type": "Question",
-            name: "Preciso saber design para usar a Mavik?",
+            name: "Preciso saber design para usar a Zaion?",
             acceptedAnswer: {
               "@type": "Answer",
               text: "Não. O sistema cuida da hierarquia e das regras de design, mas profissionais possuem controle total para editar cada camada.",

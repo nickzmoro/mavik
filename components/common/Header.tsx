@@ -96,14 +96,14 @@ export function Header() {
           href="#hero"
           onClick={(e) => handleNavClick(e, "#hero", "Início")}
           className="flex items-center gap-2.5 group focus:outline-hidden rounded-xl transition-all"
-          aria-label="Mavik — Página Inicial"
+          aria-label="Zaion — Página Inicial"
         >
           {isLightSection ? (
             /* Logo para Fundo Claro: Logo roxa fornecida pelo usuário + Tipografia Sora escura */
             <div className="relative flex items-center justify-center p-1 rounded-xl transition-transform group-hover:scale-105">
               <Image
-                src="/mavik-logo-light.webp"
-                alt="Mavik Logo"
+                src="/zaion-logo-light.webp"
+                alt="Zaion Logo"
                 width={100}
                 height={32}
                 priority
@@ -114,8 +114,8 @@ export function Header() {
             /* Logo para Fundo Escuro: Logo branca original */
             <div className="relative flex items-center justify-center p-1 rounded-xl transition-transform group-hover:scale-105">
               <Image
-                src="/mavik-logo-dark.webp"
-                alt="Mavik Logo"
+                src="/zaion-logo-dark.webp"
+                alt="Zaion Logo"
                 width={100}
                 height={32}
                 priority

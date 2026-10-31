@@ -95,7 +95,7 @@ export function InstagramConnectionCard({
     <BrandCard
       titleId="instagram-connection-title"
       title="Instagram"
-      hint="Conecte a conta profissional da loja para o Mavik publicar os posts agendados."
+      hint="Conecte a conta profissional da loja para a Zaion publicar os posts agendados."
     >
       {resultAlert ? (
         <Alert variant={resultAlert.variant}>
@@ -157,8 +157,8 @@ export function InstagramConnectionCard({
       </div>
 
       <BrandSmallText>
-        Ao desconectar, apagamos o acesso guardado no Mavik e revogamos as
-        permissões do Mavik na sua conta do Facebook.
+        Ao desconectar, apagamos o acesso guardado na Zaion e revogamos as
+        permissões da Zaion na sua conta do Facebook.
       </BrandSmallText>
     </BrandCard>
   );

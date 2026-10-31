@@ -31,8 +31,8 @@ export function AuthBrandPanel({
       <div className="relative flex items-center">
         <Link href="/">
           <Image
-            src="/mavik-logo-dark.webp"
-            alt="Mavik"
+            src="/zaion-logo-dark.webp"
+            alt="Zaion"
             width={2843}
             height={735}
             className="block h-8 w-auto"
@@ -54,7 +54,7 @@ export function AuthBrandPanel({
       </div>
 
       <p className="relative m-0 text-xs leading-[1.4] font-medium text-muted">
-        © 2026 Mavik. Todos os direitos reservados.
+        © 2026 Zaion. Todos os direitos reservados.
       </p>
     </aside>
   );

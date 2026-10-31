@@ -1,9 +1,9 @@
-# Mavik — Sua equipe de marketing em um só estúdio
+# Zaion — Sua equipe de marketing em um só estúdio
 
-> Mavik é uma plataforma SaaS de marketing com Inteligência Artificial que une criação de artes em camadas reais, blindagem de brandbook e agendamento automático de conteúdo em um único estúdio visual.
+> Zaion é uma plataforma SaaS de marketing com Inteligência Artificial que une criação de artes em camadas reais, blindagem de brandbook e agendamento automático de conteúdo em um único estúdio visual.
 
 ## Visão Geral
-Diferente de geradores de imagem genéricos que achatam e redesenham logotipos e alucinam elementos visuais, a Mavik trabalha com estúdio de camadas reais editáveis (background, tipografia, selos e vetor original da marca). A plataforma garante fidelidade visual absoluta ao brandbook da empresa, com textos coerentes e contraste acessível pré-validado.
+Diferente de geradores de imagem genéricos que achatam e redesenham logotipos e alucinam elementos visuais, a Zaion trabalha com estúdio de camadas reais editáveis (background, tipografia, selos e vetor original da marca). A plataforma garante fidelidade visual absoluta ao brandbook da empresa, com textos coerentes e contraste acessível pré-validado.
 
 ## Proposta de Valor
 - **Brandbook 100% Blindado**: O arquivo original do logotipo (SVG/PNG em alta resolução) é aplicado intacto. A IA nunca redesenha, distorce ou altera as cores da sua marca.
@@ -38,5 +38,5 @@ Diferente de geradores de imagem genéricos que achatam e redesenham logotipos e
 - **Em quanto tempo tenho a primeira arte?** Em poucos minutos após cadastrar a identidade visual.
 
 ## Contato e Demonstração
-- **Website Oficial**: https://mavik-ai.vercel.app
-- **Demonstração Gratuita**: https://mavik-ai.vercel.app/#experimentar
+- **Website Oficial**: https://zaiontechbr.com.br
+- **Demonstração Gratuita**: https://zaiontechbr.com.br/#experimentar
