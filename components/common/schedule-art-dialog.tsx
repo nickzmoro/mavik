@@ -33,7 +33,7 @@ import {
   type ScheduleArtFormValues,
 } from "@/lib/validations/studio";
 
-import { getScheduleDayOptions } from "../utils/schedule-days";
+import { getScheduleDayOptions } from "@/lib/schedule-days";
 
 const scheduleArtFormId = "schedule-art-form";
 

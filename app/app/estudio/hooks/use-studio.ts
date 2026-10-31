@@ -36,7 +36,7 @@ import type {
 import { usePostDraft } from "@/providers/post-draft-provider";
 import { useToast } from "@/providers/toast-provider";
 
-import { toScheduledAt } from "../utils/schedule-days";
+import { toScheduledAt } from "@/lib/schedule-days";
 
 export type StudioMode = "guided" | "free";
 export type StudioPhase = "idle" | "generating" | "done";

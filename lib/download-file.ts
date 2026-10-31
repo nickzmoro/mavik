@@ -11,3 +11,9 @@ export function downloadFile(fileName: string, file: Blob | string) {
     window.setTimeout(() => URL.revokeObjectURL(fileUrl), 1000);
   }
 }
+
+export async function downloadImage(imageUrl: string, fileName: string) {
+  const imageBlob = await fetch(imageUrl).then((response) => response.blob());
+
+  downloadFile(fileName, imageBlob);
+}

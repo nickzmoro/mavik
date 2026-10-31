@@ -1,13 +1,14 @@
 "use client";
 
+import { ScheduleArtDialog } from "@/components/common/schedule-art-dialog";
 import type { StudioArtwork } from "@/lib/content/get-studio-artwork";
+import { downloadImage } from "@/lib/download-file";
 import type { ScheduleArtFormValues } from "@/lib/validations/studio";
 import { usePostDraft } from "@/providers/post-draft-provider";
 import { useToast } from "@/providers/toast-provider";
 
 import { useStudio, type StudioDialog } from "../hooks/use-studio";
 import { AiEditorDialog } from "./ai-editor-dialog";
-import { ScheduleArtDialog } from "./schedule-art-dialog";
 import { StudioHeader } from "./studio-header";
 import { StudioPreviewPanel } from "./studio-preview-panel";
 import { StudioRequestPanel } from "./studio-request-panel";
@@ -41,14 +42,10 @@ function StudioWorkspaceContent({ initialArtwork }: StudioWorkspaceProps) {
 
   const handleDownload = async (variationIndex: number) => {
     try {
-      const imageBlob = await fetch(studio.imageUrls[variationIndex]).then(
-        (response) => response.blob(),
+      await downloadImage(
+        studio.imageUrls[variationIndex],
+        `arte-variacao-${variationIndex + 1}.png`,
       );
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(imageBlob);
-      link.download = `arte-variacao-${variationIndex + 1}.png`;
-      link.click();
-      URL.revokeObjectURL(link.href);
       showToast(`Variação ${variationIndex + 1} baixada em PNG`);
     } catch {
       showToast("Não foi possível baixar a arte");
