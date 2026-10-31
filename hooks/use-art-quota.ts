@@ -48,3 +48,5 @@ export function useArtQuota(initialVariationCount?: number) {
     getQuotaError,
   };
 }
+
+export type ArtQuota = ReturnType<typeof useArtQuota>;

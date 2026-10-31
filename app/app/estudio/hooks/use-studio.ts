@@ -8,6 +8,7 @@ import { useGenerateImage } from "@/hooks/mutations/use-generate-image";
 import { usePublishArtworkNow } from "@/hooks/mutations/use-publish-artwork-now";
 import { useScheduleArtwork } from "@/hooks/mutations/use-schedule-artwork";
 import { useArtQuota } from "@/hooks/use-art-quota";
+import { useArtworkAdjustment } from "@/hooks/use-artwork-adjustment";
 import { useAttachments } from "@/hooks/use-attachments";
 import { compressImageDataUrl } from "@/lib/compress-image-data-url";
 import { findArtFormat, formatArtCount } from "@/lib/art-options";
@@ -67,6 +68,10 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
     approvedDraft?.formatId ?? (initialArtwork?.isStory ? "story" : "portrait"),
   );
   const quota = useArtQuota(approvedDraft?.variationCount);
+  const artworkAdjustment = useArtworkAdjustment({
+    quota,
+    onLimitReached: () => setDialog("limit"),
+  });
   const [approvedCopy, setApprovedCopy] = useState<
     ApprovedCopyEntry[] | undefined
   >(
@@ -90,6 +95,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
           {
             imageUrl: initialArtwork.imageUrl,
             artworkId: initialArtwork.artworkId,
+            version: initialArtwork.version,
             formatId: initialArtwork.isStory ? "story" : "portrait",
           },
         ]
@@ -98,7 +104,6 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   const [lastPrompt, setLastPrompt] = useState(initialPrompt);
   const [editorOriginalImage, setEditorOriginalImage] =
     useState<StudioImage | null>(null);
-  const [isAdjusting, setIsAdjusting] = useState(false);
 
   const imageUrls = generatedImages.map((image) => image.imageUrl);
   const { variationCount, remainingArts } = quota;
@@ -275,41 +280,25 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
       return false;
     }
 
-    if (remainingArts <= 0) {
-      setDialog("limit");
+    const adjustedImage = await artworkAdjustment.adjustArtwork({
+      artworkId: generatedImages[activeVariation]?.artworkId,
+      imageUrl: currentImageUrl,
+      prompt: lastPrompt,
+      editInstruction,
+      formatId: resultFormat.id,
+      variationIndex: activeVariation,
+    });
+
+    if (!adjustedImage) {
       return false;
     }
 
-    setIsAdjusting(true);
+    replaceImage(activeVariation, {
+      ...adjustedImage,
+      formatId: resultFormat.id,
+    });
 
-    try {
-      const referenceImage = await compressImageDataUrl(currentImageUrl);
-      const adjustedImage = await generateImageMutation.mutateAsync({
-        prompt: lastPrompt,
-        referenceImage,
-        editInstruction,
-        format: resultFormat.id,
-        variationIndex: activeVariation,
-      });
-
-      replaceImage(activeVariation, {
-        ...adjustedImage,
-        formatId: resultFormat.id,
-      });
-      quota.registerUsedArts(1);
-
-      return true;
-    } catch (error) {
-      showToast(
-        error instanceof Error
-          ? error.message
-          : "Não conseguimos ajustar a arte. Tente de novo.",
-      );
-
-      return false;
-    } finally {
-      setIsAdjusting(false);
-    }
+    return true;
   };
 
   const postTitle = lastPrompt.split("\n")[0].trim().slice(0, 120);
@@ -404,8 +393,21 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
   };
 
   const discardAdjustments = () => {
+    const currentImage = generatedImages[activeVariation];
+
     if (editorOriginalImage) {
       replaceImage(activeVariation, editorOriginalImage);
+    }
+
+    if (
+      editorOriginalImage?.artworkId &&
+      editorOriginalImage.version &&
+      currentImage?.version !== editorOriginalImage.version
+    ) {
+      artworkAdjustment.discardAdjustments({
+        artworkId: editorOriginalImage.artworkId,
+        keepVersion: editorOriginalImage.version,
+      });
     }
 
     setDialog("none");
@@ -435,7 +437,7 @@ export function useStudio(initialArtwork: StudioArtwork | null) {
     imageUrls,
     defaultPrompt: initialPrompt,
     selectedVariation: activeVariation,
-    isAdjusting,
+    isAdjusting: artworkAdjustment.isAdjusting,
     isScheduling: scheduleArtworkMutation.isPending,
     isPublishing: publishArtworkNowMutation.isPending,
     isGeneratingCaption: generatePostCaptionMutation.isPending,

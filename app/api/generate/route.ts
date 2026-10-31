@@ -8,6 +8,10 @@ import {
   getBrandContext,
   type BrandContext,
 } from "@/lib/brand/get-brand-context";
+import {
+  appendArtworkVersion,
+  getLatestArtworkRender,
+} from "@/lib/content/artwork-versions";
 import { saveArtworkDraft } from "@/lib/content/save-artwork-draft";
 import {
   buildApprovedCopyInstruction,
@@ -88,6 +92,8 @@ The image must contain no text, letters, logos, signs or labels, unless the user
 Output ONLY the final English prompt for GPT Image, in a single paragraph, with no preamble, quotes or explanations.`;
 
 const errorMessages = {
+  artworkNotFound:
+    "Não encontramos essa arte. Abra de novo pela lista de artes.",
   notConfigured:
     "A geração de artes ainda não está configurada. Fale com o suporte.",
   unauthorized: "Sua sessão expirou. Entre de novo para gerar artes.",
@@ -463,6 +469,23 @@ export async function POST(request: Request) {
     await registerAttempt(userKey, generateImageRateLimitRule);
   }
 
+  const editedArtworkId = parsedInput.data.editInstruction
+    ? parsedInput.data.artworkId
+    : undefined;
+  const storedRender = editedArtworkId
+    ? await getLatestArtworkRender(claims.sub, editedArtworkId)
+    : null;
+
+  if (editedArtworkId && !storedRender) {
+    return errorResponse(errorMessages.artworkNotFound, 404);
+  }
+
+  const imageInput = storedRender
+    ? {
+        ...parsedInput.data,
+        referenceImage: `data:image/png;base64,${storedRender.toString("base64")}`,
+      }
+    : parsedInput.data;
   const openai = new OpenAI({ apiKey });
 
   try {
@@ -472,7 +495,7 @@ export async function POST(request: Request) {
       format,
       variationIndex,
       approvedCopy,
-    } = parsedInput.data;
+    } = imageInput;
     const approvedCopyInstruction = editInstruction
       ? ""
       : buildApprovedCopyInstruction(approvedCopy ?? []);
@@ -492,7 +515,7 @@ export async function POST(request: Request) {
         };
     const writtenPrompt = await writeImagePrompt(
       openai,
-      parsedInput.data,
+      imageInput,
       brandContext,
       brandFiles,
       approvedCopyInstruction,
@@ -549,18 +572,29 @@ export async function POST(request: Request) {
           return generatedImage;
         })
       : generatedImage;
-    const artworkId = await saveArtworkDraft({
-      userId: claims.sub,
-      image: finalImage,
-      prompt: editInstruction
-        ? `${parsedInput.data.prompt}\n\nAjuste: ${editInstruction}`
-        : parsedInput.data.prompt,
-      format: imageFormats[format].contentFormat,
-    });
+    const savedArtwork =
+      editedArtworkId && editInstruction
+        ? await appendArtworkVersion({
+            userId: claims.sub,
+            artworkId: editedArtworkId,
+            image: finalImage,
+            editInstruction,
+          })
+        : await saveArtworkDraft({
+            userId: claims.sub,
+            image: finalImage,
+            prompt: editInstruction
+              ? `${parsedInput.data.prompt}\n\nAjuste: ${editInstruction}`
+              : parsedInput.data.prompt,
+            format: imageFormats[format].contentFormat,
+          }).then((artworkId) =>
+            artworkId ? { artworkId, version: 1 } : null,
+          );
 
     return NextResponse.json({
       imageUrl: `data:image/png;base64,${finalImage.toString("base64")}`,
-      artworkId,
+      artworkId: savedArtwork?.artworkId,
+      version: savedArtwork?.version,
     });
   } catch (error) {
     if (error instanceof APIError) {

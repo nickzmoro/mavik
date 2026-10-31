@@ -54,12 +54,21 @@ export const generateImageSchema = z
       .min(0)
       .max(maxVariationsPerGeneration - 1),
     approvedCopy: z.array(approvedCopyEntrySchema).max(12).optional(),
+    artworkId: z.uuid().optional(),
   })
-  .refine((input) => !input.editInstruction || input.referenceImage, {
-    error: "Não encontramos a arte para ajustar. Gere de novo.",
-    path: ["referenceImage"],
-  });
+  .refine(
+    (input) =>
+      !input.editInstruction || input.referenceImage || input.artworkId,
+    {
+      error: "Não encontramos a arte para ajustar. Gere de novo.",
+      path: ["referenceImage"],
+    },
+  );
 
 export type GenerateImageFormValues = z.infer<typeof generateImageFormSchema>;
 export type GenerateImageInput = z.infer<typeof generateImageSchema>;
-export type GenerateImageResult = { imageUrl: string; artworkId?: string };
+export type GenerateImageResult = {
+  imageUrl: string;
+  artworkId?: string;
+  version?: number;
+};

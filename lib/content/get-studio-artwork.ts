@@ -15,6 +15,7 @@ export type StudioArtwork = {
   prompt: string;
   caption: string;
   imageUrl: string;
+  version: number;
   isStory: boolean;
 };
 
@@ -45,7 +46,10 @@ export async function getStudioArtwork(
 
   const [[latestVersion], imageUrlByArtwork] = await Promise.all([
     db
-      .select({ caption: artworkVersions.caption })
+      .select({
+        caption: artworkVersions.caption,
+        version: artworkVersions.version,
+      })
       .from(artworkVersions)
       .where(eq(artworkVersions.artworkId, artworkId))
       .orderBy(desc(artworkVersions.version))
@@ -54,7 +58,7 @@ export async function getStudioArtwork(
   ]);
   const imageUrl = imageUrlByArtwork.get(artworkId);
 
-  if (!imageUrl) {
+  if (!imageUrl || !latestVersion) {
     return null;
   }
 
@@ -64,6 +68,7 @@ export async function getStudioArtwork(
     prompt: artwork.prompt ?? "",
     caption: latestVersion?.caption ?? artwork.contentCaption ?? "",
     imageUrl,
+    version: latestVersion.version,
     isStory: artwork.format === "story",
   };
 }
